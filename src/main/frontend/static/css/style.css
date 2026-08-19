@@ -1,0 +1,14 @@
+@charset "UTF-8";
+
+/*
+ * EduRepo stylesheet entry point.
+ * Keep imports in this order because later modules refine shared components.
+ */
+@import url("./foundation.css");
+@import url("./components/header.css");
+@import url("./pages/repository.css");
+@import url("./pages/document-detail.css");
+@import url("./pages/login.css");
+@import url("./app-shell.css");
+@import url("./components/footer.css");
+@import url("./responsive.css");

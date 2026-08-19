@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<header class="site-header" th:fragment="header">
+    <a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+
+    <div class="topbar">
+        <a class="brand" th:href="@{/repository}" aria-label="EduRepo - Về trang chủ">
+            <span class="brand-mark" aria-hidden="true">
+                <span class="brand-mark-book"></span>
+            </span>
+            <span class="brand-copy">
+                <strong>EduRepo</strong>
+                <small>Digital Learning Library</small>
+            </span>
+        </a>
+
+        <button class="nav-toggle icon-button" type="button"
+                aria-controls="primary-navigation" aria-expanded="false"
+                data-nav-toggle>
+            <span class="nav-toggle-lines" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="sr-only">Mở menu điều hướng</span>
+        </button>
+
+        <nav class="topnav" id="primary-navigation" aria-label="Điều hướng chính" data-primary-nav>
+            <a th:href="@{/repository}" data-nav-link>
+                <span class="nav-dot" aria-hidden="true"></span>
+                Kho học liệu
+            </a>
+            <a sec:authorize="hasAnyRole('SUBMITTER','ADMIN')" th:href="@{/documents/new}" data-nav-link>
+                Nộp tài liệu
+            </a>
+            <a sec:authorize="hasAnyRole('REVIEWER','ADMIN')" th:href="@{/reviews/pending}" data-nav-link>
+                Kiểm duyệt
+            </a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/dashboard}" data-nav-link>
+                Bảng điều khiển
+            </a>
+        </nav>
+
+        <div class="header-actions">
+            <span class="header-trust" sec:authorize="isAnonymous()">
+                <span class="status-pulse" aria-hidden="true"></span>
+                Kho học liệu mở
+            </span>
+            <a class="button button-sm header-login" sec:authorize="isAnonymous()" th:href="@{/login}"
+               aria-label="Đăng nhập">
+                <span class="header-login-label">Đăng nhập</span>
+                <span aria-hidden="true">→</span>
+            </a>
+
+            <div class="account-summary" sec:authorize="isAuthenticated()">
+                <span class="account-avatar" aria-hidden="true">ER</span>
+                <span class="account-copy">
+                    <small>Tài khoản</small>
+                    <strong sec:authentication="name">user@edurepo.vn</strong>
+                </span>
+            </div>
+            <form class="logout-form" sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post">
+                <button class="icon-button logout-button" type="submit" title="Đăng xuất" aria-label="Đăng xuất">
+                    <span aria-hidden="true">↗</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <button class="nav-backdrop" type="button" aria-label="Đóng menu" data-nav-backdrop></button>
+    <script type="module" th:src="@{/js/main.js}"></script>
+</header>
+</body>
+</html>

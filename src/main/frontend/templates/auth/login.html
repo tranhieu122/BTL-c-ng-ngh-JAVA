@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Đăng nhập vào hệ thống quản lý học liệu EduRepo.">
+    <title>Đăng nhập | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="auth-page">
+<a class="skip-link" href="#login-form">Đi tới biểu mẫu đăng nhập</a>
+
+<main class="auth-shell">
+    <section class="auth-showcase" aria-labelledby="showcase-title">
+        <div class="auth-decoration auth-decoration-one" aria-hidden="true"></div>
+        <div class="auth-decoration auth-decoration-two" aria-hidden="true"></div>
+
+        <a class="brand brand-inverse auth-brand" th:href="@{/repository}" aria-label="EduRepo - Về trang chủ">
+            <span class="brand-mark" aria-hidden="true"><span class="brand-mark-book"></span></span>
+            <span class="brand-copy"><strong>EduRepo</strong><small>Digital Learning Library</small></span>
+        </a>
+
+        <div class="auth-message">
+            <div class="hero-badge auth-badge"><span aria-hidden="true">✦</span> Nền tảng học liệu số</div>
+            <h1 id="showcase-title">Tri thức được tổ chức.<br><span>Tiến bộ được mở lối.</span></h1>
+            <p>Quản lý, kiểm duyệt và chia sẻ học liệu trong một quy trình minh bạch dành cho cộng đồng giáo dục.</p>
+        </div>
+
+        <div class="workflow-card" aria-label="Quy trình tài liệu">
+            <div class="workflow-head">
+                <div><small>Quy trình EduRepo</small><strong>Từ bản nháp đến công bố</strong></div>
+                <span class="workflow-live"><i></i> Hoạt động</span>
+            </div>
+            <ol class="workflow-steps">
+                <li class="complete"><span>1</span><p><strong>Nộp tài liệu</strong><small>Thông tin và tệp đính kèm</small></p><i>✓</i></li>
+                <li class="active"><span>2</span><p><strong>Kiểm duyệt</strong><small>Phản hồi minh bạch</small></p><i>•••</i></li>
+                <li><span>3</span><p><strong>Công bố</strong><small>Chia sẻ cùng cộng đồng</small></p><i>○</i></li>
+            </ol>
+        </div>
+
+        <div class="auth-trust-row">
+            <span><i aria-hidden="true">✓</i> Phân quyền an toàn</span>
+            <span><i aria-hidden="true">✓</i> Lịch sử minh bạch</span>
+        </div>
+    </section>
+
+    <section class="auth-card" aria-labelledby="login-title">
+        <div class="mobile-auth-brand">
+            <a class="brand" th:href="@{/repository}">
+                <span class="brand-mark" aria-hidden="true"><span class="brand-mark-book"></span></span>
+                <span class="brand-copy"><strong>EduRepo</strong><small>Digital Learning Library</small></span>
+            </a>
+        </div>
+
+        <div class="auth-card-content">
+            <div class="auth-card-heading">
+                <p class="eyebrow">Chào mừng trở lại</p>
+                <h2 id="login-title">Đăng nhập tài khoản</h2>
+                <p>Sử dụng email và mật khẩu EduRepo đã được cấp cho bạn.</p>
+            </div>
+
+            <div class="alert error auth-alert" th:if="${param.error}" role="alert" aria-live="assertive">
+                <span class="alert-icon" aria-hidden="true">!</span>
+                <div><strong>Không thể đăng nhập</strong><p>Email hoặc mật khẩu chưa chính xác. Vui lòng kiểm tra lại.</p></div>
+                <button type="button" data-dismiss-alert aria-label="Đóng thông báo">×</button>
+            </div>
+            <div class="alert success auth-alert" th:if="${param.logout}" role="status" aria-live="polite">
+                <span class="alert-icon" aria-hidden="true">✓</span>
+                <div><strong>Đã đăng xuất</strong><p>Phiên làm việc của bạn đã kết thúc an toàn.</p></div>
+                <button type="button" data-dismiss-alert aria-label="Đóng thông báo">×</button>
+            </div>
+            <div class="alert success auth-alert" th:if="${registered}" role="status" aria-live="polite">
+                <span class="alert-icon" aria-hidden="true">✓</span>
+                <div><strong>Đăng ký thành công</strong><p>Bạn có thể đăng nhập bằng tài khoản vừa tạo.</p></div>
+            </div>
+
+            <form id="login-form" th:action="@{/login}" method="post" class="login-form" data-login-form>
+                <div class="form-field">
+                    <label for="email">Địa chỉ email</label>
+                    <div class="input-shell">
+                        <span class="input-icon" aria-hidden="true">@</span>
+                        <input id="email" type="email" name="email" placeholder="name@example.com"
+                               required autofocus autocomplete="username" inputmode="email">
+                        <span class="input-valid" aria-hidden="true">✓</span>
+                    </div>
+                    <small class="field-hint">Email tài khoản đã đăng ký trên hệ thống.</small>
+                </div>
+
+                <div class="form-field">
+                    <div class="label-row"><label for="password">Mật khẩu</label><span>Bảo mật bởi BCrypt</span></div>
+                    <div class="input-shell">
+                        <span class="input-icon lock-icon" aria-hidden="true">•</span>
+                        <input id="password" type="password" name="password" placeholder="Nhập mật khẩu"
+                               required autocomplete="current-password" data-password-input>
+                        <button class="password-toggle" type="button" data-password-toggle
+                                aria-controls="password" aria-pressed="false">
+                            <span aria-hidden="true" data-password-icon>◉</span>
+                            <span class="sr-only" data-password-label>Hiện mật khẩu</span>
+                        </button>
+                    </div>
+                    <small class="caps-lock-warning" data-caps-warning hidden>
+                        <span aria-hidden="true">!</span> Caps Lock đang bật
+                    </small>
+                </div>
+
+                <button class="login-submit" type="submit" data-submit-button>
+                    <span class="button-label">Đăng nhập</span>
+                    <span class="button-arrow" aria-hidden="true">→</span>
+                    <span class="button-spinner" aria-hidden="true"></span>
+                </button>
+            </form>
+
+            <div class="auth-links"><a th:href="@{/forgot-password}">Quên mật khẩu?</a><span>Chưa có tài khoản? <a th:href="@{/register}">Đăng ký ngay</a></span></div>
+
+            <div class="login-security-note">
+                <span class="security-note-icon" aria-hidden="true">✓</span>
+                <p><strong>Kết nối được bảo vệ</strong><small>Thông tin đăng nhập chỉ được dùng để xác thực tài khoản của bạn.</small></p>
+            </div>
+
+            <a class="back-link" th:href="@{/repository}"><span aria-hidden="true">←</span> Quay lại kho học liệu</a>
+        </div>
+
+        <div class="auth-card-footer">
+            <span>EduRepo Access Portal</span>
+            <span><i aria-hidden="true"></i> Hệ thống sẵn sàng</span>
+        </div>
+    </section>
+    </main>
+
+<div class="toast-region" aria-live="polite" aria-atomic="true" data-toast-region></div>
+<script type="module" th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<mxfile host="Electron" agent="Antigravity">
+  <diagram id="UC_Reader" name="Use Case - Người Đọc">
+    <mxGraphModel dx="1373" dy="835" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="hdr" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#BFDBFE;align=center;verticalAlign=middle;" value="&lt;b&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;SƠ ĐỒ USE CASE: PHÂN HỆ NGƯỜI ĐỌC (READER)&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="1120" x="50" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=2;verticalAlign=top;align=center;spacingTop=12;" value="&lt;b&gt;&lt;font style=&quot;font-size: 15px;&quot; color=&quot;#1E3A8A&quot;&gt;PHÂN HỆ NGƯỜI ĐỌC ĐÃ ĐĂNG NHẬP (READER PORTAL)&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="740" width="830" x="350" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="act_guest" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#64748B;strokeColor=#334155;fontColor=#0F172A;fontSize=12;" value="&lt;b&gt;Khách vãng lai&lt;/b&gt;&lt;br&gt;(Guest)" vertex="1">
+          <mxGeometry height="100" width="60" x="105" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="act_reader" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#0284C7;strokeColor=#0369A1;fontColor=#0F172A;fontSize=13;" value="&lt;b&gt;Người đọc&lt;/b&gt;&lt;br&gt;(Reader)" vertex="1">
+          <mxGeometry height="120" width="70" x="100" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="e_inh" edge="1" parent="1" source="act_reader" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=0;strokeColor=#0284C7;strokeWidth=2;" target="act_guest" value="«kế thừa»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_1" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#1D4ED8;strokeWidth=1.5;fontStyle=1;fontSize=12;" value="Đăng nhập / Đăng xuất&#xa;&amp; Đổi mật khẩu" vertex="1">
+          <mxGeometry height="65" width="240" x="400" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_2" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#1D4ED8;strokeWidth=1.5;fontStyle=1;fontSize=12;" value="Tìm kiếm nâng cao&#xa;(Lọc Khoa, Loại, Năm, Tác giả)" vertex="1">
+          <mxGeometry height="65" width="240" x="470" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_3" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#1D4ED8;strokeWidth=1.5;fontStyle=1;fontSize=12;" value="Đọc tài liệu trực tuyến&#xa;(PDF Viewer tích hợp)" vertex="1">
+          <mxGeometry height="65" width="240" x="460" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_4" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#1D4ED8;strokeWidth=1.5;fontStyle=1;fontSize=12;" value="Tải tệp tin tài liệu&#xa;(Download PDF / Phụ lục)" vertex="1">
+          <mxGeometry height="65" width="240" x="460" y="447.5" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_5" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#1D4ED8;strokeWidth=1.5;fontStyle=1;fontSize=12;" value="Gửi bình luận &amp; Đánh giá sao&#xa;(Nhận xét, trao đổi học thuật)" vertex="1">
+          <mxGeometry height="65" width="240" x="470" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_6" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#1D4ED8;strokeWidth=1.5;fontStyle=1;fontSize=12;" value="Lưu tài liệu yêu thích&#xa;(Bookmark / Đọc sau)" vertex="1">
+          <mxGeometry height="65" width="240" x="440" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_7" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#1D4ED8;strokeWidth=1.5;fontStyle=1;fontSize=12;" value="Xem thống kê cá nhân&#xa;(Lịch sử đã xem &amp; Đã tải)" vertex="1">
+          <mxGeometry height="65" width="240" x="400" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_inc_perm" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FEF2F2;strokeColor=#EF4444;strokeWidth=1.5;fontStyle=1;fontSize=11;" value="Kiểm tra quyền truy cập&#xa;(Phạm vi PUBLIC / INTERNAL)" vertex="1">
+          <mxGeometry height="65" width="250" x="850" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_inc_log" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FEF2F2;strokeColor=#EF4444;strokeWidth=1.5;fontStyle=1;fontSize=11;" value="Ghi nhật ký tải &amp; đọc&#xa;(Download / View Logs)" vertex="1">
+          <mxGeometry height="65" width="250" x="850" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="e_r1" edge="1" parent="1" source="act_reader" style="rounded=1;html=1;endArrow=none;strokeColor=#1D4ED8;strokeWidth=2;" target="uc_1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_r2" edge="1" parent="1" source="act_reader" style="rounded=1;html=1;endArrow=none;strokeColor=#1D4ED8;strokeWidth=2;" target="uc_2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_r3" edge="1" parent="1" source="act_reader" style="rounded=1;html=1;endArrow=none;strokeColor=#1D4ED8;strokeWidth=2;" target="uc_3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_r4" edge="1" parent="1" source="act_reader" style="rounded=1;html=1;endArrow=none;strokeColor=#1D4ED8;strokeWidth=2;" target="uc_4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_r5" edge="1" parent="1" source="act_reader" style="rounded=1;html=1;endArrow=none;strokeColor=#1D4ED8;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="uc_5">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="400" y="572.47" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_r6" edge="1" parent="1" source="act_reader" style="rounded=1;html=1;endArrow=none;strokeColor=#1D4ED8;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="uc_6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_r7" edge="1" parent="1" source="act_reader" style="rounded=1;html=1;endArrow=none;strokeColor=#1D4ED8;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="uc_7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_inc1" edge="1" parent="1" source="uc_3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=open;dashed=1;strokeColor=#EF4444;strokeWidth=1.5;" target="uc_inc_perm" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_inc2" edge="1" parent="1" source="uc_4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=open;dashed=1;strokeColor=#EF4444;strokeWidth=1.5;" target="uc_inc_log" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

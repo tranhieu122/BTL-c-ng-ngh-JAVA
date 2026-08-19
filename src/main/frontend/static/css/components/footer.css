@@ -1,0 +1,142 @@
+﻿/* Footer */
+
+.site-footer {
+    color: #9ba7c3;
+    background:
+        radial-gradient(circle at 10% 0%, rgba(99, 102, 241, 0.16), transparent 20rem),
+        var(--navy-950);
+}
+
+.footer-main {
+    display: grid;
+    grid-template-columns: 1.6fr repeat(3, 0.75fr);
+    gap: clamp(2rem, 5vw, 5rem);
+    padding-top: 4rem;
+    padding-bottom: 3rem;
+}
+
+.footer-brand-block > p {
+    max-width: 360px;
+    margin: 1.1rem 0;
+    color: #7f8ca9;
+    font-size: 0.76rem;
+    line-height: 1.7;
+}
+
+.footer-status {
+    width: fit-content;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: #8f9bb5;
+    font-size: 0.66rem;
+    font-weight: 700;
+}
+
+.footer-column {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.58rem;
+}
+
+.footer-column h2 {
+    margin-bottom: 0.45rem;
+    color: #edf2ff;
+    font-size: 0.73rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.footer-column a {
+    color: #8491ae;
+    font-size: 0.7rem;
+    font-weight: 650;
+}
+
+.footer-column a:hover {
+    color: var(--white);
+    transform: translateX(2px);
+}
+
+.footer-column p {
+    margin-bottom: 0.4rem;
+    color: #74819d;
+    font-size: 0.69rem;
+    line-height: 1.65;
+}
+
+.footer-column .footer-mail {
+    color: var(--primary-300);
+}
+
+.footer-bottom {
+    min-height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: #65718d;
+    font-size: 0.62rem;
+}
+
+.footer-version {
+    text-align: right;
+}
+
+/* Toast messages */
+
+.toast-region {
+    position: fixed;
+    z-index: 1000;
+    right: 20px;
+    bottom: 20px;
+    width: min(360px, calc(100vw - 40px));
+    display: grid;
+    gap: 0.65rem;
+    pointer-events: none;
+}
+
+.toast {
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    color: var(--ink-700);
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transform: translateY(12px) scale(0.98);
+    transition: opacity 220ms ease, transform 220ms ease;
+    backdrop-filter: blur(12px);
+}
+
+.toast.is-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.toast-icon {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    color: var(--success);
+    background: var(--success-soft);
+    font-size: 0.7rem;
+    font-weight: 850;
+}
+
+.toast-error .toast-icon {
+    color: var(--danger);
+    background: var(--danger-soft);
+}
+

@@ -1,0 +1,361 @@
+<mxfile host="app.diagrams.net" modified="2026-08-18T10:45:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="EduRepo_UseCase_Diagram" name="EduRepo Use Case (Module 1 - RBAC)">
+    <mxGraphModel dx="2200" dy="1400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ==================== HEADER BANNER ==================== -->
+        <mxCell id="hdr_banner" value="&lt;font style=&quot;font-size: 22px;&quot;&gt;&lt;b&gt;SƠ ĐỒ USE CASE TỔNG QUAN &amp; PHÂN QUYỀN (RBAC) - HỆ THỐNG EDUREPO&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#475569&quot; style=&quot;font-size: 13px;&quot;&gt;Phân rã theo 5 vai trò (Guest, Reader, Author, Reviewer, Admin) &amp; Cây kế thừa quyền hạn&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#CBD5E1;strokeWidth=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="2260" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== SYSTEM BOUNDARY ==================== -->
+        <mxCell id="system_boundary" value="&lt;b&gt;&lt;font style=&quot;font-size: 16px;&quot; color=&quot;#1E293B&quot;&gt;HỆ THỐNG QUẢN LÝ TÀI LIỆU HỌC TẬP &amp; NCKH (EDUREPO SYSTEM)&lt;/font&gt;&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#94A3B8;strokeWidth=2;verticalAlign=top;align=center;spacingTop=15;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="380" y="110" width="1580" height="1420" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== FUNCTIONAL SUB-PACKAGES (MODULES) ==================== -->
+        <!-- Package 1: Public / Guest Features -->
+        <mxCell id="pkg_guest" value="&lt;b&gt;1. Khách vãng lai (Public Access)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#CBD5E1;verticalAlign=top;align=left;spacingLeft=15;spacingTop=8;fontColor=#475569;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="410" y="160" width="460" height="210" as="geometry" />
+        </mxCell>
+
+        <!-- Package 2: Reader / Auth Features -->
+        <mxCell id="pkg_reader" value="&lt;b&gt;2. Người đọc đã đăng nhập (Reader Privileges)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#BFDBFE;verticalAlign=top;align=left;spacingLeft=15;spacingTop=8;fontColor=#1E40AF;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="410" y="390" width="460" height="500" as="geometry" />
+        </mxCell>
+
+        <!-- Package 3: Author Features -->
+        <mxCell id="pkg_author" value="&lt;b&gt;3. Tác giả &amp; Nộp bài (Author Workspace)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#BBF7D0;verticalAlign=top;align=left;spacingLeft=15;spacingTop=8;fontColor=#166534;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="410" y="910" width="460" height="580" as="geometry" />
+        </mxCell>
+
+        <!-- Package 4: Reviewer Features -->
+        <mxCell id="pkg_reviewer" value="&lt;b&gt;4. Thẩm định &amp; Phê duyệt (Reviewer Workspace)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#E9D5FF;verticalAlign=top;align=left;spacingLeft=15;spacingTop=8;fontColor=#6B21A8;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="160" width="480" height="660" as="geometry" />
+        </mxCell>
+
+        <!-- Package 5: Admin Management Features -->
+        <mxCell id="pkg_admin" value="&lt;b&gt;5. Quản trị &amp; Cấu hình hệ thống (Admin Console)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#FDE68A;verticalAlign=top;align=left;spacingLeft=15;spacingTop=8;fontColor=#92400E;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="850" width="480" height="640" as="geometry" />
+        </mxCell>
+
+        <!-- Package 6: Core Document Processing & Shared -->
+        <mxCell id="pkg_shared" value="&lt;b&gt;6. Dịch vụ dùng chung (Core Common Services)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#E2E8F0;verticalAlign=top;align=center;spacingTop=8;fontColor=#64748B;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="910" y="160" width="500" height="1330" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== ACTORS (TÁC TỬ) ==================== -->
+        <!-- ACTOR 1: GUEST -->
+        <mxCell id="act_guest" value="&lt;b&gt;Guest&lt;/b&gt;&lt;br&gt;(Khách vãng lai)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#64748B;strokeColor=#334155;fontColor=#0F172A;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="120" y="190" width="70" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- ACTOR 2: READER -->
+        <mxCell id="act_reader" value="&lt;b&gt;Reader&lt;/b&gt;&lt;br&gt;(Người đọc đăng nhập)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#0284C7;strokeColor=#0369A1;fontColor=#0F172A;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="120" y="520" width="70" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- ACTOR 3: AUTHOR -->
+        <mxCell id="act_author" value="&lt;b&gt;Author&lt;/b&gt;&lt;br&gt;(Tác giả / Giảng viên)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#16A34A;strokeColor=#15803D;fontColor=#0F172A;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="120" y="1100" width="70" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- ACTOR 4: REVIEWER -->
+        <mxCell id="act_reviewer" value="&lt;b&gt;Reviewer&lt;/b&gt;&lt;br&gt;(Người kiểm duyệt)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#9333EA;strokeColor=#7E22CE;fontColor=#0F172A;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="2090" y="380" width="70" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- ACTOR 5: ADMIN -->
+        <mxCell id="act_admin" value="&lt;b&gt;Admin&lt;/b&gt;&lt;br&gt;(Quản trị viên)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#EA580C;strokeColor=#C2410C;fontColor=#0F172A;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="2090" y="1080" width="70" height="110" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== ACTOR INHERITANCE (GENERALIZATION) ==================== -->
+        <!-- Reader inherits Guest -->
+        <mxCell id="inh_reader_guest" value="«extends»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;strokeColor=#64748B;strokeWidth=2;dashed=0;" edge="1" parent="1" source="act_reader" target="act_guest">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Author inherits Reader -->
+        <mxCell id="inh_author_reader" value="«kế thừa quyền»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;strokeColor=#0284C7;strokeWidth=2;dashed=0;" edge="1" parent="1" source="act_author" target="act_reader">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Reviewer inherits Reader -->
+        <mxCell id="inh_reviewer_reader" value="«kế thừa quyền»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;strokeColor=#0284C7;strokeWidth=2;dashed=0;" edge="1" parent="1" source="act_reviewer" target="act_reader">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2125" y="270" />
+              <mxPoint x="2000" y="270" />
+              <mxPoint x="2000" y="110" />
+              <mxPoint x="340" y="110" />
+              <mxPoint x="340" y="550" />
+              <mxPoint x="190" y="550" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Admin inherits all (symbolic top authority) -->
+        <mxCell id="inh_admin_reviewer" value="«toàn quyền»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;strokeColor=#EA580C;strokeWidth=2;dashed=0;" edge="1" parent="1" source="act_admin" target="act_reviewer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== USE CASES: 1. GUEST ==================== -->
+        <mxCell id="uc_g1" value="Tìm kiếm tài liệu công khai" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#64748B;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="210" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_g2" value="Xem chi tiết &amp; tóm tắt tài liệu" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#64748B;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="290" width="200" height="60" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== USE CASES: 2. READER ==================== -->
+        <mxCell id="uc_r1" value="Đăng nhập / Đăng xuất" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#1D4ED8;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="430" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_r2" value="Tìm kiếm nâng cao&#xa;(Lọc Khoa, Loại, Năm...)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#1D4ED8;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="510" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_r3" value="Đọc tài liệu trực tuyến&#xa;(PDF Viewer tích hợp)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#1D4ED8;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="590" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_r4" value="Tải tài liệu&#xa;(Kiểm tra quyền tải)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#1D4ED8;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="670" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_r5" value="Bình luận &amp; Đánh giá tài liệu" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#1D4ED8;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="745" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_r6" value="Xem thống kê cá nhân&#xa;(Lịch sử xem, quan tâm)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#1D4ED8;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="820" width="200" height="60" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== USE CASES: 3. AUTHOR ==================== -->
+        <mxCell id="uc_a1" value="Nộp tài liệu mới&#xa;(Nhập Metadata &amp; Đính kèm)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#16A34A;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="950" width="210" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_a2" value="Lưu bản nháp (Draft)&#xa;&amp; Chỉnh sửa sau" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#16A34A;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="1035" width="210" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_a3" value="Chỉnh sửa tài liệu đã nộp&#xa;(Tạo phiên bản mới)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#16A34A;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="1115" width="210" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_a4" value="Theo dõi tiến độ duyệt&#xa;(Pending / Approved / Rejected)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#16A34A;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="1200" width="210" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_a5" value="Xem phản hồi &amp; góp ý&#xa;từ Reviewer" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#16A34A;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="1285" width="210" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_a6" value="Xem báo cáo năng suất&#xa;công bố cá nhân" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#16A34A;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="1365" width="210" height="65" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== USE CASES: 4. REVIEWER ==================== -->
+        <mxCell id="uc_rv1" value="Xem hàng đợi tài liệu&#xa;chờ duyệt (Pending Queue)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#9333EA;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="200" width="220" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_rv2" value="Xem trước tài liệu (Preview)&#xa;&amp; Kiểm tra thông tin tác giả" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#9333EA;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="285" width="220" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_rv3" value="So sánh các phiên bản&#xa;(Version Comparison)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#9333EA;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="370" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_rv4" value="Phê duyệt tài liệu&#xa;(Gán phạm vi PUBLIC / INTERNAL)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#9333EA;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="450" width="220" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_rv5" value="Yêu cầu chỉnh sửa&#xa;(Gửi comment cho tác giả)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#9333EA;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="535" width="220" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_rv6" value="Từ chối tài liệu (Reject)&#xa;kèm lý do" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#9333EA;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="620" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_rv7" value="Xem lịch sử thẩm định&#xa;(Audit Trail / Lịch sử duyệt)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#9333EA;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="700" width="220" height="65" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== USE CASES: 5. ADMIN ==================== -->
+        <mxCell id="uc_adm1" value="Quản lý danh sách người dùng&#xa;(Tìm kiếm, thêm mới, xem hồ sơ)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#D97706;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="890" width="230" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_adm2" value="Kích hoạt / Khóa tài khoản&#xa;(ACTIVE / LOCKED)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#D97706;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="975" width="230" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_adm3" value="Phân quyền &amp; Gán vai trò&#xa;(Assign Role: Author/Reviewer...)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#D97706;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="1060" width="230" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_adm4" value="Quản lý danh mục khoa/loại&#xa;(Category / Taxonomy)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#D97706;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="1145" width="230" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_adm5" value="Xem dashboard thống kê&#xa;toàn hệ thống" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#D97706;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="1230" width="230" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_adm6" value="Xuất báo cáo tổng hợp&#xa;(Excel / PDF Export)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#D97706;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="1315" width="230" height="65" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== USE CASES: 6. SHARED / EXTENSION SERVICES ==================== -->
+        <mxCell id="uc_sh1" value="Kiểm tra trùng lặp &amp; Đạo văn&#xa;(Plagiarism Check Engine)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FEF2F2;strokeColor=#EF4444;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="440" width="220" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_sh2" value="Gửi thông báo tự động&#xa;(Email &amp; In-app Notification)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FEF2F2;strokeColor=#EF4444;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="600" width="220" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_sh3" value="Ghi nhật ký hoạt động&#xa;(Audit Logging / View &amp; Download)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FEF2F2;strokeColor=#EF4444;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="760" width="220" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_sh4" value="Gán giấy phép bản quyền&#xa;(License: CC-BY, Copyright...)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FEF2F2;strokeColor=#EF4444;strokeWidth=1.5;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="930" width="220" height="65" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== ACTOR TO USE CASE ASSOCIATIONS ==================== -->
+        <!-- GUEST LINKS -->
+        <mxCell id="link_g_g1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#64748B;strokeWidth=1.5;" edge="1" parent="1" source="act_guest" target="uc_g1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_g_g2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#64748B;strokeWidth=1.5;" edge="1" parent="1" source="act_guest" target="uc_g2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- READER LINKS -->
+        <mxCell id="link_r_r1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#0284C7;strokeWidth=1.5;" edge="1" parent="1" source="act_reader" target="uc_r1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_r_r2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#0284C7;strokeWidth=1.5;" edge="1" parent="1" source="act_reader" target="uc_r2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_r_r3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#0284C7;strokeWidth=1.5;" edge="1" parent="1" source="act_reader" target="uc_r3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_r_r4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#0284C7;strokeWidth=1.5;" edge="1" parent="1" source="act_reader" target="uc_r4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_r_r5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#0284C7;strokeWidth=1.5;" edge="1" parent="1" source="act_reader" target="uc_r5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_r_r6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#0284C7;strokeWidth=1.5;" edge="1" parent="1" source="act_reader" target="uc_r6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- AUTHOR LINKS -->
+        <mxCell id="link_a_a1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#16A34A;strokeWidth=1.5;" edge="1" parent="1" source="act_author" target="uc_a1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_a_a2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#16A34A;strokeWidth=1.5;" edge="1" parent="1" source="act_author" target="uc_a2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_a_a3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#16A34A;strokeWidth=1.5;" edge="1" parent="1" source="act_author" target="uc_a3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_a_a4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#16A34A;strokeWidth=1.5;" edge="1" parent="1" source="act_author" target="uc_a4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_a_a5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#16A34A;strokeWidth=1.5;" edge="1" parent="1" source="act_author" target="uc_a5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_a_a6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#16A34A;strokeWidth=1.5;" edge="1" parent="1" source="act_author" target="uc_a6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- REVIEWER LINKS -->
+        <mxCell id="link_rv_rv1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#9333EA;strokeWidth=1.5;" edge="1" parent="1" source="act_reviewer" target="uc_rv1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_rv_rv2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#9333EA;strokeWidth=1.5;" edge="1" parent="1" source="act_reviewer" target="uc_rv2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_rv_rv3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#9333EA;strokeWidth=1.5;" edge="1" parent="1" source="act_reviewer" target="uc_rv3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_rv_rv4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#9333EA;strokeWidth=1.5;" edge="1" parent="1" source="act_reviewer" target="uc_rv4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_rv_rv5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#9333EA;strokeWidth=1.5;" edge="1" parent="1" source="act_reviewer" target="uc_rv5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_rv_rv6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#9333EA;strokeWidth=1.5;" edge="1" parent="1" source="act_reviewer" target="uc_rv6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_rv_rv7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#9333EA;strokeWidth=1.5;" edge="1" parent="1" source="act_reviewer" target="uc_rv7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ADMIN LINKS -->
+        <mxCell id="link_adm_adm1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#D97706;strokeWidth=1.5;" edge="1" parent="1" source="act_admin" target="uc_adm1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_adm_adm2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#D97706;strokeWidth=1.5;" edge="1" parent="1" source="act_admin" target="uc_adm2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_adm_adm3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#D97706;strokeWidth=1.5;" edge="1" parent="1" source="act_admin" target="uc_adm3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_adm_adm4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#D97706;strokeWidth=1.5;" edge="1" parent="1" source="act_admin" target="uc_adm4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_adm_adm5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#D97706;strokeWidth=1.5;" edge="1" parent="1" source="act_admin" target="uc_adm5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_adm_adm6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=none;strokeColor=#D97706;strokeWidth=1.5;" edge="1" parent="1" source="act_admin" target="uc_adm6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== «INCLUDE» & «EXTEND» RELATIONSHIPS ==================== -->
+        <!-- Reviewer Approve / Submit -> include Plagiarism Check -->
+        <mxCell id="rel_inc_plag" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#EF4444;strokeWidth=1.5;" edge="1" parent="1" source="uc_rv2" target="uc_sh1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Author Submit -> include Notification -->
+        <mxCell id="rel_inc_notif_a" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#EF4444;strokeWidth=1.5;" edge="1" parent="1" source="uc_a1" target="uc_sh2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="720" y="980" />
+              <mxPoint x="720" y="630" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Reviewer Approve / Reject -> include Notification -->
+        <mxCell id="rel_inc_notif_rv" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#EF4444;strokeWidth=1.5;" edge="1" parent="1" source="uc_rv4" target="uc_sh2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1420" y="480" />
+              <mxPoint x="1420" y="620" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Read / Download -> include Audit Logging -->
+        <mxCell id="rel_inc_log" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#EF4444;strokeWidth=1.5;" edge="1" parent="1" source="uc_r4" target="uc_sh3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="720" y="700" />
+              <mxPoint x="720" y="790" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Author Submit -> include License Assignment -->
+        <mxCell id="rel_inc_lic" value="«include»" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#EF4444;strokeWidth=1.5;" edge="1" parent="1" source="uc_a1" target="uc_sh4">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="760" y="990" />
+              <mxPoint x="760" y="960" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

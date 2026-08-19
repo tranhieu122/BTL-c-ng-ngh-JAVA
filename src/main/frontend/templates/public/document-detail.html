@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" th:content="${#strings.isEmpty(document.description) ? 'Chi tiết tài liệu trên EduRepo' : document.description}">
+    <title th:text="${document.title + ' | EduRepo'}">Chi tiết tài liệu | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="document-detail-page">
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main id="main-content" class="detail-main page-container">
+    <nav class="breadcrumb" aria-label="Đường dẫn">
+        <a th:href="@{/repository}">Kho học liệu</a>
+        <span aria-hidden="true">/</span>
+        <span th:text="${document.category != null ? document.category.name : 'Tài liệu'}">Danh mục</span>
+        <span aria-hidden="true">/</span>
+        <strong th:text="${document.title}">Tên tài liệu</strong>
+    </nav>
+
+    <div class="detail-layout">
+        <article class="detail-content">
+            <header class="detail-hero">
+                <div class="detail-file-icon" th:attr="data-file-type=${document.fileType}">
+                    <span class="file-fold" aria-hidden="true"></span>
+                    <span class="file-extension" data-file-label>TỆP</span>
+                </div>
+                <div class="detail-heading-copy">
+                    <div class="detail-labels">
+                        <span class="category-label" th:text="${document.category != null ? document.category.name : 'Chưa phân loại'}">Danh mục</span>
+                        <span class="verified-label"><i aria-hidden="true">✓</i> Đã kiểm duyệt</span>
+                    </div>
+                    <h1 th:text="${document.title}">Tên tài liệu</h1>
+                    <p class="detail-author">
+                        Biên soạn bởi
+                        <strong th:text="${#strings.isEmpty(document.authorName) ? 'Tác giả EduRepo' : document.authorName}">Tác giả EduRepo</strong>
+                    </p>
+                </div>
+            </header>
+
+            <section class="detail-section" aria-labelledby="abstract-title">
+                <div class="detail-section-heading">
+                    <span class="section-number" aria-hidden="true">01</span>
+                    <div>
+                        <p class="eyebrow">Tổng quan</p>
+                        <h2 id="abstract-title">Giới thiệu tài liệu</h2>
+                    </div>
+                </div>
+                <p class="document-abstract" th:text="${#strings.isEmpty(document.description) ? 'Tài liệu này chưa có phần mô tả chi tiết. Bạn có thể tải xuống để xem đầy đủ nội dung.' : document.description}">
+                    Mô tả chi tiết của tài liệu.
+                </p>
+            </section>
+
+            <section class="detail-section" aria-labelledby="information-title">
+                <div class="detail-section-heading">
+                    <span class="section-number" aria-hidden="true">02</span>
+                    <div>
+                        <p class="eyebrow">Thông tin</p>
+                        <h2 id="information-title">Thông tin xuất bản</h2>
+                    </div>
+                </div>
+
+                <dl class="metadata-grid">
+                    <div>
+                        <dt>Danh mục</dt>
+                        <dd th:text="${document.category != null ? document.category.name : 'Chưa phân loại'}">Danh mục</dd>
+                    </div>
+                    <div>
+                        <dt>Khoa / đơn vị</dt>
+                        <dd th:text="${document.department != null ? document.department.name : 'Chưa cập nhật'}">Khoa</dd>
+                    </div>
+                    <div>
+                        <dt>Định dạng</dt>
+                        <dd class="js-file-type" th:attr="data-file-type=${document.fileType}"
+                            th:text="${#strings.isEmpty(document.fileType) ? 'Tài liệu' : document.fileType}">PDF</dd>
+                    </div>
+                    <div>
+                        <dt>Dung lượng</dt>
+                        <dd class="js-file-size" th:if="${document.fileSize != null}"
+                            th:attr="data-bytes=${document.fileSize}" th:text="${document.fileSize + ' bytes'}">0 KB</dd>
+                        <dd th:unless="${document.fileSize != null}">Chưa cập nhật</dd>
+                    </div>
+                    <div>
+                        <dt>Tên tệp</dt>
+                        <dd class="file-name" th:text="${#strings.isEmpty(document.fileName) ? 'Tệp học liệu' : document.fileName}">document.pdf</dd>
+                    </div>
+                    <div>
+                        <dt>Ngày công bố</dt>
+                        <dd>
+                            <time class="js-date" th:if="${document.publishedAt != null}"
+                                  th:attr="datetime=${document.publishedAt}" th:text="${document.publishedAt}">01/01/2026</time>
+                            <span th:unless="${document.publishedAt != null}">Chưa cập nhật</span>
+                        </dd>
+                    </div>
+                </dl>
+            </section>
+
+            <section class="quality-note" aria-label="Thông tin kiểm duyệt">
+                <span class="quality-icon" aria-hidden="true">✓</span>
+                <div>
+                    <h2>Nội dung đã được kiểm duyệt</h2>
+                    <p>Tài liệu đã hoàn tất quy trình xem xét trước khi xuất hiện trong kho học liệu công khai.</p>
+                </div>
+            </section>
+        </article>
+
+        <aside class="download-panel" aria-label="Tải tài liệu">
+            <div class="download-panel-head">
+                <span class="download-icon" aria-hidden="true">↓</span>
+                <div>
+                    <small>Sẵn sàng tải xuống</small>
+                    <strong>Học liệu công khai</strong>
+                </div>
+            </div>
+            <p>Tải bản đầy đủ để đọc, nghiên cứu và sử dụng cho mục đích học tập.</p>
+            <a class="button download-primary" th:href="@{/download/{id}(id=${document.id})}">
+                <span aria-hidden="true">↓</span>
+                Tải tài liệu
+            </a>
+            <button class="button button-secondary share-button" type="button" data-share-link
+                    th:attr="data-share-title=${document.title}">
+                <span aria-hidden="true">↗</span>
+                Chia sẻ tài liệu
+            </button>
+            <div class="download-features">
+                <span><i aria-hidden="true">✓</i> Không cần đăng nhập</span>
+                <span><i aria-hidden="true">✓</i> Nguồn đã xác minh</span>
+                <span><i aria-hidden="true">✓</i> Tải trực tiếp an toàn</span>
+            </div>
+            <a class="back-to-library" th:href="@{/repository}">
+                <span aria-hidden="true">←</span> Quay lại kho học liệu
+            </a>
+        </aside>
+    </div>
+
+    <section class="detail-cta">
+        <div>
+            <span class="detail-cta-icon" aria-hidden="true">✦</span>
+            <div><strong>Tiếp tục khám phá</strong><p>Hàng trăm học liệu đang chờ bạn trong thư viện.</p></div>
+        </div>
+        <a th:href="@{/repository}">Xem kho học liệu <span aria-hidden="true">→</span></a>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

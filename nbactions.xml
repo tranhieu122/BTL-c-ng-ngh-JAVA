@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+    <action>
+        <actionName>run</actionName>
+        <goals>
+            <goal>spring-boot:run</goal>
+        </goals>
+        <properties>
+            <spring-boot.run.main-class>com.hieu.edurepo.EduRepoApplication</spring-boot.run.main-class>
+        </properties>
+    </action>
+    <action>
+        <actionName>debug</actionName>
+        <goals>
+            <goal>spring-boot:run</goal>
+        </goals>
+        <properties>
+            <spring-boot.run.main-class>com.hieu.edurepo.EduRepoApplication</spring-boot.run.main-class>
+            <spring-boot.run.jvmArguments>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address}</spring-boot.run.jvmArguments>
+        </properties>
+    </action>
+</actions>
