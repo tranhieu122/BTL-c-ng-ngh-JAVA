@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<footer class="site-footer" th:fragment="footer">
+    <div class="footer-main page-container">
+        <div class="footer-brand-block">
+            <a class="brand brand-inverse" th:href="@{/repository}" aria-label="EduRepo - Về trang chủ">
+                <span class="brand-mark" aria-hidden="true">
+                    <span class="brand-mark-book"></span>
+                </span>
+                <span class="brand-copy">
+                    <strong>EduRepo</strong>
+                    <small>Digital Learning Library</small>
+                </span>
+            </a>
+            <p>Không gian lưu trữ, kiểm duyệt và lan tỏa học liệu số đáng tin cậy cho cộng đồng giáo dục.</p>
+            <div class="footer-status">
+                <span class="status-pulse" aria-hidden="true"></span>
+                Hệ thống đang hoạt động ổn định
+            </div>
+        </div>
+
+        <div class="footer-column">
+            <h2>Khám phá</h2>
+            <a th:href="@{/repository}">Kho học liệu</a>
+            <a th:href="@{/repository#categories}">Danh mục nổi bật</a>
+            <a th:href="@{/repository#latest-documents}">Tài liệu mới</a>
+        </div>
+
+        <div class="footer-column">
+            <h2>Công việc</h2>
+            <a sec:authorize="isAnonymous()" th:href="@{/login}">Đăng nhập hệ thống</a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/dashboard}">Bảng điều khiển</a>
+            <a sec:authorize="hasAnyRole('SUBMITTER','ADMIN')" th:href="@{/documents/new}">Nộp tài liệu</a>
+            <a sec:authorize="hasAnyRole('REVIEWER','ADMIN')" th:href="@{/reviews/pending}">Hàng chờ kiểm duyệt</a>
+        </div>
+
+        <div class="footer-column footer-contact">
+            <h2>EduRepo</h2>
+            <p>Tri thức có giá trị hơn khi được sắp xếp tốt và chia sẻ đúng cách.</p>
+            <a class="footer-mail" href="mailto:support@edurepo.local">support@edurepo.local</a>
+        </div>
+    </div>
+
+    <div class="footer-bottom page-container">
+        <span>© <span data-current-year>2026</span> EduRepo. Hệ thống quản lý học liệu số.</span>
+        <span class="footer-version">Phiên bản học thuật · Java &amp; Spring Boot</span>
+    </div>
+
+    <div th:replace="~{fragments/ui :: toastRegion}"></div>
+    <div th:replace="~{fragments/ui :: confirmDialog}"></div>
+</footer>
+</body>
+</html>

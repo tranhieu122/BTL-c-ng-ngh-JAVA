@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quản lý người dùng | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="page-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <main id="main-content" class="content workspace-content">
+        <header class="workspace-heading">
+            <div><span class="workspace-kicker">Quản trị truy cập</span><h1>Người dùng</h1><p class="subtitle">Theo dõi tài khoản, vai trò và trạng thái hoạt động trên hệ thống.</p></div>
+            <div class="workspace-actions"><a class="button" th:href="@{/admin/users/new}">Thêm người dùng <span aria-hidden="true">＋</span></a></div>
+        </header>
+        <div th:replace="~{fragments/ui :: flashMessages}"></div>
+        <section class="data-panel" aria-labelledby="users-table-title">
+            <div class="data-panel-header"><strong id="users-table-title">Danh sách tài khoản</strong><span class="record-count" th:text="|${#lists.size(users)} bản ghi|">0 bản ghi</span></div>
+            <div class="table-scroll" th:if="${!#lists.isEmpty(users)}">
+                <table class="data-table">
+                    <caption class="sr-only">Danh sách tài khoản và quyền truy cập</caption>
+                    <thead><tr><th>Người dùng</th><th>Vai trò</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                    <tbody>
+                    <tr th:each="user : ${users}">
+                        <td><div class="entity-cell"><span class="entity-avatar" th:text="${#strings.substring(user.fullName, 0, 1)}">U</span><span class="entity-copy"><strong th:text="${user.fullName}">Họ tên</strong><small th:text="${user.email}">email</small></span></div></td>
+                        <td>
+                            <span class="role-badges" th:if="${!#sets.isEmpty(user.roles)}">
+                                <span class="status-pill" th:each="role : ${user.roles}" th:text="${role.name}">USER</span>
+                            </span>
+                            <span class="field-hint" th:if="${#sets.isEmpty(user.roles)}">Chưa cấp vai trò</span>
+                        </td>
+                        <td><span class="status-pill" th:classappend="${user.enabled} ? ' is-active' : ''" th:text="${user.enabled ? 'Đang hoạt động' : 'Đã khóa'}">Trạng thái</span></td>
+                        <td><a class="table-action" th:href="@{/admin/users/{id}/edit(id=${user.id})}">Chỉnh sửa <span aria-hidden="true">→</span></a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="empty-panel" th:if="${#lists.isEmpty(users)}"><span class="workspace-icon" aria-hidden="true">◎</span><h2>Chưa có người dùng</h2><p>Tạo tài khoản đầu tiên để bắt đầu phân quyền cho hệ thống.</p></div>
+        </section>
+    </main>
+</div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

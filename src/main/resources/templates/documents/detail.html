@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chi tiết tài liệu | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="page-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <main id="main-content" class="content workspace-content">
+        <header class="workspace-heading">
+            <div><span class="workspace-kicker">Hồ sơ học liệu</span><h1>Chi tiết tài liệu</h1><p class="subtitle">Kiểm tra thông tin và theo dõi trạng thái trước khi gửi kiểm duyệt.</p></div>
+            <div class="workspace-actions">
+                <a class="button" th:if="${document.status.name() == 'DRAFT' or document.status.name() == 'REVISION_REQUIRED'}" th:href="@{/documents/{id}/edit(id=${document.id})}">Chỉnh sửa</a>
+                <form th:if="${document.status.name() == 'DRAFT'}" th:action="@{/documents/{id}/delete(id=${document.id})}" method="post">
+                    <button class="button button-danger" type="submit" data-confirm-label="Xóa bản nháp" data-confirm-message="Xóa bản nháp này? Tệp đã tải lên cũng sẽ bị xóa và không thể khôi phục.">Xóa bản nháp</button>
+                </form>
+                <a class="button button-secondary" th:href="@{/documents}">← Danh sách</a>
+            </div>
+        </header>
+        <div th:replace="~{fragments/ui :: flashMessages}"></div>
+        <div class="form-layout">
+            <div>
+                <div class="alert warning" th:if="${document.status.name() == 'REVISION_REQUIRED'}" role="status">
+                    <span class="alert-icon" aria-hidden="true">!</span>
+                    <div><strong>Tài liệu cần chỉnh sửa</strong><span>Xem góp ý bên dưới, cập nhật hồ sơ hoặc thay tệp rồi gửi lại để kiểm duyệt.</span></div>
+                </div>
+                <article class="review-card">
+                <div class="document-title-block">
+                    <div><h2 th:text="${document.title}">Tên tài liệu</h2><span class="field-hint" th:text="${document.authorName ?: 'Chưa khai báo tác giả'}">Tác giả</span></div>
+                    <span class="status-pill" th:classappend="| status-${#strings.toLowerCase(document.status.name())}|" th:text="${document.status}">DRAFT</span>
+                </div>
+                <p class="document-description" th:text="${document.description ?: 'Tài liệu này chưa có mô tả.'}">Mô tả</p>
+                <dl class="metadata-grid">
+                    <div><dt>Tệp đính kèm</dt><dd th:text="${document.fileName}">Tên tệp</dd></div>
+                    <div><dt>Loại tệp</dt><dd th:text="${document.fileType}">Loại tệp</dd></div>
+                    <div><dt>Danh mục</dt><dd th:text="${document.category != null ? document.category.name : 'Chưa phân loại'}">Danh mục</dd></div>
+                    <div><dt>Khoa/Bộ môn</dt><dd th:text="${document.department != null ? document.department.name : 'Chưa chỉ định'}">Khoa</dd></div>
+                </dl>
+                <div class="form-submit-row">
+                    <form th:if="${document.status.name() == 'DRAFT' or document.status.name() == 'REVISION_REQUIRED'}" th:action="@{/documents/{id}/submit(id=${document.id})}" method="post">
+                        <button type="submit"
+                                data-confirm-message="Gửi tài liệu vào hàng chờ kiểm duyệt? Hãy chắc chắn thông tin và tệp đính kèm đã chính xác.">
+                            Gửi tài liệu để duyệt <span aria-hidden="true">→</span>
+                        </button>
+                    </form>
+                </div>
+                </article>
+                <article class="review-card review-card-spaced">
+                    <div class="panel-heading"><div><h2>Phản hồi kiểm duyệt</h2><p>Các quyết định và góp ý đã được ghi nhận cho tài liệu này.</p></div></div>
+                    <ol class="review-history" th:if="${!#lists.isEmpty(history)}">
+                        <li th:each="item : ${history}">
+                            <strong th:switch="${item.action.name()}">
+                                <span th:case="'APPROVED'">Đã phê duyệt</span>
+                                <span th:case="'REVISION_REQUESTED'">Yêu cầu chỉnh sửa</span>
+                                <span th:case="'REJECTED'">Đã từ chối</span>
+                                <span th:case="'PUBLISHED'">Đã công bố</span>
+                                <span th:case="*" th:text="${item.action}">Quyết định</span>
+                            </strong>
+                            <br>
+                            <span th:text="${item.comment ?: 'Reviewer không để lại ghi chú.'}">Nội dung phản hồi</span>
+                            <small class="field-hint" th:text="|${item.reviewer.fullName} · ${item.createdAt}|">Reviewer · thời gian</small>
+                        </li>
+                    </ol>
+                    <div class="empty-panel compact-empty" th:if="${#lists.isEmpty(history)}"><h2>Chưa có phản hồi</h2><p>Nhận xét của reviewer sẽ xuất hiện tại đây sau khi tài liệu được xử lý.</p></div>
+                </article>
+            </div>
+            <aside class="form-card">
+                <div class="form-section-heading"><h2>Trạng thái hồ sơ</h2><p th:if="${document.status.name() == 'DRAFT'}">Đây là bản nháp. Hãy kiểm tra kỹ trước khi gửi.</p><p th:unless="${document.status.name() == 'DRAFT'}">Hồ sơ đã đi vào quy trình xử lý của EduRepo.</p></div>
+                <ol class="guidance-list">
+                    <li><span class="guidance-number">1</span><span>Bản nháp được lưu trong không gian cá nhân.</span></li>
+                    <li><span class="guidance-number">2</span><span>Sau khi gửi, reviewer sẽ đánh giá nội dung.</span></li>
+                    <li><span class="guidance-number">3</span><span>Tài liệu đạt yêu cầu có thể được công bố.</span></li>
+                </ol>
+            </aside>
+        </div>
+    </main>
+</div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

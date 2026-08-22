@@ -1,0 +1,180 @@
+/* Shared feedback, progress and confirmation patterns. */
+
+.flash-stack {
+    display: grid;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+}
+
+.flash-message {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+    gap: var(--space-3);
+    margin: 0;
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-xs);
+}
+
+.flash-message .alert-icon {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.72);
+    font-weight: 900;
+}
+
+.flash-message strong,
+.flash-message span {
+    display: block;
+}
+
+.flash-message span {
+    margin-top: 0.1rem;
+    font-weight: 550;
+}
+
+.alert.info,
+.alert-info {
+    color: var(--info);
+    background: var(--info-soft);
+    border-color: #b2ddff;
+}
+
+.alert.warning,
+.alert-warning {
+    color: var(--warning);
+    background: var(--warning-soft);
+    border-color: #fedf89;
+}
+
+.alert-dismiss {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    min-height: 32px;
+    padding: 0;
+    color: currentColor;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    opacity: 0.68;
+}
+
+.alert-dismiss:hover {
+    color: currentColor;
+    background: rgba(255, 255, 255, 0.68);
+    box-shadow: none;
+    opacity: 1;
+    transform: none;
+}
+
+.alert.is-dismissing {
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+form.is-submitting button[type="submit"]:not(.login-submit)::before {
+    width: 0.9rem;
+    height: 0.9rem;
+    content: "";
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: feedback-spin 650ms linear infinite;
+}
+
+.confirm-dialog {
+    position: fixed;
+    z-index: var(--z-modal);
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: var(--space-5);
+}
+
+.confirm-dialog-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 13, 29, 0.62);
+    backdrop-filter: blur(4px);
+}
+
+.confirm-dialog-panel {
+    position: relative;
+    width: min(100%, 460px);
+    overflow: hidden;
+    padding: clamp(1.3rem, 4vw, 2rem);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: var(--radius-lg);
+    color: var(--color-text-primary);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-lg);
+}
+
+.confirm-dialog-mark {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    margin-bottom: var(--space-4);
+    color: var(--color-warning);
+    background: var(--warning-soft);
+    border-radius: 14px;
+    font-weight: 900;
+}
+
+.confirm-dialog-panel h2 {
+    margin-bottom: var(--space-2);
+    font-size: clamp(1.35rem, 4vw, 1.7rem);
+}
+
+.confirm-dialog-panel p {
+    margin-bottom: var(--space-6);
+    color: var(--color-text-secondary);
+}
+
+.confirm-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+}
+
+body.dialog-open {
+    overflow: hidden;
+}
+
+@keyframes feedback-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 520px) {
+    .confirm-dialog {
+        align-items: end;
+        padding: var(--space-3);
+    }
+
+    .confirm-dialog-panel {
+        border-radius: var(--radius-lg) var(--radius-lg) var(--radius-sm) var(--radius-sm);
+    }
+
+    .confirm-dialog-actions {
+        align-items: stretch;
+        flex-direction: column-reverse;
+    }
+
+    .confirm-dialog-actions .button {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .confirm-dialog-backdrop {
+        backdrop-filter: none;
+    }
+}

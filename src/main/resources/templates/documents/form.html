@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${editing} ? 'Chỉnh sửa tài liệu | EduRepo' : 'Nộp tài liệu | EduRepo'">Nộp tài liệu | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="page-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <main id="main-content" class="content workspace-content">
+        <header class="workspace-heading">
+            <div>
+                <span class="workspace-kicker" th:text="${editing} ? 'Cập nhật hồ sơ học liệu' : 'Hồ sơ học liệu mới'">Hồ sơ học liệu mới</span>
+                <h1 th:text="${editing} ? 'Chỉnh sửa tài liệu' : 'Nộp tài liệu'">Nộp tài liệu</h1>
+                <p class="subtitle" th:text="${editing} ? 'Cập nhật nội dung theo phản hồi kiểm duyệt trước khi gửi lại.' : 'Mô tả chính xác giúp tài liệu được kiểm duyệt nhanh và dễ tìm hơn.'">Mô tả chính xác giúp tài liệu được kiểm duyệt nhanh và dễ tìm hơn.</p>
+            </div>
+            <div class="workspace-actions"><a class="button button-secondary" th:href="@{/documents}">Quay lại danh sách</a></div>
+        </header>
+        <div class="form-layout">
+            <form class="form-card"
+                  th:action="${editing} ? @{/documents/{id}(id=${documentId})} : @{/documents}"
+                  th:object="${documentForm}" method="post" enctype="multipart/form-data">
+                <section class="form-section">
+                    <div class="form-section-heading"><h2>Thông tin cơ bản</h2><p>Nội dung hiển thị trong kho học liệu sau khi công bố.</p></div>
+                    <div class="field-grid">
+                        <label class="field-wide">
+                            <span class="field-label">Tiêu đề tài liệu</span>
+                            <input th:field="*{title}" placeholder="Nhập tiêu đề ngắn gọn, dễ nhận biết" required
+                                   th:attr="aria-invalid=${#fields.hasErrors('title')}">
+                            <small class="field-error" th:errors="*{title}"></small>
+                        </label>
+                        <label><span class="field-label">Tác giả</span><input th:field="*{authorName}" placeholder="Tên tác giả hoặc nhóm biên soạn"></label>
+                        <label>
+                            <span class="field-label">Danh mục</span>
+                            <select th:field="*{categoryId}" required
+                                    th:attr="aria-invalid=${#fields.hasErrors('categoryId')}">
+                                <option value="">Chọn danh mục</option>
+                                <option th:each="item : ${categories}" th:value="${item.id}" th:text="${item.name}"></option>
+                            </select>
+                            <small class="field-error" th:errors="*{categoryId}"></small>
+                        </label>
+                        <label class="field-wide"><span class="field-label">Mô tả</span><textarea th:field="*{description}" rows="6" placeholder="Tóm tắt nội dung, đối tượng sử dụng và giá trị của tài liệu" required th:attr="aria-invalid=${#fields.hasErrors('description')}"></textarea><small class="field-hint">Nên viết từ 2 đến 4 câu để reviewer hiểu nhanh nội dung.</small><small class="field-error" th:errors="*{description}"></small></label>
+                        <label>
+                            <span class="field-label">Khoa</span>
+                            <select th:field="*{facultyId}" required data-faculty-select th:attr="aria-invalid=${#fields.hasErrors('facultyId')}">
+                                <option value="">Chọn khoa</option>
+                                <option th:each="item : ${faculties}" th:value="${item.id}" th:text="${item.name}"></option>
+                            </select>
+                            <small class="field-error" th:errors="*{facultyId}"></small>
+                        </label>
+                        <label>
+                            <span class="field-label">Bộ môn</span>
+                            <select th:field="*{departmentId}" required data-department-select th:attr="aria-invalid=${#fields.hasErrors('departmentId')}">
+                                <option value="">Chọn bộ môn</option>
+                                <option th:each="item : ${departments}" th:value="${item.id}" th:data-faculty-id="${item.faculty != null ? item.faculty.id : ''}" th:text="${item.name}"></option>
+                            </select>
+                            <small class="field-error" th:errors="*{departmentId}"></small>
+                        </label>
+                    </div>
+                </section>
+                <section class="form-section">
+                    <div class="form-section-heading"><h2>Tệp đính kèm</h2><p th:text="${editing} ? 'Giữ nguyên tệp hiện tại hoặc chọn một phiên bản mới để thay thế.' : 'Phiên bản được lưu trữ và gửi tới người kiểm duyệt.'">Phiên bản được lưu trữ và gửi tới người kiểm duyệt.</p></div>
+                    <label class="file-drop">
+                        <span class="field-label">Chọn tệp PDF, DOC hoặc DOCX</span>
+                        <input type="file" th:field="*{file}" accept=".pdf,.doc,.docx"
+                               th:required="${editing != true}"
+                               aria-describedby="document-file-help"
+                               th:attr="aria-invalid=${#fields.hasErrors('file')}">
+                        <small class="field-hint" th:if="${editing}" th:text="|Tệp hiện tại: ${currentFileName}. Chỉ chọn tệp mới khi bạn muốn thay thế.|">Tệp hiện tại</small>
+                        <small id="document-file-help" class="field-hint">Dung lượng tối đa 200 MB. Kiểm tra tên tệp và nội dung trước khi tải lên.</small>
+                        <small class="field-error" th:errors="*{file}"></small>
+                    </label>
+                </section>
+                <div class="form-submit-row">
+                    <a class="button button-secondary" th:href="${editing} ? @{/documents/{id}(id=${documentId})} : @{/documents}">Hủy</a>
+                    <button type="submit"><span th:text="${editing} ? 'Lưu thay đổi' : 'Nộp tài liệu để duyệt'">Nộp tài liệu để duyệt</span> <span aria-hidden="true">→</span></button>
+                </div>
+            </form>
+            <aside class="form-card">
+                <div class="form-section-heading"><h2 th:text="${editing} ? 'Trước khi gửi lại' : 'Trước khi nộp'">Trước khi nộp</h2><p>Một hồ sơ tốt thường có đủ ba yếu tố.</p></div>
+                <ol class="guidance-list">
+                    <li><span class="guidance-number">1</span><span>Tiêu đề phản ánh đúng chủ đề và cấp độ học tập.</span></li>
+                    <li><span class="guidance-number">2</span><span>Danh mục, tác giả và khoa được khai báo chính xác.</span></li>
+                    <li><span class="guidance-number">3</span><span>Tệp mở được, không chứa nội dung nhạy cảm hoặc vi phạm bản quyền.</span></li>
+                </ol>
+            </aside>
+        </div>
+    </main>
+</div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

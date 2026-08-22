@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="EduRepo gặp sự cố khi xử lý yêu cầu.">
+    <title>Đã xảy ra lỗi | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="error-page">
+<div th:replace="~{fragments/header :: header}"></div>
+<main id="main-content" class="error-main page-container">
+    <section class="error-shell" aria-labelledby="error-title">
+        <div class="error-visual" aria-hidden="true"><span class="error-code">500</span></div>
+        <div class="error-copy">
+            <span class="workspace-kicker">Sự cố hệ thống</span>
+            <h1 id="error-title">Yêu cầu chưa thể hoàn tất.</h1>
+            <p th:text="${message ?: 'EduRepo gặp sự cố tạm thời khi xử lý yêu cầu. Dữ liệu của bạn chưa bị thay đổi.'}">Vui lòng thử lại.</p>
+            <div class="error-actions">
+                <a class="button" th:href="@{/repository}">Về kho học liệu</a>
+                <a class="button button-secondary" href="mailto:support@edurepo.local">Báo quản trị viên</a>
+            </div>
+            <div class="error-help"><span class="error-help-mark">i</span><span>Nếu lỗi tiếp tục xuất hiện, hãy ghi lại thao tác vừa thực hiện và gửi cho quản trị viên.</span></div>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tài liệu của tôi | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="page-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <main id="main-content" class="content workspace-content">
+        <header class="workspace-heading">
+            <div><span class="workspace-kicker">Không gian cá nhân</span><h1>Tài liệu của tôi</h1><p class="subtitle">Theo dõi bản nháp, tiến trình kiểm duyệt và các tài liệu đã công bố.</p></div>
+            <div class="workspace-actions"><a class="button" th:href="@{/documents/new}">Nộp tài liệu <span aria-hidden="true">＋</span></a></div>
+        </header>
+        <div th:replace="~{fragments/ui :: flashMessages}"></div>
+        <form class="document-filter-panel" method="get" th:action="@{/documents}">
+            <input type="search" name="keyword" th:value="${keyword}" placeholder="Tìm theo tiêu đề">
+            <select name="status"><option value="">Mọi trạng thái</option><option th:each="item : ${statuses}" th:value="${item}" th:text="${item}" th:selected="${selectedStatus == item}"></option></select>
+            <select name="categoryId"><option value="">Mọi danh mục</option><option th:each="item : ${categories}" th:value="${item.id}" th:text="${item.name}" th:selected="${selectedCategoryId == item.id}"></option></select>
+            <select name="facultyId" data-faculty-select><option value="">Mọi khoa</option><option th:each="item : ${faculties}" th:value="${item.id}" th:text="${item.name}" th:selected="${selectedFacultyId == item.id}"></option></select>
+            <select name="departmentId" data-department-select><option value="">Mọi bộ môn</option><option th:each="item : ${departments}" th:value="${item.id}" th:data-faculty-id="${item.faculty != null ? item.faculty.id : ''}" th:text="${item.name}" th:selected="${selectedDepartmentId == item.id}"></option></select>
+            <button type="submit" class="button">Lọc tài liệu</button><a th:href="@{/documents}" class="table-action">Xóa bộ lọc</a>
+        </form>
+        <section class="data-panel" th:if="${!#lists.isEmpty(documents)}" aria-labelledby="documents-table-title">
+            <div class="data-panel-header"><strong id="documents-table-title">Hồ sơ học liệu</strong><span class="record-count" th:text="|${documentPage.totalElements} tài liệu|">0 tài liệu</span></div>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <caption class="sr-only">Danh sách tài liệu của tài khoản hiện tại</caption>
+                    <thead><tr><th>Tài liệu</th><th>Phân loại</th><th>Trạng thái</th><th>Ngày tạo</th><th>Thao tác</th></tr></thead>
+                    <tbody>
+                    <tr th:each="doc : ${documents}">
+                        <td><div class="entity-cell"><span class="workspace-icon" aria-hidden="true">▤</span><span class="entity-copy"><strong th:text="${doc.title}">Tiêu đề</strong><small th:text="${doc.fileName ?: 'Chưa có tệp'}">Tên tệp</small></span></div></td>
+                        <td><small th:text="${doc.category != null ? doc.category.name : 'Chưa phân loại'}"></small><br><small class="field-hint" th:text="${doc.department != null ? doc.department.name : 'Chưa gán bộ môn'}"></small></td>
+                        <td><span class="status-pill" th:classappend="| status-${#strings.toLowerCase(doc.status.name())}|" th:text="${doc.status}">DRAFT</span></td>
+                        <td th:text="${doc.createdAt}">Ngày tạo</td>
+                        <td><a class="table-action" th:href="@{/documents/{id}(id=${doc.id})}">Xem chi tiết <span aria-hidden="true">→</span></a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <nav class="pagination" th:if="${documentPage.totalPages > 1}" aria-label="Phân trang tài liệu"><a th:if="${documentPage.hasPrevious()}" th:href="@{/documents(page=${documentPage.number - 1},keyword=${keyword},status=${selectedStatus},categoryId=${selectedCategoryId},facultyId=${selectedFacultyId},departmentId=${selectedDepartmentId})}">← Trước</a><span th:text="|Trang ${documentPage.number + 1}/${documentPage.totalPages}|"></span><a th:if="${documentPage.hasNext()}" th:href="@{/documents(page=${documentPage.number + 1},keyword=${keyword},status=${selectedStatus},categoryId=${selectedCategoryId},facultyId=${selectedFacultyId},departmentId=${selectedDepartmentId})}">Sau →</a></nav>
+        </section>
+        <section class="data-panel empty-panel" th:if="${#lists.isEmpty(documents)}">
+            <span class="workspace-icon" aria-hidden="true">▤</span>
+            <h2>Kho cá nhân đang trống</h2>
+            <p>Nộp tài liệu đầu tiên để bắt đầu quy trình lưu trữ và kiểm duyệt trên EduRepo.</p>
+            <a class="button" th:href="@{/documents/new}">Tạo hồ sơ tài liệu</a>
+        </section>
+    </main>
+</div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

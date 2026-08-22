@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div class="flash-stack" th:fragment="flashMessages"
+     th:if="${success != null or error != null}" aria-live="polite">
+    <div class="alert success flash-message" th:if="${success}" role="status">
+        <span class="alert-icon" aria-hidden="true">✓</span>
+        <div>
+            <strong>Thao tác thành công</strong>
+            <span th:text="${success}">Dữ liệu đã được cập nhật.</span>
+        </div>
+        <button class="alert-dismiss" type="button" data-dismiss-alert aria-label="Đóng thông báo">×</button>
+    </div>
+    <div class="alert error flash-message" th:if="${error}" role="alert">
+        <span class="alert-icon" aria-hidden="true">!</span>
+        <div>
+            <strong>Chưa thể hoàn tất</strong>
+            <span th:text="${error}">Vui lòng thử lại.</span>
+        </div>
+        <button class="alert-dismiss" type="button" data-dismiss-alert aria-label="Đóng thông báo">×</button>
+    </div>
+</div>
+
+<div class="toast-region" th:fragment="toastRegion"
+     aria-live="polite" aria-atomic="true" data-toast-region></div>
+
+<div class="confirm-dialog" th:fragment="confirmDialog" data-confirm-dialog hidden>
+    <div class="confirm-dialog-backdrop" data-confirm-cancel></div>
+    <section class="confirm-dialog-panel" role="dialog" aria-modal="true"
+             aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-message"
+             tabindex="-1" data-confirm-panel>
+        <span class="confirm-dialog-mark" aria-hidden="true">!</span>
+        <h2 id="confirm-dialog-title">Xác nhận thao tác</h2>
+        <p id="confirm-dialog-message" data-confirm-message>
+            Bạn chắc chắn muốn tiếp tục thao tác này?
+        </p>
+        <div class="confirm-dialog-actions">
+            <button class="button button-secondary" type="button" data-confirm-cancel>Quay lại</button>
+            <button class="button button-danger" type="button" data-confirm-accept>Xác nhận</button>
+        </div>
+    </section>
+</div>
+</body>
+</html>

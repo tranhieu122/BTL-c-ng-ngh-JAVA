@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Yêu cầu gửi đến EduRepo không hợp lệ.">
+    <title>400 - Yêu cầu không hợp lệ | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="error-page">
+<div th:replace="~{fragments/header :: header}"></div>
+<main id="main-content" class="error-main page-container">
+    <section class="error-shell" aria-labelledby="error-title">
+        <div class="error-visual" aria-hidden="true"><span class="error-code">400</span></div>
+        <div class="error-copy">
+            <span class="workspace-kicker">Yêu cầu không hợp lệ</span>
+            <h1 id="error-title">EduRepo chưa thể xử lý thao tác này.</h1>
+            <p th:text="${message ?: 'Dữ liệu hoặc trạng thái hiện tại chưa đáp ứng điều kiện xử lý.'}">Vui lòng kiểm tra lại dữ liệu.</p>
+            <div class="error-actions">
+                <a class="button" th:href="@{/dashboard}">Về khu vực của tôi</a>
+                <a class="button button-secondary" th:href="@{/repository}">Xem kho công khai</a>
+            </div>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

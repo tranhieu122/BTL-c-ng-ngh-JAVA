@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Danh mục học liệu | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="page-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <main id="main-content" class="content workspace-content">
+        <header class="workspace-heading"><div><span class="workspace-kicker">Tổ chức nội dung</span><h1>Danh mục học liệu</h1><p class="subtitle">Xây dựng hệ phân loại nhất quán để tài liệu dễ tìm và dễ quản lý.</p></div></header>
+        <div th:replace="~{fragments/ui :: flashMessages}"></div>
+        <div class="category-layout">
+            <aside class="form-card">
+                <div class="form-section-heading"><h2>Thêm danh mục</h2><p>Tạo một nhóm chủ đề mới cho kho học liệu.</p></div>
+                <form th:action="@{/admin/categories}" th:object="${category}" method="post" class="form-grid">
+                    <label><span class="field-label">Tên danh mục</span><input th:field="*{name}" placeholder="Ví dụ: Công nghệ thông tin" required th:attr="aria-invalid=${#fields.hasErrors('name')}"><small class="field-error" th:errors="*{name}"></small></label>
+                    <label><span class="field-label">Mô tả ngắn</span><textarea th:field="*{description}" rows="4" placeholder="Phạm vi nội dung của danh mục" th:attr="aria-invalid=${#fields.hasErrors('description')}"></textarea><small class="field-error" th:errors="*{description}"></small></label>
+                    <button type="submit">Thêm danh mục</button>
+                </form>
+            </aside>
+            <section class="data-panel" aria-labelledby="category-table-title">
+                <div class="data-panel-header"><strong id="category-table-title">Danh mục hiện có</strong><span class="record-count" th:text="|${#lists.size(categories)} danh mục|">0 danh mục</span></div>
+                <div class="table-scroll" th:if="${!#lists.isEmpty(categories)}">
+                    <table class="data-table">
+                        <caption class="sr-only">Danh sách danh mục học liệu</caption>
+                        <thead><tr><th>Danh mục</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                        <tbody>
+                        <tr th:each="item : ${categories}">
+                            <td><div class="entity-cell"><span class="workspace-icon" aria-hidden="true">◇</span><span class="entity-copy"><strong th:text="${item.name}">Tên</strong><small th:text="${item.description ?: 'Chưa có mô tả'}">Mô tả</small></span></div></td>
+                            <td><span class="status-pill" th:classappend="${item.active} ? ' is-active' : ''" th:text="${item.active ? 'Đang sử dụng' : 'Đã ngừng'}">Trạng thái</span></td>
+                            <td><form th:if="${item.active}" th:action="@{/admin/categories/{id}/delete(id=${item.id})}" method="post"><button class="button button-warning button-sm" type="submit" data-confirm-label="Ngừng sử dụng" data-confirm-message="Ngừng sử dụng danh mục này? Danh mục sẽ không còn xuất hiện trong lựa chọn cho tài liệu mới.">Ngừng dùng</button></form><span th:unless="${item.active}" class="field-hint">Không khả dụng</span></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="empty-panel" th:if="${#lists.isEmpty(categories)}"><span class="workspace-icon" aria-hidden="true">◇</span><h2>Chưa có danh mục</h2><p>Thêm danh mục đầu tiên để bắt đầu tổ chức kho học liệu.</p></div>
+            </section>
+        </div>
+    </main>
+</div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

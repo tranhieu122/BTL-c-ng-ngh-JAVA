@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Không tìm thấy nội dung được yêu cầu trên EduRepo.">
+    <title>404 - Không tìm thấy | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="error-page">
+<div th:replace="~{fragments/header :: header}"></div>
+<main id="main-content" class="error-main page-container">
+    <section class="error-shell" aria-labelledby="error-title">
+        <div class="error-visual" aria-hidden="true"><span class="error-code">404</span></div>
+        <div class="error-copy">
+            <span class="workspace-kicker">Không tìm thấy</span>
+            <h1 id="error-title">Nội dung này không còn ở đây.</h1>
+            <p th:text="${message ?: 'Đường dẫn có thể đã thay đổi, tài liệu chưa được công bố hoặc nội dung đã được chuyển sang khu vực khác.'}">Không tìm thấy nội dung.</p>
+            <div class="error-actions">
+                <a class="button" th:href="@{/repository}">Tìm trong kho học liệu</a>
+                <a class="button button-secondary" th:href="@{/}">Về trang chủ</a>
+            </div>
+            <div class="error-help"><span class="error-help-mark">?</span><span>Thử kiểm tra lại đường dẫn hoặc sử dụng ô tìm kiếm trong kho công khai.</span></div>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

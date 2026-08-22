@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tệp tải lên EduRepo vượt quá dung lượng cho phép.">
+    <title>413 - Tệp quá lớn | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="error-page">
+<div th:replace="~{fragments/header :: header}"></div>
+<main id="main-content" class="error-main page-container">
+    <section class="error-shell" aria-labelledby="error-title">
+        <div class="error-visual" aria-hidden="true"><span class="error-code">413</span></div>
+        <div class="error-copy">
+            <span class="workspace-kicker">Tệp vượt giới hạn</span>
+            <h1 id="error-title">Tệp tải lên có dung lượng quá lớn.</h1>
+            <p th:text="${message ?: 'EduRepo chỉ tiếp nhận tệp có dung lượng tối đa 200 MB.'}">Vui lòng chọn tệp nhỏ hơn.</p>
+            <div class="error-actions">
+                <a class="button" th:href="@{/documents/new}">Chọn lại tệp</a>
+                <a class="button button-secondary" th:href="@{/documents}">Về tài liệu của tôi</a>
+            </div>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Yêu cầu truy cập EduRepo bị từ chối.">
+    <title>403 - Truy cập bị từ chối | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="error-page">
+<div th:replace="~{fragments/header :: header}"></div>
+<main id="main-content" class="error-main page-container">
+    <section class="error-shell" aria-labelledby="error-title">
+        <div class="error-visual" aria-hidden="true"><span class="error-code">403</span></div>
+        <div class="error-copy">
+            <span class="workspace-kicker">Truy cập bị từ chối</span>
+            <h1 id="error-title">Bạn chưa có quyền mở trang này.</h1>
+            <p>Trang vẫn an toàn, nhưng yêu cầu hiện tại không đáp ứng điều kiện phân quyền của EduRepo.</p>
+            <div class="error-actions">
+                <a class="button" th:href="@{/dashboard}">Về khu vực của tôi</a>
+                <a class="button button-secondary" th:href="@{/repository}">Xem kho công khai</a>
+            </div>
+            <div class="error-help"><span class="error-help-mark">i</span><span>Đăng nhập bằng tài khoản phù hợp hoặc liên hệ quản trị viên nếu bạn cho rằng đây là nhầm lẫn.</span></div>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

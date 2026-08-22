@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Duyệt tài liệu | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="page-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <main id="main-content" class="content workspace-content">
+        <header class="workspace-heading">
+            <div><span class="workspace-kicker">Phiên kiểm duyệt</span><h1 th:text="${document.title}">Tên tài liệu</h1><p class="subtitle">Đọc hồ sơ, kiểm tra tệp và ghi lại quyết định có giải thích.</p></div>
+            <div class="workspace-actions"><a class="button button-secondary" th:href="@{/reviews/pending}">← Hàng chờ</a></div>
+        </header>
+        <div class="review-layout">
+            <div>
+                <article class="review-card">
+                    <div class="panel-heading"><div><h2>Hồ sơ tài liệu</h2><p>Thông tin do tác giả cung cấp.</p></div><span class="status-pill" th:classappend="| status-${#strings.toLowerCase(document.status.name())}|" th:text="${document.status}">SUBMITTED</span></div>
+                    <p th:text="${document.description ?: 'Tác giả chưa cung cấp mô tả cho tài liệu này.'}">Mô tả</p>
+                    <dl class="metadata-grid">
+                        <div><dt>Tác giả</dt><dd th:text="${document.authorName ?: 'Chưa khai báo'}">Tác giả</dd></div>
+                        <div><dt>Người nộp</dt><dd th:text="${document.createdBy != null ? document.createdBy.fullName : 'Không xác định'}">Người nộp</dd></div>
+                        <div><dt>Danh mục</dt><dd th:text="${document.category != null ? document.category.name : 'Chưa phân loại'}">Danh mục</dd></div>
+                        <div><dt>Tệp đính kèm</dt><dd th:text="${document.fileName}">Tệp</dd></div>
+                    </dl>
+                    <div class="form-submit-row"><a class="button button-secondary" th:href="@{/reviews/{id}/download(id=${document.id})}">Tải tệp để kiểm tra</a></div>
+                </article>
+                <article class="review-card review-card-spaced">
+                    <div class="panel-heading"><div><h2>Lịch sử đánh giá</h2><p>Dấu vết các quyết định trước đây.</p></div></div>
+                    <ol class="review-history" th:if="${!#lists.isEmpty(history)}">
+                        <li th:each="item : ${history}"><strong th:text="${item.action}">ACTION</strong><br><span th:text="|${item.createdAt} · ${item.comment ?: 'Không có ghi chú'}|">Nội dung</span></li>
+                    </ol>
+                    <div class="empty-panel" th:if="${#lists.isEmpty(history)}"><h2>Chưa có lịch sử</h2><p>Quyết định đầu tiên sẽ được lưu tại đây.</p></div>
+                </article>
+            </div>
+            <aside class="review-card">
+                <div class="form-section-heading"><h2>Ghi nhận quyết định</h2><p>Phản hồi cụ thể giúp tác giả cải thiện tài liệu.</p></div>
+                <form th:action="@{/reviews/{id}(id=${document.id})}" th:object="${reviewForm}" method="post" class="form-grid">
+                    <label>
+                        <span class="field-label">Kết quả kiểm duyệt</span>
+                        <select th:field="*{action}" required data-review-action
+                                th:attr="aria-invalid=${#fields.hasErrors('action')}">
+                            <option value="">Chọn quyết định</option>
+                            <option value="APPROVED">Phê duyệt</option>
+                            <option value="REVISION_REQUESTED">Yêu cầu chỉnh sửa</option>
+                            <option value="REJECTED">Từ chối</option>
+                            <option th:if="${document.status.name() == 'APPROVED'}" value="PUBLISHED">Công bố</option>
+                        </select>
+                        <small class="field-error" th:errors="*{action}"></small>
+                    </label>
+                    <label><span class="field-label">Góp ý cho tác giả</span><textarea th:field="*{comment}" rows="8" placeholder="Nêu rõ điểm đạt yêu cầu hoặc nội dung cần điều chỉnh"></textarea><small class="field-error" th:errors="*{comment}"></small></label>
+                    <button type="submit" data-review-submit
+                            data-confirm-label="Lưu quyết định"
+                            data-confirm-message="Lưu quyết định kiểm duyệt này? Kết quả sẽ được ghi vào lịch sử tài liệu.">
+                        <span data-review-submit-label>Lưu kết quả</span>
+                        <span aria-hidden="true">→</span>
+                    </button>
+                </form>
+            </aside>
+        </div>
+    </main>
+</div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>
