@@ -332,7 +332,7 @@
 
 .auth-alert {
     display: grid;
-    grid-template-columns: 34px 1fr auto;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
     align-items: start;
     gap: 0.7rem;
     margin: 0 0 1rem;
@@ -358,6 +358,7 @@
 
 .auth-alert div {
     display: grid;
+    min-width: 0;
     line-height: 1.35;
 }
 
@@ -368,6 +369,7 @@
 .auth-alert p {
     margin: 0.15rem 0 0;
     font-size: 0.67rem;
+    overflow-wrap: anywhere;
 }
 
 .auth-alert > button {
@@ -436,6 +438,14 @@
     background: var(--white);
     font-size: 0.86rem;
     transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+}
+
+.input-shell input:first-child {
+    padding-left: 1rem;
+}
+
+.input-shell input:first-child:last-child {
+    padding-right: 1rem;
 }
 
 .input-shell input::placeholder {
