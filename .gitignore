@@ -44,3 +44,8 @@ Thumbs.db
 
 ### Custom ###
 .codex/
+
+### EduRepo runtime data ###
+.data/
+backups/
+uploads/

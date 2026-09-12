@@ -7,6 +7,7 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
+<span hidden th:if="${clearSubmissionDraft}" data-clear-submission-draft th:attr="data-draft-owner=${#authentication.name}"></span>
 <div th:replace="~{fragments/header :: header}"></div>
 <div class="page-shell">
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
@@ -24,6 +25,7 @@
             <select name="departmentId" data-department-select><option value="">Mọi bộ môn</option><option th:each="item : ${departments}" th:value="${item.id}" th:data-faculty-id="${item.faculty != null ? item.faculty.id : ''}" th:text="${item.name}" th:selected="${selectedDepartmentId == item.id}"></option></select>
             <button type="submit" class="button">Lọc tài liệu</button><a th:href="@{/documents}" class="table-action">Xóa bộ lọc</a>
         </form>
+        <div data-live-region="documents" data-live-source="documents">
         <section class="data-panel" th:if="${!#lists.isEmpty(documents)}" aria-labelledby="documents-table-title">
             <div class="data-panel-header"><strong id="documents-table-title">Hồ sơ học liệu</strong><span class="record-count" th:text="|${documentPage.totalElements} tài liệu|">0 tài liệu</span></div>
             <div class="table-scroll">
@@ -34,7 +36,7 @@
                     <tr th:each="doc : ${documents}">
                         <td><div class="entity-cell"><span class="workspace-icon" aria-hidden="true">▤</span><span class="entity-copy"><strong th:text="${doc.title}">Tiêu đề</strong><small th:text="${doc.fileName ?: 'Chưa có tệp'}">Tên tệp</small></span></div></td>
                         <td><small th:text="${doc.category != null ? doc.category.name : 'Chưa phân loại'}"></small><br><small class="field-hint" th:text="${doc.department != null ? doc.department.name : 'Chưa gán bộ môn'}"></small></td>
-                        <td><span class="status-pill" th:classappend="| status-${#strings.toLowerCase(doc.status.name())}|" th:text="${doc.status}">DRAFT</span></td>
+                        <td><span class="status-pill" th:attr="data-live-document-status=${doc.id}" th:classappend="| status-${#strings.toLowerCase(doc.status.name())}|" th:text="${doc.status}">DRAFT</span></td>
                         <td th:text="${doc.createdAt}">Ngày tạo</td>
                         <td><a class="table-action" th:href="@{/documents/{id}(id=${doc.id})}">Xem chi tiết <span aria-hidden="true">→</span></a></td>
                     </tr>
@@ -49,6 +51,7 @@
             <p>Nộp tài liệu đầu tiên để bắt đầu quy trình lưu trữ và kiểm duyệt trên EduRepo.</p>
             <a class="button" th:href="@{/documents/new}">Tạo hồ sơ tài liệu</a>
         </section>
+        </div>
     </main>
 </div>
 <div th:replace="~{fragments/footer :: footer}"></div>

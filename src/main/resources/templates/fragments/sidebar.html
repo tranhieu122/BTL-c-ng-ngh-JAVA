@@ -4,46 +4,66 @@
 <body>
 <aside class="sidebar" th:fragment="sidebar" aria-label="Điều hướng chức năng">
     <div class="sidebar-intro">
-        <span class="sidebar-kicker">EduRepo workspace</span>
+        <span class="sidebar-kicker">Không gian làm việc</span>
         <strong>Trung tâm học liệu</strong>
     </div>
 
     <p class="sidebar-label">Khám phá</p>
     <a th:href="@{/repository}" data-sidebar-link aria-label="Kho công khai">
-        <span class="nav-icon" aria-hidden="true">⌂</span>
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10H3z"/><path d="M9 20v-7h6v7"/></svg></span>
         <span>Kho công khai</span>
+    </a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/library}" data-sidebar-link aria-label="Thư viện của tôi">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6l2 2 2-2h6v15h-6l-2 2-2-2H4z"/><path d="M12 6v15"/></svg></span>
+        <span>Thư viện của tôi</span>
+    </a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/notifications}" data-sidebar-link aria-label="Thông báo của tôi">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></span>
+        <span>Thông báo</span>
     </a>
 
     <p class="sidebar-label" sec:authorize="hasAnyRole('SUBMITTER','REVIEWER','ADMIN')">Công việc</p>
     <a sec:authorize="hasAnyRole('SUBMITTER','ADMIN')" th:href="@{/documents}" data-sidebar-link aria-label="Tài liệu của tôi">
-        <span class="nav-icon" aria-hidden="true">▤</span>
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h4M9 12h6M9 16h6"/></svg></span>
         <span>Tài liệu của tôi</span>
     </a>
     <a sec:authorize="hasAnyRole('SUBMITTER','ADMIN')" th:href="@{/documents/new}" data-sidebar-link aria-label="Nộp tài liệu">
-        <span class="nav-icon" aria-hidden="true">＋</span>
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V3m-5 5 5-5 5 5M4 15v6h16v-6"/></svg></span>
         <span>Nộp tài liệu</span>
     </a>
     <a sec:authorize="hasAnyRole('REVIEWER','ADMIN')" th:href="@{/reviews/pending}" data-sidebar-link aria-label="Tài liệu chờ duyệt">
-        <span class="nav-icon" aria-hidden="true">✓</span>
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 12l3 3 5-6"/></svg></span>
         <span>Chờ duyệt</span>
+    </a>
+    <a sec:authorize="hasAnyRole('REVIEWER','ADMIN')" th:href="@{/moderation/reports}" data-sidebar-link aria-label="Báo cáo và đánh giá tài liệu">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18M5 5h12l-2 4 2 4H5"/><path d="M9 17h10M14 14v6"/></svg></span>
+        <span>Báo cáo tài liệu</span>
     </a>
 
     <p class="sidebar-label" sec:authorize="hasRole('ADMIN')">Quản trị</p>
     <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/dashboard}" data-sidebar-link aria-label="Thống kê hệ thống">
-        <span class="nav-icon" aria-hidden="true">⌁</span>
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v18h17M8 17v-5m5 5V7m5 10V4"/></svg></span>
         <span>Thống kê</span>
     </a>
     <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/users}" data-sidebar-link aria-label="Quản lý người dùng">
-        <span class="nav-icon" aria-hidden="true">◎</span>
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5"/></svg></span>
         <span>Người dùng</span>
     </a>
     <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/categories}" data-sidebar-link aria-label="Quản lý danh mục">
-        <span class="nav-icon" aria-hidden="true">◇</span>
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
         <span>Danh mục</span>
     </a>
     <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/organization}" data-sidebar-link aria-label="Quản lý khoa và bộ môn">
-        <span class="nav-icon" aria-hidden="true">⌘</span>
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="6" rx="1"/><rect x="2" y="16" width="7" height="6" rx="1"/><rect x="15" y="16" width="7" height="6" rx="1"/><path d="M12 8v4H5v4m7-4h7v4"/></svg></span>
         <span>Khoa &amp; bộ môn</span>
+    </a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/notifications}" data-sidebar-link aria-label="Quản lý thông báo">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M8 9h8M8 13h5"/></svg></span>
+        <span>Thông báo hệ thống</span>
+    </a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/audit-logs}" data-sidebar-link aria-label="Nhật kí hệ thống">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2M4 4l2 2"/></svg></span>
+        <span>Nhật kí hệ thống</span>
     </a>
 
     <div class="sidebar-note">

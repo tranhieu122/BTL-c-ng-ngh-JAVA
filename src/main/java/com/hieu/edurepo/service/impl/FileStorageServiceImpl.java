@@ -17,6 +17,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.UUID;
 
 @Service
@@ -40,12 +43,15 @@ public class FileStorageServiceImpl implements FileStorageService {
     @Override
     public String store(MultipartFile file) {
         String extension = FileValidationUtil.validateAndGetExtension(file);
+        FileValidationUtil.validateContent(file, extension);
         String storedName = UUID.randomUUID() + "." + extension;
         Path destination = safeResolve(storedName);
-        try {
-            Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+        try (var input = file.getInputStream()) {
+            Files.copy(input, destination, StandardCopyOption.REPLACE_EXISTING);
             return storedName;
         } catch (IOException exception) {
+            try { Files.deleteIfExists(destination); }
+            catch (IOException cleanupException) { exception.addSuppressed(cleanupException); }
             throw new FileStorageException("Không thể lưu tệp tải lên", exception);
         }
     }
@@ -60,6 +66,22 @@ public class FileStorageServiceImpl implements FileStorageService {
             return resource;
         } catch (MalformedURLException exception) {
             throw new FileStorageException("Đường dẫn tệp không hợp lệ", exception);
+        }
+    }
+
+    @Override
+    public String checksum(String storedFileName) {
+        Path file = safeResolve(storedFileName);
+        try (var input = Files.newInputStream(file)) {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = input.read(buffer)) >= 0) {
+                if (read > 0) digest.update(buffer, 0, read);
+            }
+            return HexFormat.of().formatHex(digest.digest());
+        } catch (IOException | NoSuchAlgorithmException exception) {
+            throw new FileStorageException("Không thể tính mã kiểm tra của tệp", exception);
         }
     }
 

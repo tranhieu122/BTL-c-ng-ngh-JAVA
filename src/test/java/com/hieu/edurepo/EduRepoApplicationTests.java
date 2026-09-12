@@ -20,8 +20,8 @@ class EduRepoApplicationTests {
 
     @Test
     void uploadSettingsAreLoaded() {
-        assertEquals(DataSize.ofMegabytes(20), multipartProperties.getMaxFileSize());
-        assertEquals(DataSize.ofMegabytes(21), multipartProperties.getMaxRequestSize());
+        assertEquals(DataSize.ofMegabytes(200), multipartProperties.getMaxFileSize());
+        assertEquals(DataSize.ofMegabytes(201), multipartProperties.getMaxRequestSize());
     }
 
 }

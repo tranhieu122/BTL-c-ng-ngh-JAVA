@@ -8,118 +8,47 @@
     <title>EduRepo | Kho học liệu số</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
-<body class="repository-page">
+<body class="repository-page repository-v2">
 <div th:replace="~{fragments/header :: header}"></div>
 
 <main id="main-content" class="public-main">
-    <section class="home-hero" aria-labelledby="hero-title">
-        <div class="page-container hero-layout">
-            <div class="hero-copy">
-                <div class="hero-badge">
-                    <span class="hero-badge-icon" aria-hidden="true">✦</span>
-                    Kho học liệu số có kiểm duyệt
-                </div>
-                <h1 id="hero-title">
-                    Tìm đúng tài liệu,
-                    <span>học nhanh hơn mỗi ngày.</span>
-                </h1>
-                <p class="hero-lead">
-                    EduRepo gom học liệu đã được duyệt vào một không gian dễ tìm, dễ tải và dễ quản lý,
-                    giúp người học bắt đầu từ nguồn đáng tin thay vì mất thời gian lục tìm rời rạc.
-                </p>
-
-                <div class="hero-actions">
-                    <a class="button" href="#latest-documents">
-                        Xem tài liệu mới <span aria-hidden="true">↓</span>
-                    </a>
-                    <a class="button button-ghost-light" sec:authorize="isAnonymous()" th:href="@{/login}">
-                        Đăng nhập để đóng góp
-                    </a>
-                    <a class="button button-ghost-light" sec:authorize="isAuthenticated()" th:href="@{/dashboard}">
-                        Vào không gian làm việc
-                    </a>
-                </div>
-
-                <form class="hero-search" th:action="@{/repository}" method="get" role="search">
-                    <span class="search-symbol" aria-hidden="true"></span>
-                    <label class="sr-only" for="repository-keyword">Tìm kiếm trong kho học liệu</label>
-                    <input id="repository-keyword" type="search" name="keyword" th:value="${keyword}"
-                           placeholder="Tìm theo tên tài liệu..." autocomplete="off" data-search-input>
-                    <a class="search-clear" th:if="${!#strings.isEmpty(keyword)}"
-                       th:href="@{/repository}" aria-label="Xóa từ khóa tìm kiếm">×</a>
-                    <button type="submit">
-                        <span>Tìm kiếm</span>
-                        <span aria-hidden="true">→</span>
-                    </button>
-                </form>
-
-                <div class="hero-hints" aria-label="Gợi ý tìm kiếm">
-                    <span>Tìm nhanh:</span>
-                    <a th:href="@{/repository(keyword='Công nghệ')}">Công nghệ</a>
-                    <a th:href="@{/repository(keyword='Giáo trình')}">Giáo trình</a>
-                    <a th:href="@{/repository(keyword='Nghiên cứu')}">Nghiên cứu</a>
-                </div>
-
-                <dl class="hero-stats" aria-label="Thống kê kho học liệu">
-                    <div>
-                        <dt th:text="${documents.totalElements}">0</dt>
-                        <dd>Tài liệu phù hợp</dd>
-                    </div>
-                    <div>
-                        <dt th:text="${#lists.size(categories)}">0</dt>
-                        <dd>Danh mục hoạt động</dd>
-                    </div>
-                    <div>
-                        <dt>3 bước</dt>
-                        <dd>Nộp, duyệt, công bố</dd>
-                    </div>
-                </dl>
+    <section class="repository-intro" aria-labelledby="hero-title">
+        <div class="repository-intro-inner">
+            <span class="repository-intro-eyebrow"><i aria-hidden="true"></i> HỌC LIỆU ĐÃ KIỂM DUYỆT</span>
+            <h1 id="hero-title">Bạn muốn học gì hôm nay?</h1>
+            <p class="repository-intro-description">Tìm giáo trình, bài giảng và tài liệu tham khảo cho hành trình học tập của bạn.</p>
+            <form class="hero-search repository-intro-search" th:action="@{/repository}" method="get" role="search">
+                <svg class="repository-intro-search-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
+                <label class="sr-only" for="repository-keyword">Tìm kiếm trong kho học liệu</label>
+                <input id="repository-keyword" type="search" name="keyword" th:value="${keyword}" placeholder="Tên tài liệu, môn học hoặc tác giả…" autocomplete="off" data-search-input>
+                <a class="repository-intro-clear" th:if="${!#strings.isEmpty(keyword)}" th:href="@{/repository}" aria-label="Xóa từ khóa tìm kiếm">×</a>
+                <button type="submit">Tìm kiếm <span aria-hidden="true">→</span></button>
+            </form>
+            <div class="repository-intro-topics" aria-label="Gợi ý tìm kiếm">
+                <span>Gợi ý:</span><a th:href="@{/repository(keyword='Công nghệ')}">Công nghệ</a><a th:href="@{/repository(keyword='Giáo trình')}">Giáo trình</a><a th:href="@{/repository(keyword='Nghiên cứu')}">Nghiên cứu</a>
             </div>
-
-            <div class="hero-visual" aria-hidden="true">
-                <div class="library-preview">
-                    <div class="preview-topbar">
-                        <span class="preview-brand"><i></i> EduRepo</span>
-                        <span class="preview-avatar"></span>
-                    </div>
-                    <div class="preview-content">
-                        <div class="preview-title">
-                            <span></span>
-                            <small></small>
-                        </div>
-                        <div class="preview-search"><i></i><span></span></div>
-                        <div class="preview-metrics">
-                            <span><strong th:text="${documents.totalElements}">0</strong><small>Tài liệu</small></span>
-                            <span><strong th:text="${#lists.size(categories)}">0</strong><small>Danh mục</small></span>
-                            <span><strong>24/7</strong><small>Truy cập</small></span>
-                        </div>
-                        <div class="preview-cards">
-                            <div class="preview-card preview-card-featured">
-                                <span class="preview-file">PDF</span>
-                                <i></i><i></i><small></small>
-                            </div>
-                            <div class="preview-card">
-                                <span class="preview-file file-doc">DOC</span>
-                                <i></i><i></i><small></small>
-                            </div>
-                            <div class="preview-card">
-                                <span class="preview-file file-ppt">PPT</span>
-                                <i></i><i></i><small></small>
-                            </div>
-                        </div>
-                    </div>
+            <div class="repository-intro-bottom">
+                <div class="repository-intro-stats" aria-label="Thống kê kho học liệu">
+                    <span><strong th:text="${documents.totalElements}">0</strong> tài liệu phù hợp</span>
+                    <span><strong th:text="${#lists.size(categories)}">0</strong> danh mục</span>
                 </div>
-
-                <div class="review-pipeline">
-                    <span>Quy trình duyệt</span>
-                    <ol>
-                        <li><i></i>Nộp tài liệu</li>
-                        <li><i></i>Kiểm duyệt</li>
-                        <li><i></i>Công bố</li>
-                    </ol>
-                </div>
+                <a href="#latest-documents">Xem tài liệu <span aria-hidden="true">↓</span></a>
             </div>
         </div>
+    </section>
+    <section class="advanced-search page-container" aria-labelledby="advanced-search-title">
+        <div class="section-intro">
+            <div><p class="eyebrow">Tìm kiếm nâng cao</p><h2 id="advanced-search-title">Lọc theo metadata học thuật</h2></div>
+            <p>Tìm trong tiêu đề, mô tả, tóm tắt, tác giả và từ khóa.</p>
+        </div>
+        <form class="advanced-filter-form" th:action="@{/repository}" method="get">
+            <label><span>Từ khóa</span><input type="search" name="keyword" th:value="${keyword}" placeholder="Chủ đề, tác giả hoặc từ khóa"></label>
+            <label><span>Danh mục</span><select name="categoryId"><option value="">Tất cả danh mục</option><option th:each="item : ${categories}" th:value="${item.id}" th:text="${item.name}" th:selected="${item.id == selectedCategoryId}"></option></select></label>
+            <label><span>Loại học liệu</span><select name="resourceType"><option value="">Tất cả loại</option><option th:each="item : ${resourceTypes}" th:value="${item}" th:text="${item.label}" th:selected="${item == selectedResourceType}"></option></select></label>
+            <label><span>Trình độ</span><select name="educationLevel"><option value="">Tất cả trình độ</option><option th:each="item : ${educationLevels}" th:value="${item}" th:text="${item.label}" th:selected="${item == selectedEducationLevel}"></option></select></label>
+            <label><span>Ngôn ngữ</span><select name="languageCode"><option value="">Tất cả ngôn ngữ</option><option value="vi" th:selected="${selectedLanguageCode == 'vi'}">Tiếng Việt</option><option value="en" th:selected="${selectedLanguageCode == 'en'}">English</option><option value="fr" th:selected="${selectedLanguageCode == 'fr'}">Français</option><option value="other" th:selected="${selectedLanguageCode == 'other'}">Khác</option></select></label>
+            <div class="advanced-filter-actions"><button type="submit">Áp dụng bộ lọc</button><a class="button button-secondary" th:href="@{/repository}">Đặt lại</a></div>
+        </form>
     </section>
 
     <section class="trust-strip" aria-label="Cam kết của EduRepo">
@@ -180,6 +109,7 @@
                 <span th:text="${category.name}">Danh mục</span>
             </button>
         </div>
+        <p class="category-filter-note"><span aria-hidden="true">i</span> Bộ lọc áp dụng tức thời cho các tài liệu trong trang hiện tại.</p>
     </section>
 
     <section class="documents-section page-container" id="latest-documents" aria-labelledby="documents-title">
@@ -224,25 +154,28 @@
         </div>
 
         <div class="document-grid" data-document-grid th:if="${!documents.empty}">
-            <article class="product-card" th:each="doc : ${documents.content}" data-document-card
+            <article class="product-card" th:each="doc, loop : ${documents.content}" data-document-card
+                     th:classappend="${loop.first ? ' product-card-featured' : ''}"
                      th:attr="data-category=${doc.category != null ? doc.category.name : ''},data-title=${doc.title},data-date=${doc.publishedAt}">
                 <div class="product-card-topline">
-                    <span class="category-label" th:text="${doc.category != null ? doc.category.name : 'Chưa phân loại'}">Danh mục</span>
+                    <div class="product-card-labels">
+                        <span class="category-label" th:text="${doc.category != null ? doc.category.name : 'Chưa phân loại'}">Danh mục</span>
+                        <span class="new-document-label" th:if="${loop.first}">Nổi bật</span>
+                    </div>
                     <span class="verified-label"><i aria-hidden="true">✓</i> Đã công bố</span>
                 </div>
 
                 <div class="product-card-main">
-                    <div class="file-thumbnail" th:attr="data-file-type=${doc.fileType}">
-                        <span class="file-fold" aria-hidden="true"></span>
-                        <span class="file-extension" data-file-label>TỆP</span>
-                    </div>
+                    <a class="file-thumbnail" th:if="${#strings.containsIgnoreCase(doc.fileType, 'pdf')}" th:href="@{/repository/{id}(id=${doc.id})}" th:attr="data-file-type=${doc.fileType},aria-label=${'Đọc PDF: ' + doc.title}"><span class="file-fold" aria-hidden="true"></span><span class="file-extension" data-file-label>PDF</span></a>
+                    <div class="file-thumbnail" th:unless="${#strings.containsIgnoreCase(doc.fileType, 'pdf')}" th:attr="data-file-type=${doc.fileType}"><span class="file-fold" aria-hidden="true"></span><span class="file-extension" data-file-label>TỆP</span></div>
                     <div class="product-card-copy">
                         <p class="document-author">
                             <span class="mini-avatar" aria-hidden="true">A</span>
                             <span th:text="${#strings.isEmpty(doc.authorName) ? 'Tác giả EduRepo' : doc.authorName}">Tác giả EduRepo</span>
                         </p>
                         <h3>
-                            <a th:href="@{/repository/{id}(id=${doc.id})}" th:text="${doc.title}">Tên tài liệu</a>
+                            <a th:if="${#strings.containsIgnoreCase(doc.fileType, 'pdf')}" th:href="@{/repository/{id}(id=${doc.id})}" th:text="${doc.title}">Tên tài liệu</a>
+                            <a th:unless="${#strings.containsIgnoreCase(doc.fileType, 'pdf')}" th:href="@{/repository/{id}(id=${doc.id})}" th:text="${doc.title}">Tên tài liệu</a>
                         </h3>
                         <p class="document-description" th:text="${#strings.isEmpty(doc.description) ? 'Tài liệu học tập được chia sẻ và kiểm duyệt trên EduRepo.' : doc.description}">
                             Mô tả tài liệu.
@@ -263,11 +196,11 @@
 
                 <div class="product-card-footer">
                     <a class="card-primary-link" th:href="@{/repository/{id}(id=${doc.id})}">
-                        Xem chi tiết <span aria-hidden="true">→</span>
+                        Mở học liệu <span aria-hidden="true">→</span>
                     </a>
                     <a class="card-download-link" th:href="@{/download/{id}(id=${doc.id})}"
                        th:attr="aria-label=${'Tải xuống ' + doc.title}" title="Tải xuống">
-                        <span aria-hidden="true">↓</span>
+                        <span aria-hidden="true">↓</span><small>Tải về</small>
                     </a>
                 </div>
             </article>
@@ -290,7 +223,7 @@
 
         <nav class="pagination" th:if="${documents.totalPages > 1}" aria-label="Phân trang tài liệu">
             <a class="page-control" th:if="${documents.hasPrevious()}"
-               th:href="@{/repository(keyword=${keyword},page=${documents.number - 1})}">
+               th:href="@{/repository(keyword=${keyword},categoryId=${selectedCategoryId},resourceType=${selectedResourceType},educationLevel=${selectedEducationLevel},languageCode=${selectedLanguageCode},page=${documents.number - 1})}">
                 <span aria-hidden="true">←</span> Trang trước
             </a>
             <span class="page-summary">
@@ -298,7 +231,7 @@
                 trên <strong th:text="${documents.totalPages}">1</strong>
             </span>
             <a class="page-control" th:if="${documents.hasNext()}"
-               th:href="@{/repository(keyword=${keyword},page=${documents.number + 1})}">
+               th:href="@{/repository(keyword=${keyword},categoryId=${selectedCategoryId},resourceType=${selectedResourceType},educationLevel=${selectedEducationLevel},languageCode=${selectedLanguageCode},page=${documents.number + 1})}">
                 Trang sau <span aria-hidden="true">→</span>
             </a>
         </nav>

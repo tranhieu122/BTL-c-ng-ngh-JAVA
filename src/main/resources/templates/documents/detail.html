@@ -10,7 +10,7 @@
 <div th:replace="~{fragments/header :: header}"></div>
 <div class="page-shell">
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
-    <main id="main-content" class="content workspace-content">
+    <main data-live-region="document-detail" data-live-source="documents" th:attr="data-live-id=${document.id}" id="main-content" class="content workspace-content">
         <header class="workspace-heading">
             <div><span class="workspace-kicker">Hồ sơ học liệu</span><h1>Chi tiết tài liệu</h1><p class="subtitle">Kiểm tra thông tin và theo dõi trạng thái trước khi gửi kiểm duyệt.</p></div>
             <div class="workspace-actions">
@@ -31,14 +31,19 @@
                 <article class="review-card">
                 <div class="document-title-block">
                     <div><h2 th:text="${document.title}">Tên tài liệu</h2><span class="field-hint" th:text="${document.authorName ?: 'Chưa khai báo tác giả'}">Tác giả</span></div>
-                    <span class="status-pill" th:classappend="| status-${#strings.toLowerCase(document.status.name())}|" th:text="${document.status}">DRAFT</span>
+                    <span class="status-pill" th:attr="data-live-document-status=${document.id}" th:classappend="| status-${#strings.toLowerCase(document.status.name())}|" th:text="${document.status}">DRAFT</span>
                 </div>
                 <p class="document-description" th:text="${document.description ?: 'Tài liệu này chưa có mô tả.'}">Mô tả</p>
+                <p class="document-description" th:if="${!#strings.isEmpty(document.summary)}" th:text="${document.summary}">Tóm tắt</p>
                 <dl class="metadata-grid">
                     <div><dt>Tệp đính kèm</dt><dd th:text="${document.fileName}">Tên tệp</dd></div>
                     <div><dt>Loại tệp</dt><dd th:text="${document.fileType}">Loại tệp</dd></div>
                     <div><dt>Danh mục</dt><dd th:text="${document.category != null ? document.category.name : 'Chưa phân loại'}">Danh mục</dd></div>
                     <div><dt>Khoa/Bộ môn</dt><dd th:text="${document.department != null ? document.department.name : 'Chưa chỉ định'}">Khoa</dd></div>
+                    <div><dt>Loại học liệu</dt><dd th:text="${document.learningResourceType.label}">Loại</dd></div>
+                    <div><dt>Trình độ</dt><dd th:text="${document.educationLevel.label}">Trình độ</dd></div>
+                    <div><dt>Ngôn ngữ</dt><dd th:text="${document.languageCode}">vi</dd></div>
+                    <div th:if="${!#strings.isEmpty(document.keywords)}"><dt>Từ khóa</dt><dd th:text="${document.keywords}">Từ khóa</dd></div>
                 </dl>
                 <div class="form-submit-row">
                     <form th:if="${document.status.name() == 'DRAFT' or document.status.name() == 'REVISION_REQUIRED'}" th:action="@{/documents/{id}/submit(id=${document.id})}" method="post">
@@ -62,10 +67,16 @@
                             </strong>
                             <br>
                             <span th:text="${item.comment ?: 'Reviewer không để lại ghi chú.'}">Nội dung phản hồi</span>
+                            <span class="rubric-summary" th:if="${item.hasRubricScores()}" th:text="|Nội dung ${item.contentQualityScore}/5 · Hiệu quả ${item.teachingEffectivenessScore}/5 · Dễ sử dụng ${item.easeOfUseScore}/5|">Rubric</span>
                             <small class="field-hint" th:text="|${item.reviewer.fullName} · ${item.createdAt}|">Reviewer · thời gian</small>
                         </li>
                     </ol>
                     <div class="empty-panel compact-empty" th:if="${#lists.isEmpty(history)}"><h2>Chưa có phản hồi</h2><p>Nhận xét của reviewer sẽ xuất hiện tại đây sau khi tài liệu được xử lý.</p></div>
+                </article>
+                <article class="review-card review-card-spaced">
+                    <div class="panel-heading"><div><h2>Lịch sử phiên bản</h2><p>Mỗi lần thay tệp được lưu thành một phiên bản riêng.</p></div></div>
+                    <ol class="version-list" th:if="${!#lists.isEmpty(versions)}"><li th:each="version : ${versions}"><div><strong th:text="|Phiên bản ${version.versionNumber}|">Phiên bản</strong><span th:text="${version.changeNote}">Thay đổi</span><small th:text="|${version.fileName} · ${version.createdAt}|">Tệp</small></div><a class="button button-secondary" th:href="@{/documents/{id}/versions/{versionId}/download(id=${document.id},versionId=${version.id})}">Tải bản này</a></li></ol>
+                    <div class="empty-panel compact-empty" th:if="${#lists.isEmpty(versions)}"><h2>Chưa có phiên bản</h2><p>Phiên bản đầu tiên sẽ xuất hiện khi tài liệu có tệp đính kèm.</p></div>
                 </article>
             </div>
             <aside class="form-card">

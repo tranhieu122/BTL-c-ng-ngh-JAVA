@@ -58,7 +58,7 @@
 
 .error-code {
     color: var(--white);
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: var(--font-display);
     font-size: clamp(4.5rem, 11vw, 8rem);
     font-weight: 700;
     letter-spacing: -0.08em;
@@ -75,7 +75,7 @@
 
 .error-copy h1 {
     margin-bottom: 0.7rem;
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: var(--font-display);
     font-size: clamp(2rem, 4vw, 3.2rem);
     font-weight: 700;
 }

@@ -7,6 +7,9 @@ import com.hieu.edurepo.entity.Document;
 import com.hieu.edurepo.entity.Faculty;
 import com.hieu.edurepo.entity.User;
 import com.hieu.edurepo.enums.DocumentStatus;
+import com.hieu.edurepo.enums.EducationLevel;
+import com.hieu.edurepo.enums.LearningResourceType;
+import com.hieu.edurepo.enums.RoleName;
 import com.hieu.edurepo.exception.FileStorageException;
 import com.hieu.edurepo.exception.InvalidStatusException;
 import com.hieu.edurepo.exception.ResourceNotFoundException;
@@ -18,6 +21,10 @@ import com.hieu.edurepo.service.DocumentService;
 import com.hieu.edurepo.service.FileStorageService;
 import com.hieu.edurepo.service.ReviewService;
 import com.hieu.edurepo.service.UserService;
+import com.hieu.edurepo.service.AuditLogService;
+import com.hieu.edurepo.enums.AuditAction;
+import com.hieu.edurepo.enums.AuditResult;
+import com.hieu.edurepo.enums.AuditTargetType;
 import com.hieu.edurepo.util.FileValidationUtil;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -37,6 +44,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Objects;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -54,10 +62,20 @@ public class DocumentController {
     private final FacultyRepository facultyRepository;
     private final FileStorageService fileStorageService;
     private final ReviewService reviewService;
+    private final AuditLogService auditLogs;
 
     public DocumentController(DocumentService documentService, UserService userService,
             CategoryService categoryService, DepartmentRepository departmentRepository,
             FacultyRepository facultyRepository, FileStorageService fileStorageService, ReviewService reviewService) {
+        this(documentService, userService, categoryService, departmentRepository, facultyRepository,
+                fileStorageService, reviewService, null);
+    }
+
+    @Autowired
+    public DocumentController(DocumentService documentService, UserService userService,
+            CategoryService categoryService, DepartmentRepository departmentRepository,
+            FacultyRepository facultyRepository, FileStorageService fileStorageService, ReviewService reviewService,
+            AuditLogService auditLogs) {
         this.documentService = documentService;
         this.userService = userService;
         this.categoryService = categoryService;
@@ -65,6 +83,7 @@ public class DocumentController {
         this.facultyRepository = facultyRepository;
         this.fileStorageService = fileStorageService;
         this.reviewService = reviewService;
+        this.auditLogs = auditLogs;
     }
 
     @GetMapping
@@ -89,13 +108,16 @@ public class DocumentController {
 
     @GetMapping("/new")
     public String createForm(Model model) {
-        model.addAttribute("documentForm", new DocumentForm());
+        DocumentForm form = new DocumentForm();
+        form.setLicenseType(com.hieu.edurepo.enums.LicenseType.ALL_RIGHTS_RESERVED);
+        model.addAttribute("documentForm", form);
         addReferenceData(model);
         return "documents/form";
     }
 
     @PostMapping
     public String create(@Valid @ModelAttribute("documentForm") DocumentForm form, BindingResult bindingResult,
+            @RequestParam(defaultValue = "submit") String intent,
             @AuthenticationPrincipal CustomUserPrincipal principal,
             Model model, RedirectAttributes redirectAttributes) {
         MultipartFile file = form.getFile();
@@ -126,6 +148,8 @@ public class DocumentController {
         Document document = new Document();
         document.setTitle(form.getTitle());
         document.setDescription(form.getDescription());
+        applyAcademicMetadata(document, form);
+        if (document.getLicenseType() == null) document.setLicenseType(com.hieu.edurepo.enums.LicenseType.ALL_RIGHTS_RESERVED);
         document.setAuthorName(form.getAuthorName());
         document.setCategory(category);
         document.setDepartment(department);
@@ -134,7 +158,28 @@ public class DocumentController {
         document.setFileType(resolveContentType(validatedFile));
         document.setFileSize(validatedFile.getSize());
         try {
-            documentService.submitNew(document, owner);
+            Document saved;
+            if ("draft".equals(intent)) {
+                saved = documentService.saveDraft(document, owner);
+                redirectAttributes.addFlashAttribute("success", "Đã lưu bản nháp trong tài khoản của bạn");
+            } else {
+                saved = documentService.submitNew(document, owner);
+                redirectAttributes.addFlashAttribute("success", submissionMessage(owner));
+            }
+            saved = saved == null ? document : saved;
+            audit(AuditAction.DOCUMENT_UPLOADED, saved.getId(), saved.getTitle(),
+                    "Upload tài liệu: " + saved.getTitle());
+            audit(AuditAction.DOCUMENT_CREATED, saved.getId(), saved.getTitle(),
+                    "Tạo tài liệu: " + saved.getTitle());
+            if ("draft".equals(intent)) {
+                audit(AuditAction.DOCUMENT_DRAFT_SAVED, saved.getId(), saved.getTitle(),
+                        "Lưu bản nháp tài liệu: " + saved.getTitle());
+            } else {
+                audit(saved.getStatus() == DocumentStatus.PUBLISHED ? AuditAction.DOCUMENT_PUBLISHED
+                        : AuditAction.DOCUMENT_SUBMITTED, saved.getId(), saved.getTitle(),
+                        (saved.getStatus() == DocumentStatus.PUBLISHED ? "Tạo và công bố tài liệu: " : "Tạo và gửi duyệt tài liệu: ") + saved.getTitle());
+            }
+            redirectAttributes.addFlashAttribute("clearSubmissionDraft", true);
         } catch (RuntimeException exception) {
             try {
                 fileStorageService.delete(storedName);
@@ -143,7 +188,6 @@ public class DocumentController {
             }
             throw exception;
         }
-        redirectAttributes.addFlashAttribute("success", "Đã nộp tài liệu thành công. Tài liệu đang chờ duyệt.");
         return "redirect:/documents";
     }
 
@@ -155,6 +199,7 @@ public class DocumentController {
         verifyOwnerOrAdmin(document, requirePrincipal(principal));
         model.addAttribute("document", document);
         model.addAttribute("history", reviewService.history(id));
+        model.addAttribute("versions", documentService.findVersions(id));
         return "documents/detail";
     }
 
@@ -170,6 +215,12 @@ public class DocumentController {
         form.setTitle(document.getTitle());
         form.setDescription(document.getDescription());
         form.setAuthorName(document.getAuthorName());
+        form.setSummary(document.getSummary());
+        form.setKeywords(document.getKeywords());
+        form.setLanguageCode(document.getLanguageCode());
+        form.setLearningResourceType(document.getLearningResourceType());
+        form.setEducationLevel(document.getEducationLevel());
+        form.setLicenseType(document.getLicenseType());
         form.setCategoryId(document.getCategory() == null ? null : document.getCategory().getId());
         form.setFacultyId(document.getDepartment() == null || document.getDepartment().getFaculty() == null
                 ? null : document.getDepartment().getFaculty().getId());
@@ -201,7 +252,6 @@ public class DocumentController {
         Document changes = documentChanges(form, category, department);
         MultipartFile replacement = form.getFile();
         String storedName = null;
-        String oldStoredName = current.getFilePath();
         if (replacement != null && !replacement.isEmpty()) {
             try {
                 storedName = fileStorageService.store(replacement);
@@ -214,16 +264,14 @@ public class DocumentController {
         }
 
         try {
-            documentService.updateDraft(id, changes, userService.findById(currentPrincipal.getId()));
+            Document saved = documentService.updateDraft(id, changes, userService.findById(currentPrincipal.getId()));
+            saved = saved == null ? changes : saved;
+            audit(AuditAction.DOCUMENT_UPDATED, saved.getId(), "Cập nhật tài liệu: " + saved.getTitle());
         } catch (RuntimeException exception) {
             deleteQuietly(storedName, "tệp thay thế sau khi cập nhật thất bại");
             throw exception;
         }
 
-        if (storedName != null && oldStoredName != null
-                && !oldStoredName.equals(storedName)) {
-            deleteQuietly(oldStoredName, "tệp cũ sau khi thay thế");
-        }
         redirectAttributes.addFlashAttribute("success", "Đã cập nhật tài liệu");
         return "redirect:/documents/" + id;
     }
@@ -232,8 +280,12 @@ public class DocumentController {
     public String submit(@PathVariable Long id,
             @AuthenticationPrincipal CustomUserPrincipal principal,
             RedirectAttributes redirectAttributes) {
-        documentService.submit(id, userService.findById(requirePrincipal(principal).getId()));
-        redirectAttributes.addFlashAttribute("success", "Đã gửi tài liệu để duyệt");
+        User owner = userService.findById(requirePrincipal(principal).getId());
+        Document submitted = documentService.submit(id, owner);
+        audit(submitted.getStatus() == DocumentStatus.PUBLISHED ? AuditAction.DOCUMENT_PUBLISHED
+                : AuditAction.DOCUMENT_SUBMITTED, submitted.getId(),
+                (submitted.getStatus() == DocumentStatus.PUBLISHED ? "Công bố tài liệu: " : "Gửi tài liệu để duyệt: ") + submitted.getTitle());
+        redirectAttributes.addFlashAttribute("success", submissionMessage(owner));
         return "redirect:/documents";
     }
 
@@ -244,9 +296,11 @@ public class DocumentController {
         CustomUserPrincipal currentPrincipal = requirePrincipal(principal);
         Document document = documentService.findById(id);
         verifyOwner(document, currentPrincipal);
-        String storedName = document.getFilePath();
+        var storedNames = documentService.versionFilePaths(id);
+        if (storedNames.isEmpty() && document.getFilePath() != null) storedNames = java.util.List.of(document.getFilePath());
         documentService.deleteDraft(id, userService.findById(currentPrincipal.getId()));
-        deleteQuietly(storedName, "tệp của bản nháp đã xóa");
+        audit(AuditAction.DOCUMENT_DRAFT_DELETED, id, "Xóa bản nháp tài liệu: " + document.getTitle());
+        storedNames.forEach(storedName -> deleteQuietly(storedName, "tệp của bản nháp đã xóa"));
         redirectAttributes.addFlashAttribute("success", "Đã xóa bản nháp");
         return "redirect:/documents";
     }
@@ -255,6 +309,9 @@ public class DocumentController {
         model.addAttribute("categories", categoryService.findActive());
         model.addAttribute("faculties", facultyRepository.findByActiveTrueOrderByNameAsc());
         model.addAttribute("departments", departmentRepository.findByActiveTrueOrderByNameAsc());
+        model.addAttribute("resourceTypes", LearningResourceType.values());
+        model.addAttribute("educationLevels", EducationLevel.values());
+        model.addAttribute("licenseTypes", com.hieu.edurepo.enums.LicenseType.values());
     }
 
     private void addEditData(Model model, Document document) {
@@ -269,10 +326,22 @@ public class DocumentController {
         Document changes = new Document();
         changes.setTitle(form.getTitle());
         changes.setDescription(form.getDescription());
+        applyAcademicMetadata(changes, form);
         changes.setAuthorName(form.getAuthorName());
         changes.setCategory(category);
         changes.setDepartment(department);
         return changes;
+    }
+
+    private void applyAcademicMetadata(Document document, DocumentForm form) {
+        document.setSummary(form.getSummary());
+        document.setKeywords(form.getKeywords());
+        document.setLanguageCode(form.getLanguageCode() == null || form.getLanguageCode().isBlank()
+                ? "vi" : form.getLanguageCode().trim().toLowerCase(java.util.Locale.ROOT));
+        document.setLearningResourceType(form.getLearningResourceType());
+        document.setEducationLevel(form.getEducationLevel());
+        // A legacy POST without licenseType must not silently overwrite the license.
+        document.setLicenseType(form.getLicenseType());
     }
 
     private void applyFileMetadata(Document document, MultipartFile file, String storedName) {
@@ -377,5 +446,24 @@ public class DocumentController {
             case "docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
             default -> throw new FileStorageException("Định dạng tệp không hợp lệ");
         };
+    }
+
+    private String submissionMessage(User owner) {
+        boolean directPublisher = owner.getRoles().stream()
+                .map(role -> role.getName())
+                .anyMatch(role -> role == RoleName.ADMIN || role == RoleName.REVIEWER);
+        return directPublisher
+                ? "Đã công bố tài liệu ngay vào kho học liệu."
+                : "Đã nộp tài liệu thành công. Tài liệu đang chờ duyệt.";
+    }
+
+    private void audit(AuditAction action, Long documentId, String description) {
+        audit(action, documentId, null, description);
+    }
+
+    private void audit(AuditAction action, Long documentId, String documentName, String description) {
+        if (auditLogs != null) {
+            auditLogs.record(action, AuditTargetType.DOCUMENT, documentId, documentName, description, AuditResult.SUCCESS);
+        }
     }
 }

@@ -1,0 +1,231 @@
+.notification-form {
+    max-width: 980px;
+}
+
+.notification-form .form-card-header h2 {
+    margin: .25rem 0 0;
+    color: #1d4241;
+    font-size: 1.05rem;
+}
+
+.notification-form .full-field,
+.notification-form .send-time-field {
+    display: grid;
+    gap: .45rem;
+    margin-top: 1.1rem;
+}
+
+.notification-form .two-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.notification-form textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+.target-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .75rem;
+    margin: 1rem 0;
+}
+
+.target-option {
+    position: relative;
+    min-height: 72px;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .85rem .95rem;
+    border: 1px solid #d7e8e2;
+    border-radius: 12px;
+    background: #fbfefd;
+    cursor: pointer;
+}
+
+.target-option:has(input:checked) {
+    border-color: #15927d;
+    background: #eefaf6;
+    box-shadow: 0 0 0 4px rgba(21, 146, 125, .1);
+}
+
+.target-option input {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+}
+
+.target-option strong {
+    color: #214449;
+    font-size: .82rem;
+}
+
+.field-error {
+    color: #b42318;
+    font-size: .75rem;
+    font-weight: 700;
+}
+
+.notification-feed {
+    display: grid;
+    gap: .8rem;
+}
+
+.notification-card,
+.notification-detail-card {
+    border: 1px solid #dcebe7;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .94);
+    box-shadow: 0 10px 24px rgba(15, 72, 64, .045);
+}
+
+.notification-card > a {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1rem;
+    padding: 1rem 1.1rem;
+    color: inherit;
+}
+
+.notification-card:hover {
+    border-color: #b8ded4;
+    background: #fbfefd;
+}
+
+.notification-card.is-unread {
+    border-color: #98d7c6;
+    background: #f2fbf7;
+    box-shadow: 0 14px 30px rgba(20, 151, 120, .08);
+}
+
+.notification-card-main {
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr);
+    gap: .75rem;
+}
+
+.notification-dot {
+    width: 8px;
+    height: 8px;
+    margin-top: .45rem;
+    border-radius: 50%;
+    background: #c3d3cd;
+}
+
+.notification-card.is-unread .notification-dot,
+.notification-detail-card.is-unread .notification-dot {
+    background: #149778;
+    box-shadow: 0 0 0 5px rgba(20, 151, 120, .12);
+}
+
+.notification-card h2 {
+    margin: 0;
+    color: #183d40;
+    font-size: .96rem;
+}
+
+.notification-card p,
+.notification-body {
+    margin: .35rem 0 0;
+    color: #526d66;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+}
+
+.notification-meta,
+.notification-side,
+.notification-detail-top {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    flex-wrap: wrap;
+}
+
+.notification-meta {
+    margin-top: .65rem;
+    color: #789088;
+    font-size: .76rem;
+}
+
+.notification-side {
+    justify-content: flex-end;
+    align-content: flex-start;
+}
+
+.read-state {
+    color: #6f837b;
+    font-size: .72rem;
+    font-weight: 800;
+}
+
+.notification-level-important {
+    border-color: #f2d89a !important;
+    color: #94630d !important;
+    background: #fff7df !important;
+}
+
+.notification-level-urgent {
+    border-color: #f1c6bf !important;
+    color: #ad392d !important;
+    background: #fff0ed !important;
+}
+
+.notification-detail-card {
+    padding: 1.3rem;
+}
+
+.notification-detail-top {
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.notification-body {
+    padding: 1rem;
+    border: 1px solid #e3efeb;
+    border-radius: 12px;
+    background: #fbfefd;
+    color: #2f5149;
+    white-space: pre-line;
+}
+
+.notification-detail-meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .8rem;
+    margin: 1rem 0;
+}
+
+.notification-detail-meta div {
+    padding: .85rem;
+    border: 1px solid #e1eeeb;
+    border-radius: 10px;
+    background: #f8fcfa;
+}
+
+.notification-detail-meta dt {
+    color: #7b8f87;
+    font-size: .7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.notification-detail-meta dd {
+    margin: .25rem 0 0;
+    color: #24443a;
+    font-weight: 700;
+}
+
+@media (max-width: 760px) {
+    .notification-form .two-columns,
+    .target-options,
+    .notification-detail-meta,
+    .notification-card > a {
+        grid-template-columns: 1fr;
+    }
+
+    .notification-side {
+        justify-content: flex-start;
+    }
+}

@@ -1,8 +1,12 @@
 package com.hieu.edurepo.service;
 
 import com.hieu.edurepo.entity.Document;
+import com.hieu.edurepo.entity.DocumentVersion;
 import com.hieu.edurepo.entity.User;
 import com.hieu.edurepo.enums.DocumentStatus;
+import com.hieu.edurepo.enums.EducationLevel;
+import com.hieu.edurepo.enums.LearningResourceType;
+import com.hieu.edurepo.enums.LicenseType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -15,6 +19,15 @@ public interface DocumentService {
                                  Long facultyId, Long departmentId, Pageable pageable);
     List<Document> findPendingReview();
     Page<Document> searchPublished(String keyword, Pageable pageable);
+    Page<Document> searchPublished(String keyword, Long categoryId, LearningResourceType resourceType,
+                                   EducationLevel educationLevel, LicenseType licenseType,
+                                   String languageCode, Pageable pageable);
+    List<Document> findRelatedPublished(Document document, int limit);
+    List<DocumentVersion> findVersions(Long documentId);
+    DocumentVersion findVersion(Long documentId, Long versionId);
+    List<String> versionFilePaths(Long documentId);
+    void recordView(Long documentId);
+    void recordDownload(Long documentId);
     Document saveDraft(Document document, User owner);
     Document submitNew(Document document, User owner);
     Document updateDraft(Long documentId, Document changes, User owner);

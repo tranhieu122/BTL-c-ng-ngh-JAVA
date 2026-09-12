@@ -10,30 +10,33 @@
 <div th:replace="~{fragments/header :: header}"></div>
 <div class="page-shell">
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
-    <main id="main-content" class="content workspace-content">
+    <main id="main-content" class="content workspace-content submission-studio">
         <header class="workspace-heading">
             <div>
-                <span class="workspace-kicker" th:text="${editing} ? 'Cập nhật hồ sơ học liệu' : 'Hồ sơ học liệu mới'">Hồ sơ học liệu mới</span>
+                <span class="workspace-kicker submission-kicker" th:text="${editing} ? 'Cập nhật hồ sơ học liệu' : 'Hồ sơ học liệu mới'">Hồ sơ học liệu mới</span>
                 <h1 th:text="${editing} ? 'Chỉnh sửa tài liệu' : 'Nộp tài liệu'">Nộp tài liệu</h1>
                 <p class="subtitle" th:text="${editing} ? 'Cập nhật nội dung theo phản hồi kiểm duyệt trước khi gửi lại.' : 'Mô tả chính xác giúp tài liệu được kiểm duyệt nhanh và dễ tìm hơn.'">Mô tả chính xác giúp tài liệu được kiểm duyệt nhanh và dễ tìm hơn.</p>
             </div>
             <div class="workspace-actions"><a class="button button-secondary" th:href="@{/documents}">Quay lại danh sách</a></div>
         </header>
-        <div class="form-layout">
-            <form class="form-card"
+        <div class="form-layout submission-layout">
+            <form class="form-card submission-form" data-document-submission th:attr="data-editing=${editing == true},data-draft-owner=${#authentication.name}"
                   th:action="${editing} ? @{/documents/{id}(id=${documentId})} : @{/documents}"
                   th:object="${documentForm}" method="post" enctype="multipart/form-data">
-                <section class="form-section">
-                    <div class="form-section-heading"><h2>Thông tin cơ bản</h2><p>Nội dung hiển thị trong kho học liệu sau khi công bố.</p></div>
+                <nav class="submission-progress" aria-label="Tiến trình nộp tài liệu"><span class="submission-step is-active"><span class="submission-step-number">1</span>Thông tin</span><span class="submission-step"><span class="submission-step-number">2</span>Tệp đính kèm</span><span class="submission-step"><span class="submission-step-number">3</span>Gửi duyệt</span></nav>
+                <div class="submission-content">
+                <section class="form-section submission-section">
+                    <div class="submission-section-heading"><span class="submission-section-icon">▤</span><div><h2>Thông tin cơ bản</h2><p>Nội dung hiển thị trong kho học liệu sau khi công bố.</p></div></div>
                     <div class="field-grid">
-                        <label class="field-wide">
-                            <span class="field-label">Tiêu đề tài liệu</span>
-                            <input th:field="*{title}" placeholder="Nhập tiêu đề ngắn gọn, dễ nhận biết" required
+                        <label class="field-wide submission-field">
+                            <span class="field-label">Tiêu đề tài liệu <span class="field-counter" data-counter-for="title">0/255</span></span>
+                            <input th:field="*{title}" maxlength="255" placeholder="Nhập tiêu đề ngắn gọn, dễ nhận biết" required
+                                   data-count-field
                                    th:attr="aria-invalid=${#fields.hasErrors('title')}">
                             <small class="field-error" th:errors="*{title}"></small>
                         </label>
-                        <label><span class="field-label">Tác giả</span><input th:field="*{authorName}" placeholder="Tên tác giả hoặc nhóm biên soạn"></label>
-                        <label>
+                        <label class="submission-field"><span class="field-label">Tác giả <span class="field-counter" data-counter-for="authorName">0/255</span></span><input th:field="*{authorName}" maxlength="255" data-count-field placeholder="Tên tác giả hoặc nhóm biên soạn"></label>
+                        <label class="submission-field">
                             <span class="field-label">Danh mục</span>
                             <select th:field="*{categoryId}" required
                                     th:attr="aria-invalid=${#fields.hasErrors('categoryId')}">
@@ -42,8 +45,14 @@
                             </select>
                             <small class="field-error" th:errors="*{categoryId}"></small>
                         </label>
-                        <label class="field-wide"><span class="field-label">Mô tả</span><textarea th:field="*{description}" rows="6" placeholder="Tóm tắt nội dung, đối tượng sử dụng và giá trị của tài liệu" required th:attr="aria-invalid=${#fields.hasErrors('description')}"></textarea><small class="field-hint">Nên viết từ 2 đến 4 câu để reviewer hiểu nhanh nội dung.</small><small class="field-error" th:errors="*{description}"></small></label>
-                        <label>
+                        <label class="field-wide submission-field"><span class="field-label">Mô tả <span class="field-counter" data-counter-for="description">0/10000</span></span><textarea th:field="*{description}" maxlength="10000" data-count-field rows="6" placeholder="Tóm tắt nội dung, đối tượng sử dụng và giá trị của tài liệu" required th:attr="aria-invalid=${#fields.hasErrors('description')}"></textarea><small class="field-hint">Nên viết từ 2 đến 4 câu để reviewer hiểu nhanh nội dung.</small><span class="description-tools"><button type="button" data-description-template="Tài liệu trình bày mục tiêu, nội dung chính và hướng dẫn sử dụng. Phù hợp cho sinh viên tự học và giảng viên tham khảo trong học phần liên quan.">Dùng mẫu mô tả</button></span><small class="field-error" th:errors="*{description}"></small></label>
+                        <label class="field-wide submission-field"><span class="field-label">Tóm tắt học thuật</span><textarea th:field="*{summary}" rows="4" placeholder="Nêu ngắn gọn mục tiêu, phạm vi và kết quả học tập"></textarea><small class="field-error" th:errors="*{summary}"></small></label>
+                        <label class="field-wide submission-field"><span class="field-label">Từ khóa</span><input th:field="*{keywords}" placeholder="Ví dụ: Java, lập trình hướng đối tượng, Spring"><small class="field-hint">Phân cách các từ khóa bằng dấu phẩy.</small><small class="field-error" th:errors="*{keywords}"></small></label>
+                        <label class="submission-field"><span class="field-label">Loại học liệu</span><select th:field="*{learningResourceType}" required><option th:each="item : ${resourceTypes}" th:value="${item}" th:text="${item.label}"></option></select></label>
+                        <label class="submission-field"><span class="field-label">Giấy phép</span><select th:field="*{licenseType}" required><option th:each="item : ${licenseTypes}" th:value="${item}" th:text="${item.label}"></option></select><small class="field-error" th:errors="*{licenseType}"></small></label>
+                        <label class="submission-field"><span class="field-label">Trình độ</span><select th:field="*{educationLevel}" required><option th:each="item : ${educationLevels}" th:value="${item}" th:text="${item.label}"></option></select></label>
+                        <label class="submission-field"><span class="field-label">Ngôn ngữ</span><select th:field="*{languageCode}" required><option value="vi">Tiếng Việt</option><option value="en">English</option><option value="fr">Français</option><option value="other">Khác</option></select><small class="field-error" th:errors="*{languageCode}"></small></label>
+                        <label class="submission-field">
                             <span class="field-label">Khoa</span>
                             <select th:field="*{facultyId}" required data-faculty-select th:attr="aria-invalid=${#fields.hasErrors('facultyId')}">
                                 <option value="">Chọn khoa</option>
@@ -51,7 +60,7 @@
                             </select>
                             <small class="field-error" th:errors="*{facultyId}"></small>
                         </label>
-                        <label>
+                        <label class="submission-field">
                             <span class="field-label">Bộ môn</span>
                             <select th:field="*{departmentId}" required data-department-select th:attr="aria-invalid=${#fields.hasErrors('departmentId')}">
                                 <option value="">Chọn bộ môn</option>
@@ -59,34 +68,32 @@
                             </select>
                             <small class="field-error" th:errors="*{departmentId}"></small>
                         </label>
+                        <div class="organization-summary" data-organization-summary aria-live="polite"></div>
                     </div>
                 </section>
-                <section class="form-section">
-                    <div class="form-section-heading"><h2>Tệp đính kèm</h2><p th:text="${editing} ? 'Giữ nguyên tệp hiện tại hoặc chọn một phiên bản mới để thay thế.' : 'Phiên bản được lưu trữ và gửi tới người kiểm duyệt.'">Phiên bản được lưu trữ và gửi tới người kiểm duyệt.</p></div>
-                    <label class="file-drop">
-                        <span class="field-label">Chọn tệp PDF, DOC hoặc DOCX</span>
-                        <input type="file" th:field="*{file}" accept=".pdf,.doc,.docx"
+                <section class="form-section submission-section">
+                    <div class="submission-section-heading"><span class="submission-section-icon">⇧</span><div><h2>Tệp đính kèm</h2><p th:text="${editing} ? 'Giữ nguyên tệp hiện tại hoặc chọn một phiên bản mới để thay thế.' : 'Phiên bản được lưu trữ và gửi tới người kiểm duyệt.'">Phiên bản được lưu trữ và gửi tới người kiểm duyệt.</p></div></div>
+                    <label class="upload-zone" data-upload-zone tabindex="0">
+                        <input type="file" th:field="*{file}" data-submission-file accept=".pdf,.doc,.docx"
                                th:required="${editing != true}"
                                aria-describedby="document-file-help"
                                th:attr="aria-invalid=${#fields.hasErrors('file')}">
-                        <small class="field-hint" th:if="${editing}" th:text="|Tệp hiện tại: ${currentFileName}. Chỉ chọn tệp mới khi bạn muốn thay thế.|">Tệp hiện tại</small>
-                        <small id="document-file-help" class="field-hint">Dung lượng tối đa 200 MB. Kiểm tra tên tệp và nội dung trước khi tải lên.</small>
+                        <span class="upload-zone-content"><span class="upload-zone-icon">⇧</span><h3>Kéo thả tệp vào đây</h3><p>Hoặc nhấn để chọn tệp từ máy tính của bạn.</p><span class="upload-zone-action">Chọn tệp</span><span class="upload-formats"><span class="upload-format">PDF</span><span class="upload-format">DOC</span><span class="upload-format">DOCX</span></span></span>
+                        <span class="upload-file-card" data-upload-file-card><span class="upload-file-icon" data-upload-file-icon>PDF</span><span class="upload-file-details"><span class="upload-file-name" data-upload-file-name>Tệp đã chọn</span><span class="upload-file-meta" data-upload-file-meta></span></span><button type="button" class="upload-file-remove" data-upload-file-remove aria-label="Bỏ tệp đã chọn">×</button></span>
                         <small class="field-error" th:errors="*{file}"></small>
                     </label>
+                    <div class="upload-requirements"><span class="upload-requirement"><span>✓</span>Tối đa 200 MB</span><span class="upload-requirement"><span>✓</span>Chỉ PDF, DOC, DOCX</span><span class="upload-requirement"><span>✓</span>Không tải tệp nhạy cảm</span></div>
                 </section>
-                <div class="form-submit-row">
+                <div class="submission-actions">
+                    <div><div class="submission-actions-note"><strong>Gần hoàn tất.</strong> Hệ thống sẽ kiểm tra lại thông tin trước khi gửi.</div><div class="submission-autosave" data-submission-autosave>Bản nháp chưa được lưu</div></div>
+                    <div class="form-submit-row">
                     <a class="button button-secondary" th:href="${editing} ? @{/documents/{id}(id=${documentId})} : @{/documents}">Hủy</a>
-                    <button type="submit"><span th:text="${editing} ? 'Lưu thay đổi' : 'Nộp tài liệu để duyệt'">Nộp tài liệu để duyệt</span> <span aria-hidden="true">→</span></button>
+                    <button th:if="${editing != true}" class="button button-secondary" type="submit" th:formaction="@{/documents(intent='draft')}">Lưu bản nháp</button>
+                    <button class="submission-submit" type="submit"><span th:text="${editing} ? 'Lưu thay đổi' : 'Nộp tài liệu để duyệt'">Nộp tài liệu để duyệt</span> <span aria-hidden="true">→</span></button></div>
+                </div>
                 </div>
             </form>
-            <aside class="form-card">
-                <div class="form-section-heading"><h2 th:text="${editing} ? 'Trước khi gửi lại' : 'Trước khi nộp'">Trước khi nộp</h2><p>Một hồ sơ tốt thường có đủ ba yếu tố.</p></div>
-                <ol class="guidance-list">
-                    <li><span class="guidance-number">1</span><span>Tiêu đề phản ánh đúng chủ đề và cấp độ học tập.</span></li>
-                    <li><span class="guidance-number">2</span><span>Danh mục, tác giả và khoa được khai báo chính xác.</span></li>
-                    <li><span class="guidance-number">3</span><span>Tệp mở được, không chứa nội dung nhạy cảm hoặc vi phạm bản quyền.</span></li>
-                </ol>
-            </aside>
+            <aside class="submission-sidebar"><section class="form-card readiness-card"><div class="form-section-heading"><h2>Độ sẵn sàng</h2><p data-readiness-message>Hoàn thiện hồ sơ để gửi duyệt.</p></div><div class="readiness-score"><span class="readiness-ring" data-readiness-score><strong>0%</strong></span><div class="readiness-copy"><strong>Kiểm tra nhanh</strong><span>Mỗi mục hoàn tất giúp duyệt nhanh hơn.</span></div></div><ul class="checklist"><li data-check="title"><span class="checklist-mark">✓</span>Tiêu đề rõ ràng</li><li data-check="description"><span class="checklist-mark">✓</span>Mô tả đầy đủ</li><li data-check="categoryId"><span class="checklist-mark">✓</span>Đã chọn danh mục</li><li data-check="facultyId"><span class="checklist-mark">✓</span>Đã chọn khoa</li><li data-check="departmentId"><span class="checklist-mark">✓</span>Đã chọn bộ môn</li><li data-check="file"><span class="checklist-mark">✓</span>Tệp hợp lệ</li></ul></section><section class="form-card"><div class="form-section-heading"><h2>Mẹo duyệt nhanh</h2><p>Ba điều reviewer thường kiểm tra đầu tiên.</p></div><div class="submission-tips"><div class="submission-tip"><span class="submission-tip-icon">1</span><span>Tiêu đề cần cho biết chính xác chủ đề và loại học liệu.</span></div><div class="submission-tip"><span class="submission-tip-icon">2</span><span>Mô tả nên nói rõ đối tượng sử dụng và nội dung chính.</span></div><div class="submission-tip"><span class="submission-tip-icon">3</span><span>Hãy mở thử tệp trước khi nộp để bảo đảm nội dung đầy đủ.</span></div></div></section></aside>
         </div>
     </main>
 </div>

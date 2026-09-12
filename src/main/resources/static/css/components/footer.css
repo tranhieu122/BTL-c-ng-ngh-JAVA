@@ -1,89 +1,21 @@
-﻿/* Footer */
-
-.site-footer {
-    color: #9ba7c3;
-    background:
-        radial-gradient(circle at 10% 0%, rgba(99, 102, 241, 0.16), transparent 20rem),
-        var(--navy-950);
-}
-
-.footer-main {
-    display: grid;
-    grid-template-columns: 1.6fr repeat(3, 0.75fr);
-    gap: clamp(2rem, 5vw, 5rem);
-    padding-top: 4rem;
-    padding-bottom: 3rem;
-}
-
-.footer-brand-block > p {
-    max-width: 360px;
-    margin: 1.1rem 0;
-    color: #7f8ca9;
-    font-size: 0.76rem;
-    line-height: 1.7;
-}
-
-.footer-status {
-    width: fit-content;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-    color: #8f9bb5;
-    font-size: 0.66rem;
-    font-weight: 700;
-}
-
-.footer-column {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.58rem;
-}
-
-.footer-column h2 {
-    margin-bottom: 0.45rem;
-    color: #edf2ff;
-    font-size: 0.73rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-
-.footer-column a {
-    color: #8491ae;
-    font-size: 0.7rem;
-    font-weight: 650;
-}
-
-.footer-column a:hover {
-    color: var(--white);
-    transform: translateX(2px);
-}
-
-.footer-column p {
-    margin-bottom: 0.4rem;
-    color: #74819d;
-    font-size: 0.69rem;
-    line-height: 1.65;
-}
-
-.footer-column .footer-mail {
-    color: var(--primary-300);
-}
-
-.footer-bottom {
-    min-height: 68px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    color: #65718d;
-    font-size: 0.62rem;
-}
-
-.footer-version {
-    text-align: right;
-}
+/* Footer */
+.site-footer { color: #6f8075; background: #fafcf9; border-top: 1px solid #e3ebe4; }
+.footer-main { display: grid; grid-template-columns: 1.5fr repeat(3, .8fr); gap: clamp(24px, 4vw, 56px); padding-top: 32px; padding-bottom: 28px; }
+.site-footer .brand { gap: 9px; color: #295541; }
+.site-footer .brand-mark { width: 32px; height: 32px; flex-basis: 32px; border: 0; border-radius: 9px; background: #167561; box-shadow: none; }
+.site-footer .brand-mark::after { display: none; }
+.site-footer .brand-copy strong { color: #295541; font-size: 1.15rem; font-weight: 700; letter-spacing: -.02em; }
+.site-footer .brand-copy small { margin-top: 4px; color: #86958a; font-size: .63rem; font-weight: 400; letter-spacing: .01em; text-transform: none; }
+.footer-brand-block > p { max-width: 280px; margin: 12px 0 0; color: #849086; font-size: .78rem; line-height: 1.6; }
+.footer-column { display: flex; flex-direction: column; align-items: flex-start; gap: 7px; }
+.footer-column h2 { margin: 0 0 5px; color: #46624f; font-size: .82rem; font-weight: 600; letter-spacing: 0; text-transform: none; }
+.footer-column a { color: #748579; font-size: .76rem; font-weight: 400; line-height: 1.5; }
+.footer-column a:hover { color: #176d54; text-decoration: underline; text-underline-offset: 3px; }
+.footer-column a:focus-visible { outline: 2px solid #77ad8e; outline-offset: 4px; border-radius: 2px; }
+.footer-column p { margin: 0; color: #849086; font-size: .76rem; line-height: 1.6; }
+.footer-column .footer-mail { color: #4c7860; overflow-wrap: anywhere; }
+.footer-bottom { min-height: 46px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 12px; border-top: 1px solid #e8eee8; color: #909d93; font-size: .69rem; line-height: 1.5; }
+.footer-version { text-align: right; }
 
 /* Toast messages */
 

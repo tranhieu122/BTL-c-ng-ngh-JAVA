@@ -26,9 +26,9 @@
 
 .workspace-content h1,
 .workspace-content h2 {
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: var(--font-display);
     font-weight: 700;
-    letter-spacing: -0.025em;
+    letter-spacing: 0;
 }
 
 .workspace-heading {
@@ -42,7 +42,8 @@
 .workspace-heading h1 {
     max-width: 760px;
     margin-bottom: 0.35rem;
-    font-size: clamp(2.15rem, 4vw, 3.7rem);
+    font-size: clamp(2rem, 3.6vw, 3.35rem);
+    line-height: 1.16;
 }
 
 .workspace-heading .subtitle {
@@ -58,6 +59,15 @@
 .workspace-content .button {
     background: var(--workspace-accent);
     box-shadow: 0 8px 20px rgba(15, 118, 110, 0.18);
+}
+
+.workspace-content p,
+.workspace-content .field-hint,
+.workspace-content .field-label,
+.workspace-content .metric-card > span:last-child,
+.workspace-content .quick-link-copy small {
+    letter-spacing: 0;
+    line-height: 1.55;
 }
 
 .workspace-content .button:hover {

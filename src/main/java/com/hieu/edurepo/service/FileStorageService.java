@@ -6,5 +6,6 @@ import org.springframework.web.multipart.MultipartFile;
 public interface FileStorageService {
     String store(MultipartFile file);
     Resource load(String storedFileName);
+    String checksum(String storedFileName);
     void delete(String storedFileName);
 }

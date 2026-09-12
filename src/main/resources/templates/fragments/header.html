@@ -6,13 +6,13 @@
     <a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
 
     <div class="topbar">
-        <a class="brand" th:href="@{/repository}" aria-label="EduRepo - Về trang chủ">
+        <a class="brand" th:href="@{/}" aria-label="EduRepo - Về trang chủ">
             <span class="brand-mark" aria-hidden="true">
                 <span class="brand-mark-book"></span>
             </span>
             <span class="brand-copy">
                 <strong>EduRepo</strong>
-                <small>Digital Learning Library</small>
+                <small>Thư viện học liệu số</small>
             </span>
         </a>
 
@@ -24,9 +24,15 @@
         </button>
 
         <nav class="topnav" id="primary-navigation" aria-label="Điều hướng chính" data-primary-nav>
-            <a th:href="@{/repository}" data-nav-link>
+            <a th:href="@{/}" data-nav-link>
                 <span class="nav-dot" aria-hidden="true"></span>
+                Trang chủ
+            </a>
+            <a th:href="@{/repository}" data-nav-link>
                 Kho học liệu
+            </a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/library}" data-nav-link>
+                Thư viện của tôi
             </a>
             <a sec:authorize="hasAnyRole('SUBMITTER','ADMIN')" th:href="@{/documents/new}" data-nav-link>
                 Nộp tài liệu
@@ -40,30 +46,52 @@
         </nav>
 
         <div class="header-actions">
+            <time class="header-context header-current-time"
+                  th:attr="datetime=${currentDateTime},title=${'Múi giờ ' + appZoneId}"
+                  th:text="${currentDateTimeText}">01/01/2026 00:00</time>
             <span class="header-trust" sec:authorize="isAnonymous()">
                 <span class="status-pulse" aria-hidden="true"></span>
                 Kho học liệu mở
             </span>
+            <details class="live-updates" sec:authorize="isAuthenticated()" data-realtime th:attr="data-stream-url=@{/events/stream},data-snapshot-url=@{/events/snapshot},data-avatar-url=@{/profile/avatar},data-login-url=@{/login(expired)},data-documents-url=@{/documents},data-review-url=@{/reviews/pending},data-review-detail-url=@{/reviews},data-notifications-url=@{/notifications},data-csrf-token=${_csrf.token},data-csrf-header=${_csrf.headerName}">
+                <summary class="live-trigger" aria-label="Mở cập nhật của bạn">
+                    <span class="live-trigger-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><i class="live-connection-dot"></i></span>
+                    <span class="live-trigger-label">Cập nhật</span>
+                    <span class="notification-count" data-notification-count hidden></span>
+                    <svg class="live-chevron" aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m4 6 4 4 4-4"/></svg>
+                </summary>
+                <div class="live-panel">
+                    <div class="live-panel-heading"><h3>Cập nhật của bạn</h3><button class="notification-read-all" type="button" data-notification-read-all hidden>Đọc tất cả</button><span class="live-status-badge"><i class="live-connection-dot" aria-hidden="true"></i><span data-live-status>Đang kết nối</span></span></div>
+                    <p class="live-message" data-live-message role="status" aria-live="polite">Đang tải trạng thái mới nhất…</p>
+                    <a class="live-refresh" href="" data-live-refresh hidden>Tải lại dữ liệu <span aria-hidden="true">↻</span></a>
+                    <ul class="notification-list" data-notification-list aria-label="Thông báo gần đây"></ul>
+                    <p class="live-section-label">Tài liệu đang theo dõi</p>
+                    <ul class="live-document-list" data-live-documents></ul>
+                    <a class="live-queue-link" th:href="@{/reviews/pending}" data-live-queue hidden></a>
+                </div>
+            </details>
             <a class="button button-sm header-login" sec:authorize="isAnonymous()" th:href="@{/login}"
                aria-label="Đăng nhập">
                 <span class="header-login-label">Đăng nhập</span>
                 <span aria-hidden="true">→</span>
             </a>
 
-            <div class="account-summary" sec:authorize="isAuthenticated()">
-                <span class="account-avatar" aria-hidden="true">ER</span>
-                <span class="account-copy">
-                    <small>Tài khoản</small>
-                    <strong sec:authentication="name">user@edurepo.vn</strong>
-                </span>
-            </div>
-            <form class="logout-form" sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post">
-                <button class="icon-button logout-button" type="submit" title="Đăng xuất" aria-label="Đăng xuất">
-                    <span aria-hidden="true">↗</span>
+            <div class="account-menu" sec:authorize="isAuthenticated()" data-account-menu>
+                <button class="account-summary" type="button" data-account-toggle aria-expanded="false" aria-controls="account-menu-panel">
+                    <span class="account-avatar" aria-hidden="true"><img data-account-avatar th:src="@{/profile/avatar}" alt="" width="36" height="36"></span><span class="account-copy"><small>Tài khoản</small><strong data-account-name th:if="${currentAccount != null}" th:text="${currentAccount.fullName}"></strong><strong th:if="${currentAccount == null}" sec:authentication="name">Tài khoản</strong></span><span class="account-caret" aria-hidden="true">⌄</span>
                 </button>
-            </form>
+                <div class="account-menu-panel" id="account-menu-panel" data-account-panel hidden>
+                    <p>Không gian cá nhân</p><a th:href="@{/dashboard}">Bảng điều khiển <span>→</span></a>
+                    <a th:href="@{/profile}">Hồ sơ cá nhân <span>→</span></a>
+                    <a th:href="@{/library}">Thư viện của tôi <span>→</span></a>
+                    <a th:href="@{/notifications}">Thông báo <span>→</span></a>
+                    <a sec:authorize="hasAnyRole('SUBMITTER','ADMIN')" th:href="@{/documents}">Tài liệu của tôi <span>→</span></a>
+                    <form th:action="@{/logout}" method="post"><button type="submit">Đăng xuất <span>↗</span></button></form>
+                </div>
+            </div>
         </div>
     </div>
+    <div class="header-accent" aria-hidden="true"></div>
 
     <button class="nav-backdrop" type="button" aria-label="Đóng menu" data-nav-backdrop></button>
     <script type="module" th:src="@{/js/main.js}"></script>

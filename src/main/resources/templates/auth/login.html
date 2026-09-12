@@ -64,6 +64,21 @@
                 <div><strong>Không thể đăng nhập</strong><p>Email hoặc mật khẩu chưa chính xác. Vui lòng kiểm tra lại.</p></div>
                 <button type="button" data-dismiss-alert aria-label="Đóng thông báo">×</button>
             </div>
+            <div class="alert error auth-alert" th:if="${param.expired}" role="status">
+                <span class="alert-icon" aria-hidden="true">!</span>
+                <div class="auth-alert-copy"><strong>Phiên đăng nhập đã hết hiệu lực</strong><p>Thông tin tài khoản hoặc quyền truy cập đã thay đổi. Vui lòng đăng nhập lại.</p></div>
+                <button type="button" data-dismiss-alert aria-label="Đóng thông báo">×</button>
+            </div>
+            <div class="alert success auth-alert" th:if="${param.passwordChanged}" role="status">
+                <span class="alert-icon" aria-hidden="true">✓</span>
+                <div class="auth-alert-copy"><strong>Đã đổi mật khẩu</strong><p>Vui lòng đăng nhập bằng mật khẩu mới.</p></div>
+                <button type="button" data-dismiss-alert aria-label="Đóng thông báo">×</button>
+            </div>
+            <div class="alert success auth-alert" th:if="${param.accountDeleted}" role="status">
+                <span class="alert-icon" aria-hidden="true">✓</span>
+                <div class="auth-alert-copy"><strong>Đã xóa tài khoản</strong><p>Tài khoản của bạn đã được xóa và các phiên đăng nhập đã hết hiệu lực.</p></div>
+                <button type="button" data-dismiss-alert aria-label="Đóng thông báo">×</button>
+            </div>
             <div class="alert success auth-alert" th:if="${param.logout}" role="status" aria-live="polite">
                 <span class="alert-icon" aria-hidden="true">✓</span>
                 <div><strong>Đã đăng xuất</strong><p>Phiên làm việc của bạn đã kết thúc an toàn.</p></div>
@@ -72,6 +87,12 @@
             <div class="alert success auth-alert" th:if="${registered}" role="status" aria-live="polite">
                 <span class="alert-icon" aria-hidden="true">✓</span>
                 <div><strong>Đăng ký thành công</strong><p>Bạn có thể đăng nhập bằng tài khoản vừa tạo.</p></div>
+                <button type="button" data-dismiss-alert aria-label="Đóng thông báo">×</button>
+            </div>
+            <div class="alert success auth-alert" th:if="${passwordReset}" role="status" aria-live="polite">
+                <span class="alert-icon" aria-hidden="true">✓</span>
+                <div><strong>Đã đổi mật khẩu</strong><p>Bạn có thể đăng nhập bằng mật khẩu mới.</p></div>
+                <button type="button" data-dismiss-alert aria-label="Đóng thông báo">×</button>
             </div>
 
             <form id="login-form" th:action="@{/login}" method="post" class="login-form" data-login-form>

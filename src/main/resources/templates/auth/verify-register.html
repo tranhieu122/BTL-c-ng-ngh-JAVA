@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Xác thực OTP đăng ký EduRepo."><title>Xác thực đăng ký | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="auth-page">
+<main class="auth-shell auth-shell-compact">
+    <section class="auth-showcase">
+        <a class="brand brand-inverse auth-brand" th:href="@{/repository}"><span class="brand-mark" aria-hidden="true"><span class="brand-mark-book"></span></span><span class="brand-copy"><strong>EduRepo</strong><small>Digital Learning Library</small></span></a>
+        <div class="auth-message"><div class="hero-badge auth-badge">✦ Xác thực email</div><h1>Nhập mã OTP<br><span>để hoàn tất đăng ký.</span></h1><p>Mã xác thực có hiệu lực trong 10 phút. Tài khoản chỉ được tạo sau khi mã hợp lệ.</p></div>
+        <div class="auth-trust-row"><span>✓ Mã dùng một lần</span><span>✓ Chống gửi lại quá nhanh</span></div>
+    </section>
+    <section class="auth-card" aria-labelledby="verify-title">
+        <div class="auth-card-content">
+            <div class="auth-card-heading"><p class="eyebrow">Mã OTP</p><h2 id="verify-title">Kiểm tra email</h2><p th:text="'Nhập mã 6 số đã gửi tới ' + ${email}">Nhập mã 6 số đã gửi tới email.</p></div>
+            <div class="alert success auth-alert" th:if="${otpSent}" role="status"><span class="alert-icon">✓</span><div>Mã OTP đã được gửi tới email của bạn.</div></div>
+            <div class="alert warning auth-alert" th:if="${otpMailSkipped}" role="status"><span class="alert-icon">!</span><div>SMTP chưa được cấu hình nên email OTP chưa được gửi. Hãy cấu hình Gmail App Password trước khi thử gửi thật.</div></div>
+            <div class="alert warning auth-alert" th:if="${otpCooldownSeconds}" role="alert"><span class="alert-icon">!</span><div th:text="'Vui lòng chờ ' + ${otpCooldownSeconds} + ' giây trước khi gửi lại mã.'">Vui lòng chờ trước khi gửi lại mã.</div></div>
+            <form class="login-form" th:action="@{/register/verify}" th:object="${otpForm}" method="post">
+                <div class="form-field">
+                    <label for="register-otp">Mã OTP</label>
+                    <div class="input-shell"><input id="register-otp" type="text" th:field="*{code}" inputmode="numeric" maxlength="6" placeholder="123456" required autocomplete="one-time-code" th:attr="aria-invalid=${#fields.hasErrors('code')},aria-describedby=${#fields.hasErrors('code') ? 'register-otp-error' : null}"></div>
+                    <small id="register-otp-error" class="field-error" th:if="${#fields.hasErrors('code')}" th:errors="*{code}"></small>
+                </div>
+                <button class="login-submit" type="submit"><span class="button-label">Xác nhận OTP</span><span class="button-arrow" aria-hidden="true">→</span></button>
+            </form>
+            <form class="login-form" th:action="@{/register/verify/resend}" method="post"><button class="back-link" type="submit">Gửi lại mã OTP</button></form>
+            <p class="auth-switch">Muốn đổi email? <a th:href="@{/register}">Đăng ký lại</a></p>
+            <a class="back-link" th:href="@{/repository}">← Quay lại kho học liệu</a>
+        </div>
+        <div class="auth-card-footer"><span>EduRepo Access Portal</span><span>OTP đăng ký</span></div>
+    </section>
+</main>
+<div th:replace="~{fragments/ui :: toastRegion}"></div>
+<script type="module" th:src="@{/js/main.js}"></script>
+</body>
+</html>

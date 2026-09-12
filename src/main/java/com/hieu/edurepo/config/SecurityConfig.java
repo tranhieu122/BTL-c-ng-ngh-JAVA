@@ -18,12 +18,30 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public java.time.Clock applicationClock() {
+        return java.time.Clock.systemUTC();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+            com.hieu.edurepo.repository.UserRepository users,
+            com.hieu.edurepo.security.LoginAuthenticationSuccessHandler successHandler,
+            com.hieu.edurepo.security.LoginAuthenticationFailureHandler failureHandler,
+            com.hieu.edurepo.security.AuditLogoutSuccessHandler logoutSuccessHandler) throws Exception {
         http
+                .addFilterBefore(new com.hieu.edurepo.security.AccountSessionFilter(users),
+                        org.springframework.security.web.access.intercept.AuthorizationFilter.class)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/repository/**", "/download/**",
-                                "/login", "/register", "/forgot-password", "/access-denied", "/error/**",
+                        // The initial SSE request is authenticated; completion may happen after logout.
+                        .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ASYNC).permitAll()
+                        .requestMatchers("/", "/repository/**", "/download/**", "/view/**",
+                                "/login", "/register", "/register/verify", "/register/verify/resend",
+                                "/forgot-password", "/forgot-password/verify", "/forgot-password/verify/resend",
+                                "/reset-password", "/access-denied", "/error/**",
                                 "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
+                        .requestMatchers("/moderation/**").hasAnyRole("REVIEWER", "ADMIN")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/reviews/**").hasAnyRole("REVIEWER", "ADMIN")
                         .requestMatchers("/documents/**").hasAnyRole("SUBMITTER", "ADMIN")
@@ -31,14 +49,23 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login")
                         .usernameParameter("email")
-                        .defaultSuccessUrl("/dashboard", true)
-                        .failureUrl("/login?error")
+                        .successHandler(successHandler)
+                        .failureHandler(failureHandler)
                         .permitAll())
                 .logout(logout -> logout
-                        .logoutSuccessUrl("/login?logout")
+                        .logoutSuccessHandler(logoutSuccessHandler)
                         .permitAll())
                 .exceptionHandling(exception -> exception
-                        .accessDeniedPage("/access-denied"));
+                        .authenticationEntryPoint((request, response, error) -> {
+                            if (request.getRequestURI().substring(request.getContextPath().length()).startsWith("/events/")) response.setStatus(401);
+                            else new org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint("/login")
+                                    .commence(request, response, error);
+                        })
+                        .accessDeniedPage("/access-denied"))
+                // PDF is embedded only by the EduRepo detail page on the same origin.
+                // External websites remain unable to frame the application.
+                .headers(headers -> headers
+                        .frameOptions(frameOptions -> frameOptions.sameOrigin()));
         return http.build();
     }
 }

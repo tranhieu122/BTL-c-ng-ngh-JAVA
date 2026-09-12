@@ -69,7 +69,7 @@ class DocumentControllerTest {
         form.setDepartmentId(999L);
         when(fixture.departmentRepository.findById(999L)).thenReturn(Optional.empty());
 
-        String view = fixture.controller.create(form, fixture.bindingResult(form), fixture.principal,
+        String view = fixture.controller.create(form, fixture.bindingResult(form), "submit", fixture.principal,
                 new ExtendedModelMap(), new RedirectAttributesModelMap());
 
         assertEquals("documents/form", view);
@@ -86,7 +86,7 @@ class DocumentControllerTest {
         inactiveCategory.setActive(false);
         when(fixture.categoryService.findById(1L)).thenReturn(inactiveCategory);
 
-        String view = fixture.controller.create(form, fixture.bindingResult(form), fixture.principal,
+        String view = fixture.controller.create(form, fixture.bindingResult(form), "submit", fixture.principal,
                 new ExtendedModelMap(), new RedirectAttributesModelMap());
 
         assertEquals("documents/form", view);
@@ -100,7 +100,7 @@ class DocumentControllerTest {
         when(fixture.fileStorageService.store(form.getFile()))
                 .thenThrow(new FileStorageException("Chỉ chấp nhận tệp PDF, DOC hoặc DOCX"));
 
-        String view = fixture.controller.create(form, fixture.bindingResult(form), fixture.principal,
+        String view = fixture.controller.create(form, fixture.bindingResult(form), "submit", fixture.principal,
                 new ExtendedModelMap(), new RedirectAttributesModelMap());
 
         assertEquals("documents/form", view);
@@ -116,7 +116,7 @@ class DocumentControllerTest {
                 .thenThrow(new IllegalStateException("database failure"));
 
         assertThrows(IllegalStateException.class,
-                () -> fixture.controller.create(form, fixture.bindingResult(form), fixture.principal,
+                () -> fixture.controller.create(form, fixture.bindingResult(form), "submit", fixture.principal,
                         new ExtendedModelMap(), new RedirectAttributesModelMap()));
 
         verify(fixture.fileStorageService).delete("stored.pdf");
@@ -129,7 +129,7 @@ class DocumentControllerTest {
         form.setAuthorName("Nhóm tác giả");
         form.setDescription("Mô tả tài liệu");
 
-        String view = fixture.controller.create(form, fixture.bindingResult(form), fixture.principal,
+        String view = fixture.controller.create(form, fixture.bindingResult(form), "submit", fixture.principal,
                 new ExtendedModelMap(), new RedirectAttributesModelMap());
 
         assertEquals("redirect:/documents", view);
@@ -169,7 +169,7 @@ class DocumentControllerTest {
     }
 
     @Test
-    void replacingAFileDeletesTheOldFileAfterTheDocumentIsUpdated() {
+    void replacingAFileKeepsTheOldFileForVersionHistory() {
         ControllerFixture fixture = new ControllerFixture();
         Document current = fixture.editableDocument(DocumentStatus.DRAFT);
         when(fixture.documentService.findById(10L)).thenReturn(current);
@@ -182,7 +182,7 @@ class DocumentControllerTest {
         verify(fixture.documentService).updateDraft(
                 org.mockito.ArgumentMatchers.eq(10L), org.mockito.ArgumentMatchers.any(Document.class),
                 org.mockito.ArgumentMatchers.same(fixture.authenticatedUser));
-        verify(fixture.fileStorageService).delete("old-file.pdf");
+        verify(fixture.fileStorageService, never()).delete("old-file.pdf");
     }
 
     @Test

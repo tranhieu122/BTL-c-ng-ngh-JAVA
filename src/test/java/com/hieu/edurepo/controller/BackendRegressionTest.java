@@ -70,7 +70,16 @@ class BackendRegressionTest {
                 .andExpect(view().name("public/repository"));
     }
 
-    @SuppressWarnings("null")
+    @Test
+    void authenticatedUserCanOpenPersonalLibrary() throws Exception {
+        User user = saveUser("library-user@example.test", RoleName.USER);
+
+        mockMvc.perform(get("/library").with(user(CustomUserPrincipal.from(user))))
+                .andExpect(status().isOk())
+                .andExpect(view().name("library/index"))
+                .andExpect(content().string(containsString("Thư viện của tôi")));
+    }
+
     @Test
     @WithMockUser(roles = "REVIEWER")
     void approvedDocumentRemainsInReviewQueueForPublication() throws Exception {
@@ -98,7 +107,6 @@ class BackendRegressionTest {
                 .andExpect(status().isForbidden());
     }
 
-    @SuppressWarnings("null")
     @Test
     void ownerViolationReturnsForbiddenInsteadOfBadRequest() throws Exception {
         User owner = saveUser("owner@example.test", RoleName.SUBMITTER);
@@ -111,7 +119,6 @@ class BackendRegressionTest {
                 .andExpect(view().name("error/403"));
     }
 
-    @SuppressWarnings("null")
     @Test
     void adminCannotDeleteOwnAccount() throws Exception {
         User admin = saveUser("self-admin@example.test", RoleName.ADMIN);

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${notification.title + ' | EduRepo'}">Chi tiết thông báo | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="page-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <main id="main-content" class="content workspace-content notifications-page">
+        <header class="workspace-heading">
+            <div>
+                <span class="workspace-kicker">Chi tiết thông báo</span>
+                <h1 th:text="${notification.title}">Tiêu đề thông báo</h1>
+                <p class="subtitle" th:text="|Người gửi: ${notification.senderName}|">Người gửi</p>
+            </div>
+            <div class="workspace-actions">
+                <a class="button button-secondary" th:href="@{/notifications}">Quay lại danh sách</a>
+            </div>
+        </header>
+
+        <div th:replace="~{fragments/ui :: flashMessages}"></div>
+
+        <article class="notification-detail-card" th:classappend="${!notification.read} ? ' is-unread' : ''">
+            <div class="notification-detail-top">
+                <span class="status-pill" th:classappend="| notification-level-${#strings.toLowerCase(notification.level.name())}|"
+                      th:text="${notification.level.label}">Mức độ</span>
+                <span class="read-state" th:text="${notification.read ? 'Đã đọc' : 'Chưa đọc'}">Trạng thái</span>
+            </div>
+            <p class="notification-body" th:text="${notification.message}">Nội dung thông báo</p>
+            <dl class="notification-detail-meta">
+                <div><dt>Thời gian gửi</dt><dd th:text="${#temporals.format(notification.sendAt, 'dd/MM/yyyy HH:mm')}">--</dd></div>
+                <div><dt>Thời gian tạo</dt><dd th:text="${#temporals.format(notification.createdAt, 'dd/MM/yyyy HH:mm')}">--</dd></div>
+                <div><dt>Thời gian đọc</dt><dd th:text="${notification.readAt == null ? 'Chưa đọc' : #temporals.format(notification.readAt, 'dd/MM/yyyy HH:mm')}">--</dd></div>
+            </dl>
+            <form th:if="${!notification.read}" th:action="@{/notifications/{id}/read(id=${notification.id})}" method="post">
+                <button class="button" type="submit">Đánh dấu đã đọc</button>
+            </form>
+        </article>
+    </main>
+</div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,53 @@
+.document-feedback { border-top: 1px solid var(--line); }
+.rating-overview { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; padding: 1rem 1.15rem; border: 1px solid #dcebe7; border-radius: 14px; background: #f8fcfb; }
+.rating-overview > strong { color: #173f41; font-size: 2.2rem; line-height: 1; }
+.rating-stars, .review-stars { color: #d7ddd9; letter-spacing: .08em; }
+.rating-stars, .review-stars .is-active { color: #e1a52b; }
+.rating-overview p { margin: .2rem 0 0; color: var(--ink-500); font-size: .76rem; }
+.feedback-login-note { padding: 1rem; border-radius: 12px; color: var(--ink-600); background: var(--surface-soft); font-size: .84rem; }
+.review-form { display: grid; gap: 1rem; margin-top: 1rem; padding: 1.15rem; border: 1px solid var(--line); border-radius: 14px; }
+.review-form h3 { margin: 0; font-size: 1rem; }
+.review-form > label, .report-document label { display: grid; gap: .42rem; color: var(--ink-700); font-size: .78rem; font-weight: 750; }
+.review-form textarea, .report-document textarea, .report-document select { width: 100%; }
+.star-picker, .criteria-picker { display: flex; flex-wrap: wrap; gap: .55rem; margin: 0; padding: 0; border: 0; }
+.star-picker legend, .criteria-picker legend { width: 100%; margin-bottom: .35rem; color: var(--ink-700); font-size: .78rem; font-weight: 750; }
+.star-picker label, .criteria-picker label { cursor: pointer; }
+.star-picker label { position: relative; }
+.star-picker input { position: absolute; opacity: 0; }
+.star-picker span, .criteria-picker label { display: inline-flex; align-items: center; min-height: 34px; padding: .35rem .7rem; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-600); background: #fff; font-size: .74rem; font-weight: 700; }
+.star-picker input:checked + span { border-color: #e5b84c; color: #8a5b04; background: #fff7da; box-shadow: 0 0 0 3px rgba(229,184,76,.15); }
+.criteria-picker input { margin-right: .35rem; }
+.feedback-actions { display: flex; justify-content: flex-end; }
+.review-delete-form { display: flex; justify-content: flex-end; margin-top: .6rem; }
+.review-delete-form button { border: 0; color: var(--danger); background: transparent; font-size: .73rem; font-weight: 750; cursor: pointer; }
+.review-list { display: grid; gap: .75rem; margin-top: 1.25rem; }
+.reader-review { padding: 1rem; border: 1px solid var(--line); border-radius: 12px; }
+.reader-review header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.reader-review p { margin: .55rem 0 0; color: var(--ink-600); font-size: .84rem; line-height: 1.6; white-space: pre-line; }
+.review-stars i { font-style: normal; }
+.review-criteria { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .65rem; }
+.review-criteria span { padding: .22rem .48rem; border-radius: 999px; color: #087353; background: #e9f8f0; font-size: .66rem; font-weight: 700; }
+.empty-feedback { color: var(--ink-400); font-size: .8rem; }
+.report-document { margin: 0 0 1rem; padding-top: .15rem; border-bottom: 1px solid var(--line); }
+.report-document summary { margin-bottom: .8rem; color: #8e3e35; font-size: .74rem; font-weight: 750; cursor: pointer; }
+.report-document > p { color: var(--ink-500); font-size: .7rem; line-height: 1.5; }
+.report-document form { display: grid; gap: .75rem; padding-bottom: 1rem; }
+.report-document .button { width: 100%; }
+.moderation-panel { margin-top: 1.25rem; }
+.moderation-table td { vertical-align: top; }
+.moderation-table td small { display: block; margin-top: .25rem; color: var(--ink-400); }
+.moderation-table .report-description { max-width: 360px; white-space: pre-line; }
+.status-update-form { display: flex; align-items: center; gap: .45rem; }
+.status-update-form select { min-width: 138px; }
+.status-update-form .button { min-height: 36px; padding: .4rem .65rem; }
+.serious-report-row { box-shadow: inset 3px 0 #d04436; }
+.serious-warning { color: #b23427 !important; font-weight: 800; }
+.review-moderation-table form { display: flex; align-items: center; gap: .45rem; }
+.review-moderation-table p { max-width: 430px; margin: .3rem 0 0; white-space: pre-line; }
+
+@media (max-width: 760px) {
+    .rating-overview { align-items: flex-start; }
+    .feedback-actions .button { width: 100%; }
+    .status-update-form { align-items: stretch; flex-direction: column; }
+    .moderation-table { min-width: 850px; }
+}

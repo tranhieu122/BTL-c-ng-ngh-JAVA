@@ -1,12 +1,22 @@
 package com.hieu.edurepo.service.impl;
 
 import com.hieu.edurepo.entity.Document;
+import com.hieu.edurepo.entity.DocumentVersion;
 import com.hieu.edurepo.entity.User;
 import com.hieu.edurepo.enums.DocumentStatus;
+import com.hieu.edurepo.enums.EducationLevel;
+import com.hieu.edurepo.enums.LearningResourceType;
+import com.hieu.edurepo.enums.LicenseType;
+import com.hieu.edurepo.enums.RoleName;
 import com.hieu.edurepo.exception.InvalidStatusException;
 import com.hieu.edurepo.exception.ResourceNotFoundException;
 import com.hieu.edurepo.repository.DocumentRepository;
+import com.hieu.edurepo.repository.DocumentVersionRepository;
 import com.hieu.edurepo.service.DocumentService;
+import com.hieu.edurepo.service.FileStorageService;
+import com.hieu.edurepo.service.NotificationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -21,9 +31,29 @@ import java.util.List;
 public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
+    private final DocumentVersionRepository versionRepository;
+    private final FileStorageService fileStorageService;
+    private final NotificationService notificationService;
 
     public DocumentServiceImpl(DocumentRepository documentRepository) {
+        this(documentRepository, null, null, null);
+    }
+
+    public DocumentServiceImpl(DocumentRepository documentRepository,
+                               DocumentVersionRepository versionRepository,
+                               FileStorageService fileStorageService) {
+        this(documentRepository, versionRepository, fileStorageService, null);
+    }
+
+    @Autowired
+    public DocumentServiceImpl(DocumentRepository documentRepository,
+                               DocumentVersionRepository versionRepository,
+                               FileStorageService fileStorageService,
+                               NotificationService notificationService) {
         this.documentRepository = documentRepository;
+        this.versionRepository = versionRepository;
+        this.fileStorageService = fileStorageService;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -57,23 +87,84 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     @Transactional(readOnly = true)
     public Page<Document> searchPublished(String keyword, Pageable pageable) {
-        return documentRepository.findByStatusAndTitleContainingIgnoreCase(
-                DocumentStatus.PUBLISHED, keyword == null ? "" : keyword.trim(), pageable);
+        return searchPublished(keyword, null, null, null, null, "", pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Document> searchPublished(String keyword, Long categoryId, LearningResourceType resourceType,
+                                          EducationLevel educationLevel, LicenseType licenseType,
+                                          String languageCode, Pageable pageable) {
+        return documentRepository.searchPublishedAdvanced(normalize(keyword), categoryId, resourceType,
+                educationLevel, licenseType, normalize(languageCode), pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Document> findRelatedPublished(Document document, int limit) {
+        if (document == null || document.getId() == null || document.getCategory() == null) return List.of();
+        return documentRepository.findRelatedPublished(document.getId(), document.getCategory().getId(),
+                PageRequest.of(0, Math.max(1, limit)));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DocumentVersion> findVersions(Long documentId) {
+        findById(documentId);
+        return versionRepository == null ? List.of()
+                : versionRepository.findByDocumentIdOrderByVersionNumberDesc(documentId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DocumentVersion findVersion(Long documentId, Long versionId) {
+        findById(documentId);
+        if (versionRepository == null) throw new ResourceNotFoundException("Không tìm thấy phiên bản tài liệu");
+        return versionRepository.findByIdAndDocumentId(versionId, documentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên bản tài liệu"));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> versionFilePaths(Long documentId) {
+        return findVersions(documentId).stream().map(DocumentVersion::getFilePath).distinct().toList();
+    }
+
+    @Override
+    public void recordView(Long documentId) {
+        documentRepository.incrementViewCount(documentId);
+    }
+
+    @Override
+    public void recordDownload(Long documentId) {
+        documentRepository.incrementDownloadCount(documentId);
     }
 
     @Override
     public Document saveDraft(Document document, User owner) {
         document.setCreatedBy(owner);
         document.setStatus(DocumentStatus.DRAFT);
-        return documentRepository.save(document);
+        Document saved = documentRepository.save(document);
+        recordVersion(saved, owner, "Phiên bản ban đầu");
+        return saved;
     }
 
     @Override
     public Document submitNew(Document document, User owner) {
         document.setCreatedBy(owner);
-        document.setStatus(DocumentStatus.SUBMITTED);
-        document.setSubmittedAt(LocalDateTime.now());
-        return documentRepository.save(document);
+        if (canPublishDirectly(owner)) {
+            document.setStatus(DocumentStatus.PUBLISHED);
+            document.setPublishedAt(LocalDateTime.now());
+        } else {
+            document.setStatus(DocumentStatus.SUBMITTED);
+            document.setSubmittedAt(LocalDateTime.now());
+        }
+        Document saved = documentRepository.save(document);
+        recordVersion(saved, owner, "Phiên bản ban đầu");
+        if (notificationService != null && saved.getStatus() == DocumentStatus.SUBMITTED) {
+            notificationService.submitted(saved);
+        }
+        return saved;
     }
 
     @Override
@@ -86,6 +177,12 @@ public class DocumentServiceImpl implements DocumentService {
 
         document.setTitle(changes.getTitle());
         document.setDescription(changes.getDescription());
+        document.setSummary(changes.getSummary());
+        document.setKeywords(changes.getKeywords());
+        document.setLanguageCode(changes.getLanguageCode());
+        document.setLearningResourceType(changes.getLearningResourceType());
+        document.setEducationLevel(changes.getEducationLevel());
+        if (changes.getLicenseType() != null) document.setLicenseType(changes.getLicenseType());
         document.setAuthorName(changes.getAuthorName());
         document.setCategory(changes.getCategory());
         document.setDepartment(changes.getDepartment());
@@ -95,7 +192,11 @@ public class DocumentServiceImpl implements DocumentService {
             document.setFileType(changes.getFileType());
             document.setFileSize(changes.getFileSize());
         }
-        return documentRepository.save(document);
+        Document saved = documentRepository.save(document);
+        if (changes.getFilePath() != null) {
+            recordVersion(saved, owner, "Thay tệp sau khi chỉnh sửa");
+        }
+        return saved;
     }
 
     @Override
@@ -105,9 +206,18 @@ public class DocumentServiceImpl implements DocumentService {
                 && document.getStatus() != DocumentStatus.REVISION_REQUIRED) {
             throw new InvalidStatusException("Chỉ tài liệu nháp hoặc cần chỉnh sửa mới được gửi duyệt");
         }
-        document.setStatus(DocumentStatus.SUBMITTED);
-        document.setSubmittedAt(LocalDateTime.now());
-        return documentRepository.save(document);
+        if (canPublishDirectly(owner)) {
+            document.setStatus(DocumentStatus.PUBLISHED);
+            document.setPublishedAt(LocalDateTime.now());
+        } else {
+            document.setStatus(DocumentStatus.SUBMITTED);
+            document.setSubmittedAt(LocalDateTime.now());
+        }
+        Document saved = documentRepository.save(document);
+        if (notificationService != null && saved.getStatus() == DocumentStatus.SUBMITTED) {
+            notificationService.submitted(saved);
+        }
+        return saved;
     }
 
     @Override
@@ -126,15 +236,46 @@ public class DocumentServiceImpl implements DocumentService {
         if (document.getStatus() != DocumentStatus.DRAFT) {
             throw new InvalidStatusException("Chỉ được xóa tài liệu đang ở trạng thái nháp");
         }
+        if (versionRepository != null) {
+            versionRepository.deleteByDocumentId(documentId);
+        }
         documentRepository.delete(document);
     }
 
     private Document findOwnedDocument(Long documentId, User owner) {
-        Document document = findById(documentId);
+        Document document = documentRepository.findByIdForUpdate(documentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài liệu: " + documentId));
         if (document.getCreatedBy() == null
                 || !document.getCreatedBy().getId().equals(owner.getId())) {
             throw new AccessDeniedException("Bạn không có quyền thay đổi tài liệu này");
         }
         return document;
+    }
+
+    private boolean canPublishDirectly(User owner) {
+        return owner.getRoles().stream()
+                .map(role -> role.getName())
+                .anyMatch(role -> role == RoleName.ADMIN || role == RoleName.REVIEWER);
+    }
+
+    private void recordVersion(Document document, User owner, String note) {
+        if (versionRepository == null || document.getFilePath() == null || document.getFileName() == null) return;
+        int nextNumber = versionRepository.findTopByDocumentIdOrderByVersionNumberDesc(document.getId())
+                .map(version -> version.getVersionNumber() + 1).orElse(1);
+        DocumentVersion version = new DocumentVersion();
+        version.setDocument(document);
+        version.setVersionNumber(nextNumber);
+        version.setFileName(document.getFileName());
+        version.setFilePath(document.getFilePath());
+        version.setFileType(document.getFileType());
+        version.setFileSize(document.getFileSize());
+        version.setCreatedBy(owner);
+        version.setChangeNote(note);
+        if (fileStorageService != null) version.setChecksum(fileStorageService.checksum(document.getFilePath()));
+        versionRepository.save(version);
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.trim();
     }
 }

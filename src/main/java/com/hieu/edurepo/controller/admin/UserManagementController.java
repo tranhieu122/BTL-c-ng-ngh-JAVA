@@ -30,15 +30,23 @@ public class UserManagementController {
 
     private final UserService userService;
     private final RoleRepository roleRepository;
+    private final com.hieu.edurepo.service.AuditLogService auditLogs;
 
-    public UserManagementController(UserService userService, RoleRepository roleRepository) {
+    public UserManagementController(UserService userService, RoleRepository roleRepository,
+                                    com.hieu.edurepo.service.AuditLogService auditLogs) {
         this.userService = userService;
         this.roleRepository = roleRepository;
+        this.auditLogs = auditLogs;
     }
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("users", userService.findAll());
+        var users = userService.findAll();
+        model.addAttribute("users", users);
+        model.addAttribute("resetRequests", users.stream().filter(user -> user.getPasswordResetRequestedAt() != null).toList());
+        auditLogs.record(com.hieu.edurepo.enums.AuditAction.USER_MANAGEMENT_VIEWED,
+                com.hieu.edurepo.enums.AuditTargetType.PAGE, null, "Quản lý người dùng",
+                "Xem danh sách quản lý người dùng", com.hieu.edurepo.enums.AuditResult.SUCCESS);
         return "admin/users";
     }
 
@@ -74,14 +82,17 @@ public class UserManagementController {
             bindingResult.rejectValue("password", "required", "Mật khẩu không được để trống");
         }
         if (form.getPassword() != null && !form.getPassword().isBlank()
-                && form.getPassword().length() < 8) {
-            bindingResult.rejectValue("password", "size", "Mật khẩu phải có ít nhất 8 ký tự");
+                && !com.hieu.edurepo.util.PasswordPolicy.isValid(form.getPassword())) {
+            bindingResult.rejectValue("password", "size", com.hieu.edurepo.util.PasswordPolicy.MESSAGE);
         }
         if (bindingResult.hasErrors()) {
             return renderForm(model);
         }
 
         User user = creating ? new User() : userService.findById(form.getId());
+        boolean previousEnabled = user.isEnabled();
+        Set<RoleName> previousRoles = user.getRoles() == null ? Set.of() : user.getRoles().stream()
+                .map(Role::getName).collect(Collectors.toSet());
         Set<RoleName> roleNames = resolveRoleNames(form);
         if (!creating && isCurrentUser(user, authentication)
                 && (!form.isEnabled() || !roleNames.contains(RoleName.ADMIN))) {
@@ -103,13 +114,28 @@ public class UserManagementController {
             user.setPassword(form.getPassword());
         }
         try {
-            userService.save(user, changePassword);
+            user = userService.save(user, changePassword);
         } catch (IllegalStateException exception) {
             if ("EMAIL_EXISTS".equals(exception.getMessage())) {
                 bindingResult.rejectValue("email", "email.exists", "Email này đã được sử dụng");
                 return renderForm(model);
             }
             throw exception;
+        }
+        audit(creating ? com.hieu.edurepo.enums.AuditAction.USER_CREATED
+                        : com.hieu.edurepo.enums.AuditAction.USER_UPDATED,
+                user.getId(), (creating ? "Tạo người dùng: " : "Cập nhật người dùng: ") + user.getEmail(),
+                com.hieu.edurepo.enums.AuditResult.SUCCESS);
+        if (!creating && !previousRoles.equals(roleNames)) {
+            audit(com.hieu.edurepo.enums.AuditAction.USER_ROLE_CHANGED, user.getId(),
+                    "Thay đổi vai trò tài khoản " + user.getEmail() + " từ " + previousRoles + " thành " + roleNames,
+                    com.hieu.edurepo.enums.AuditResult.SUCCESS);
+        }
+        if (!creating && previousEnabled != user.isEnabled()) {
+            audit(com.hieu.edurepo.enums.AuditAction.USER_STATUS_CHANGED, user.getId(),
+                    "Thay đổi trạng thái tài khoản " + user.getEmail() + " thành "
+                            + (user.isEnabled() ? "đang hoạt động" : "đã khóa"),
+                    com.hieu.edurepo.enums.AuditResult.SUCCESS);
         }
         redirectAttributes.addFlashAttribute("success", "Đã lưu người dùng");
         return "redirect:/admin/users";
@@ -120,11 +146,15 @@ public class UserManagementController {
             RedirectAttributes redirectAttributes) {
         User user = userService.findById(id);
         if (isCurrentUser(user, authentication)) {
+            audit(com.hieu.edurepo.enums.AuditAction.USER_DELETED, id,
+                    "Từ chối tự xóa tài khoản đang đăng nhập", com.hieu.edurepo.enums.AuditResult.FAILURE);
             redirectAttributes.addFlashAttribute("error", "Bạn không thể tự xóa tài khoản đang đăng nhập");
             return "redirect:/admin/users";
         }
         try {
             userService.deleteById(id);
+            audit(com.hieu.edurepo.enums.AuditAction.USER_DELETED, id,
+                    "Xóa người dùng: " + user.getEmail(), com.hieu.edurepo.enums.AuditResult.SUCCESS);
             redirectAttributes.addFlashAttribute("success", "Đã xóa người dùng");
         } catch (IllegalStateException exception) {
             if (!"USER_IN_USE".equals(exception.getMessage())) {
@@ -132,9 +162,15 @@ public class UserManagementController {
             }
             redirectAttributes.addFlashAttribute("error",
                     "Không thể xóa người dùng đã có tài liệu hoặc lịch sử kiểm duyệt");
+            audit(com.hieu.edurepo.enums.AuditAction.USER_DELETED, id,
+                    "Không thể xóa người dùng đang được tham chiếu: " + user.getEmail(),
+                    com.hieu.edurepo.enums.AuditResult.FAILURE);
         } catch (DataIntegrityViolationException exception) {
             redirectAttributes.addFlashAttribute("error",
                     "Không thể xóa người dùng đã có tài liệu hoặc lịch sử kiểm duyệt");
+            audit(com.hieu.edurepo.enums.AuditAction.USER_DELETED, id,
+                    "Không thể xóa người dùng đang được tham chiếu: " + user.getEmail(),
+                    com.hieu.edurepo.enums.AuditResult.FAILURE);
         }
         return "redirect:/admin/users";
     }
@@ -156,5 +192,12 @@ public class UserManagementController {
     private String renderForm(Model model) {
         model.addAttribute("roleNames", RoleName.values());
         return "admin/user-form";
+    }
+
+    private void audit(com.hieu.edurepo.enums.AuditAction action, Long targetId, String description,
+                       com.hieu.edurepo.enums.AuditResult result) {
+        String targetName = description == null || !description.contains(": ")
+                ? null : description.substring(description.indexOf(": ") + 2);
+        auditLogs.record(action, com.hieu.edurepo.enums.AuditTargetType.USER, targetId, targetName, description, result);
     }
 }

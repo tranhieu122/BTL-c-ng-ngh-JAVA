@@ -15,6 +15,13 @@ public class GlobalExceptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String missingRoute(Model model) {
+        model.addAttribute("message", "Không tìm thấy trang được yêu cầu.");
+        return "error/404";
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String notFound(ResourceNotFoundException exception, Model model) {

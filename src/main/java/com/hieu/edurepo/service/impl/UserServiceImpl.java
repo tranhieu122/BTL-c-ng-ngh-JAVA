@@ -41,13 +41,14 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public List<User> findAll() {
-        return userRepository.findAll();
+        return userRepository.findByDeletedAtIsNull();
     }
 
     @Override
     @Transactional(readOnly = true)
     public User findById(Long id) {
         return userRepository.findById(id)
+                .filter(user -> user.getDeletedAt() == null)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng: " + id));
     }
 
@@ -61,6 +62,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User register(String fullName, String email, String password) {
+        return createUser(fullName, email, passwordEncoder.encode(requirePassword(password)));
+    }
+
+    @Override
+    public User registerWithEncodedPassword(String fullName, String email, String encodedPassword) {
+        if (encodedPassword == null || encodedPassword.isBlank()) {
+            throw new IllegalArgumentException("Mật khẩu không hợp lệ");
+        }
+        return createUser(fullName, email, encodedPassword);
+    }
+
+    private User createUser(String fullName, String email, String encodedPassword) {
         String normalizedEmail = normalizeEmail(email);
         if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
             throw new IllegalStateException("EMAIL_EXISTS");
@@ -72,33 +85,43 @@ public class UserServiceImpl implements UserService {
         user.setEmail(normalizedEmail);
         // Email đã unique; dùng chính email làm username để tránh trùng phần trước dấu @.
         user.setUsername(normalizedEmail);
-        user.setPassword(passwordEncoder.encode(requirePassword(password)));
+        user.setPassword(encodedPassword);
         user.getRoles().add(userRole);
         return persistUser(user);
     }
 
     @Override
     public User save(User user, boolean encodePassword) {
+        roleRepository.lockByName(RoleName.ADMIN);
         String normalizedEmail = normalizeEmail(user.getEmail());
+        Long accountId = user.getId();
         userRepository.findByEmailIgnoreCase(normalizedEmail)
-                .filter(existing -> !Objects.equals(existing.getId(), user.getId()))
-                .ifPresent(existing -> {
-                    throw new IllegalStateException("EMAIL_EXISTS");
-                });
-
+                .filter(existing -> !Objects.equals(existing.getId(), accountId))
+                .ifPresent(existing -> { throw new IllegalStateException("EMAIL_EXISTS"); });
+        if (user.getId() != null) {
+            User current = userRepository.lockById(user.getId()).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản."));
+            if (current.getDeletedAt() != null) throw new ResourceNotFoundException("Tài khoản đã được xóa.");
+            // Merge only admin-editable fields; a detached admin form must not overwrite a newer avatar/profile.
+            current.setFullName(user.getFullName()); current.setEmail(user.getEmail());
+            current.setEnabled(user.isEnabled()); current.setRoles(user.getRoles());
+            if (encodePassword) current.setPassword(user.getPassword());
+            user = current;
+        }
         user.setFullName(normalizeRequiredText(user.getFullName(), "Họ tên không được để trống"));
         user.setEmail(normalizedEmail);
-        if (user.getUsername() == null || user.getUsername().isBlank()) {
-            user.setUsername(normalizedEmail);
-        }
+        user.setUsername(normalizedEmail);
         if (encodePassword) {
             user.setPassword(passwordEncoder.encode(requirePassword(user.getPassword())));
+            user.setPasswordResetRequestedAt(null);
+            user.setFailedLoginAttempts(0);
+            user.setLoginLockedUntil(null);
         }
         return persistUser(user);
     }
 
     @Override
     public void deleteById(Long id) {
+        roleRepository.lockByName(RoleName.ADMIN);
         User user = findById(id);
         if (documentRepository.existsByCreatedById(id)
                 || approvalHistoryRepository.existsByReviewerId(id)) {
@@ -129,10 +152,44 @@ public class UserServiceImpl implements UserService {
     }
 
     private String requirePassword(String password) {
-        String value = Objects.requireNonNull(password, "Mật khẩu không được để trống");
-        if (value.isBlank()) {
-            throw new IllegalArgumentException("Mật khẩu không được để trống");
+        if (!com.hieu.edurepo.util.PasswordPolicy.isValid(password)) {
+            throw new IllegalArgumentException(com.hieu.edurepo.util.PasswordPolicy.MESSAGE);
         }
-        return value;
+        return password;
+    }
+
+    @Override
+    public void requestPasswordReset(String email) {
+        if (email == null || email.isBlank() || email.length() > 255) return;
+        userRepository.requestPasswordReset(email.trim().toLowerCase(Locale.ROOT), java.time.LocalDateTime.now());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean emailExists(String email) {
+        if (email == null || email.isBlank() || email.length() > 255) return false;
+        return userRepository.existsByEmailIgnoreCase(email.trim().toLowerCase(Locale.ROOT));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean activeAccountExists(String email) {
+        if (email == null || email.isBlank() || email.length() > 255) return false;
+        return userRepository.findByEmailIgnoreCase(email.trim().toLowerCase(Locale.ROOT))
+                .filter(User::isEnabled)
+                .filter(user -> user.getDeletedAt() == null)
+                .isPresent();
+    }
+
+    @Override
+    public void resetPassword(String email, String password) {
+        User user = userRepository.lockByEmailIgnoreCase(normalizeEmail(email))
+                .filter(existing -> existing.getDeletedAt() == null)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản."));
+        user.setPassword(passwordEncoder.encode(requirePassword(password)));
+        user.setPasswordResetRequestedAt(null);
+        user.setFailedLoginAttempts(0);
+        user.setLoginLockedUntil(null);
+        userRepository.saveAndFlush(user);
     }
 }

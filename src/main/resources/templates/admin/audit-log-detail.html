@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Chi tiết nhật kí | EduRepo</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body class="audit-log-page">
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="page-shell"><div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <main id="main-content" class="content workspace-content">
+        <nav class="breadcrumb"><a th:href="@{/admin/audit-logs}">Nhật kí hệ thống</a><span>/</span><strong th:text="|Bản ghi #${log.id}|">Chi tiết</strong></nav>
+        <article class="audit-detail-card">
+            <header><div><span class="eyebrow">Thông tin đầy đủ</span><h1 th:text="${log.action.label}">Hành động</h1></div><span class="audit-result" th:classappend="${log.result.name() == 'SUCCESS' ? ' is-success' : ' is-failure'}" th:text="${log.result.label}">Kết quả</span></header>
+            <dl>
+                <div><dt>ID bản ghi</dt><dd th:text="${log.id}">1</dd></div><div><dt>Thời gian</dt><dd th:text="${#temporals.format(log.occurredAt, 'dd/MM/yyyy HH:mm:ss')}">Thời gian</dd></div>
+                <div><dt>Người thực hiện</dt><dd th:text="${#strings.isEmpty(log.actorName) ? 'Hệ thống/Khách' : log.actorName}">Người dùng</dd></div><div><dt>Tài khoản</dt><dd th:text="${#strings.isEmpty(log.actorIdentifier) ? 'Không xác định' : log.actorIdentifier}">Email</dd></div>
+                <div><dt>Vai trò</dt><dd th:text="${#strings.isEmpty(log.actorRoles) ? 'Không xác định' : log.actorRoles}">Vai trò</dd></div><div><dt>Đối tượng</dt><dd th:text="${log.targetType.label + (#strings.isEmpty(log.targetName) ? '' : ' · ' + log.targetName) + (log.targetId == null ? '' : ' · ID #' + log.targetId)}">Đối tượng</dd></div>
+                <div class="audit-detail-wide"><dt>Mô tả</dt><dd th:text="${log.description}">Mô tả</dd></div><div><dt>Địa chỉ IP</dt><dd th:text="${#strings.isEmpty(log.ipAddress) ? 'Không ghi nhận được' : log.ipAddress}">IP</dd></div>
+                <div class="audit-detail-wide"><dt>Trình duyệt / thiết bị</dt><dd class="audit-user-agent" th:text="${#strings.isEmpty(log.userAgent) ? 'Không ghi nhận được' : log.userAgent}">User-Agent</dd></div>
+            </dl>
+            <a class="button button-secondary" th:href="@{/admin/audit-logs}">← Quay lại nhật kí</a>
+        </article>
+    </main>
+</div><div th:replace="~{fragments/footer :: footer}"></div>
+</body></html>

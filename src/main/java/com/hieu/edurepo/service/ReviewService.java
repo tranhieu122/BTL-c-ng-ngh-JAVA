@@ -9,5 +9,7 @@ import java.util.List;
 
 public interface ReviewService {
     Document review(Long documentId, ReviewAction action, String comment, User reviewer);
+    Document review(Long documentId, ReviewAction action, String comment, User reviewer,
+                    Integer contentQualityScore, Integer teachingEffectivenessScore, Integer easeOfUseScore);
     List<ApprovalHistory> history(Long documentId);
 }

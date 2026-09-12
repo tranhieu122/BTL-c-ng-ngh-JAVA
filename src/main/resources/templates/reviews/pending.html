@@ -6,41 +6,140 @@
     <title>Hàng chờ kiểm duyệt | EduRepo</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
-<body>
+<body class="review-queue-page">
 <div th:replace="~{fragments/header :: header}"></div>
 <div class="page-shell">
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
-    <main id="main-content" class="content workspace-content">
-        <header class="workspace-heading">
-            <div><span class="workspace-kicker">Không gian reviewer</span><h1>Hàng chờ kiểm duyệt</h1><p class="subtitle">Đánh giá lần lượt để mỗi tài liệu được phản hồi rõ ràng và nhất quán.</p></div>
-            <div class="workspace-actions"><a class="button button-secondary" th:href="@{/repository}">Xem kho công khai</a></div>
-        </header>
-        <div th:replace="~{fragments/ui :: flashMessages}"></div>
-        <section class="data-panel" th:if="${!#lists.isEmpty(documents)}" aria-labelledby="review-table-title">
-            <div class="data-panel-header"><strong id="review-table-title">Tài liệu cần xử lý</strong><span class="record-count" th:text="|${#lists.size(documents)} đang chờ|">0 đang chờ</span></div>
-            <div class="table-scroll">
-                <table class="data-table">
-                    <caption class="sr-only">Danh sách tài liệu đang chờ kiểm duyệt</caption>
-                    <thead><tr><th>Tài liệu</th><th>Người nộp</th><th>Ngày gửi</th><th>Thao tác</th></tr></thead>
-                    <tbody>
-                    <tr th:each="doc : ${documents}">
-                        <td><div class="entity-cell"><span class="workspace-icon" aria-hidden="true">▤</span><span class="entity-copy"><strong th:text="${doc.title}">Tiêu đề</strong><small th:text="${doc.category != null ? doc.category.name : 'Chưa phân loại'}">Danh mục</small></span></div></td>
-                        <td><span class="entity-copy"><strong th:text="${doc.createdBy != null ? doc.createdBy.fullName : 'Không xác định'}">Người nộp</strong><small th:text="${doc.createdBy != null ? doc.createdBy.email : 'Không có email'}">Email</small></span></td>
-                        <td th:text="${doc.submittedAt}">Ngày gửi</td>
-                        <td><a class="table-action" th:href="@{/reviews/{id}(id=${doc.id})}">Bắt đầu duyệt <span aria-hidden="true">→</span></a></td>
-                    </tr>
-                    </tbody>
-                </table>
+
+    <main id="main-content" class="content workspace-content review-workspace">
+        <section class="review-hero" aria-labelledby="review-page-title">
+            <div class="review-hero-copy">
+                <span class="review-eyebrow"><i aria-hidden="true"></i> Không gian reviewer</span>
+                <h1 id="review-page-title">Hàng chờ kiểm duyệt</h1>
+                <p>Đọc, đối chiếu và đưa ra phản hồi nhất quán cho từng học liệu trước khi công bố.</p>
+                <div class="review-hero-actions">
+                    <a class="button review-primary-action" href="#review-queue">Bắt đầu xử lý</a>
+                    <a class="review-text-link" th:href="@{/repository}">Xem kho công khai <span aria-hidden="true">↗</span></a>
+                </div>
+            </div>
+            <div class="review-hero-visual" aria-hidden="true">
+                <div class="review-orbit review-orbit-one"></div>
+                <div class="review-orbit review-orbit-two"></div>
+                <div class="review-hero-document">
+                    <span class="review-document-fold"></span>
+                    <i></i><i></i><i></i>
+                    <strong>✓</strong>
+                </div>
             </div>
         </section>
-        <section class="data-panel empty-panel" th:if="${#lists.isEmpty(documents)}">
-            <span class="workspace-icon" aria-hidden="true">✓</span>
-            <h2>Hàng chờ đã được xử lý</h2>
-            <p>Hiện không có tài liệu nào cần kiểm duyệt. Các hồ sơ mới sẽ xuất hiện tại đây.</p>
-            <a class="button button-secondary" th:href="@{/repository}">Khám phá kho học liệu</a>
+
+        <div th:replace="~{fragments/ui :: flashMessages}"></div>
+
+        <section class="review-metrics" aria-label="Tổng quan hàng chờ">
+            <article class="review-metric review-metric-total">
+                <span class="review-metric-icon" aria-hidden="true">▤</span>
+                <div><strong data-live-queue-total th:text="${#lists.size(documents)}">0</strong><small>Tổng hồ sơ đang chờ</small></div>
+                <span class="review-metric-trend">Cần xử lý</span>
+            </article>
+            <article class="review-metric review-metric-new">
+                <span class="review-metric-icon" aria-hidden="true">◷</span>
+                <div><strong data-live-queue-submitted th:text="${submittedCount}">0</strong><small>Mới gửi để đánh giá</small></div>
+                <span class="review-metric-trend">SUBMITTED</span>
+            </article>
+            <article class="review-metric review-metric-ready">
+                <span class="review-metric-icon" aria-hidden="true">✓</span>
+                <div><strong data-live-queue-approved th:text="${approvedCount}">0</strong><small>Sẵn sàng công bố</small></div>
+                <span class="review-metric-trend">APPROVED</span>
+            </article>
         </section>
+
+        <div data-live-region="review-queue" data-live-source="reviewQueue">
+        <section id="review-queue" class="review-queue-panel" th:if="${!#lists.isEmpty(documents)}"
+                 aria-labelledby="review-queue-title">
+            <header class="review-queue-header">
+                <div>
+                    <span class="review-section-kicker">Danh sách công việc</span>
+                    <h2 id="review-queue-title">Hồ sơ cần phản hồi</h2>
+                </div>
+                <span class="review-live-count" data-review-count
+                      th:text="|${#lists.size(documents)} tài liệu|">0 tài liệu</span>
+            </header>
+
+            <div class="review-toolbar">
+                <label class="review-search">
+                    <span aria-hidden="true">⌕</span>
+                    <span class="sr-only">Tìm tài liệu hoặc người nộp</span>
+                    <input type="search" placeholder="Tìm theo tiêu đề hoặc người nộp..."
+                           autocomplete="off" data-review-search>
+                </label>
+                <label class="review-filter">
+                    <span class="sr-only">Lọc theo trạng thái</span>
+                    <select data-review-status>
+                        <option value="all">Tất cả trạng thái</option>
+                        <option value="SUBMITTED">Mới gửi</option>
+                        <option value="APPROVED">Đã duyệt</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="review-card-list" data-review-list>
+                <article class="queue-card" th:each="doc, loop : ${documents}"
+                         th:attr="data-review-item='',data-title=${doc.title},data-owner=${doc.createdBy != null ? doc.createdBy.fullName : ''},data-status=${doc.status}">
+                    <div class="queue-order" th:text="${#numbers.formatInteger(loop.index + 1, 2)}">01</div>
+                    <div class="queue-file-icon" aria-hidden="true">
+                        <span th:text="${doc.fileName != null && doc.fileName.contains('.') ? #strings.toUpperCase(#strings.substringAfter(doc.fileName, '.')) : 'FILE'}">PDF</span>
+                    </div>
+
+                    <div class="queue-card-main">
+                        <div class="queue-card-topline">
+                            <span class="queue-status"
+                                  th:classappend="${doc.status.name() == 'APPROVED' ? ' queue-status-approved' : ' queue-status-submitted'}">
+                                <i aria-hidden="true"></i>
+                                <span th:text="${doc.status.name() == 'APPROVED' ? 'Đã duyệt · chờ công bố' : 'Mới gửi kiểm duyệt'}">Mới gửi</span>
+                            </span>
+                            <time th:datetime="${doc.submittedAt}"
+                                  th:text="${doc.submittedAt != null ? #temporals.format(doc.submittedAt, 'dd/MM/yyyy · HH:mm') : 'Chưa ghi nhận thời gian'}">20/08/2026</time>
+                        </div>
+
+                        <h3 th:text="${doc.title}">Tên tài liệu</h3>
+                        <p th:text="${doc.description != null && !doc.description.isBlank() ? doc.description : 'Tài liệu chưa có mô tả. Reviewer cần kiểm tra nội dung trong tệp đính kèm.'}">Mô tả</p>
+
+                        <div class="queue-meta">
+                            <span><b aria-hidden="true">◎</b><span th:text="${doc.createdBy != null ? doc.createdBy.fullName : 'Không xác định'}">Người nộp</span></span>
+                            <span><b aria-hidden="true">◇</b><span th:text="${doc.category != null ? doc.category.name : 'Chưa phân loại'}">Danh mục</span></span>
+                            <span th:if="${doc.department != null}"><b aria-hidden="true">⌂</b><span th:text="${doc.department.name}">Bộ môn</span></span>
+                        </div>
+                    </div>
+
+                    <div class="queue-card-actions">
+                        <a class="queue-download" th:href="@{/reviews/{id}/download(id=${doc.id})}"
+                           title="Tải bản gốc"><span aria-hidden="true">↓</span><span>Tải tệp</span></a>
+                        <a class="button queue-review-button" th:href="@{/reviews/{id}(id=${doc.id})}">
+                            Mở hồ sơ <span aria-hidden="true">→</span>
+                        </a>
+                    </div>
+                </article>
+            </div>
+
+            <div class="review-filter-empty" data-review-empty hidden>
+                <span aria-hidden="true">⌕</span>
+                <h3>Không tìm thấy hồ sơ phù hợp</h3>
+                <p>Thử từ khóa khác hoặc chọn lại tất cả trạng thái.</p>
+                <button type="button" class="button button-secondary" data-review-reset>Xóa bộ lọc</button>
+            </div>
+        </section>
+
+        <section class="review-empty-state" th:if="${#lists.isEmpty(documents)}">
+            <div class="review-empty-check" aria-hidden="true">✓</div>
+            <span class="review-section-kicker">Tuyệt vời</span>
+            <h2>Hàng chờ đã được xử lý</h2>
+            <p>Hiện không có tài liệu nào cần kiểm duyệt. Hồ sơ mới sẽ tự động xuất hiện tại đây.</p>
+            <a class="button review-primary-action" th:href="@{/repository}">Khám phá kho học liệu</a>
+        </section>
+        </div>
     </main>
 </div>
 <div th:replace="~{fragments/footer :: footer}"></div>
+<script type="module" th:src="@{/js/main.js}"></script>
 </body>
 </html>

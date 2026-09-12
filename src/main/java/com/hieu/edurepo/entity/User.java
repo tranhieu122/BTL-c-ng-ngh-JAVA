@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 
 import java.util.HashSet;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -34,6 +35,40 @@ public class User {
     private String password;
 
     private boolean enabled = true;
+
+    @Column(nullable = false)
+    private int failedLoginAttempts;
+
+    private LocalDateTime loginLockedUntil;
+
+    @Column(length = 30)
+    private String phoneNumber;
+    @Column(length = 150)
+    private String affiliation;
+    @Column(length = 1000)
+    private String bio;
+    private String avatarKey;
+    @Column(length = 64)
+    private String bootstrapKey;
+    private java.time.LocalDateTime deletedAt;
+
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String value) { phoneNumber = value; }
+    public String getAffiliation() { return affiliation; }
+    public void setAffiliation(String value) { affiliation = value; }
+    public String getBio() { return bio; }
+    public void setBio(String value) { bio = value; }
+    public String getAvatarKey() { return avatarKey; }
+    public String getBootstrapKey() { return bootstrapKey; }
+    public void setBootstrapKey(String value) { bootstrapKey = value; }
+    public void setAvatarKey(String value) { avatarKey = value; }
+    public java.time.LocalDateTime getDeletedAt() { return deletedAt; }
+    public void setDeletedAt(java.time.LocalDateTime value) { deletedAt = value; }
+
+    private java.time.LocalDateTime passwordResetRequestedAt;
+
+    public java.time.LocalDateTime getPasswordResetRequestedAt() { return passwordResetRequestedAt; }
+    public void setPasswordResetRequestedAt(java.time.LocalDateTime value) { passwordResetRequestedAt = value; }
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -92,6 +127,26 @@ public class User {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public int getFailedLoginAttempts() {
+        return failedLoginAttempts;
+    }
+
+    public void setFailedLoginAttempts(int failedLoginAttempts) {
+        this.failedLoginAttempts = failedLoginAttempts;
+    }
+
+    public LocalDateTime getLoginLockedUntil() {
+        return loginLockedUntil;
+    }
+
+    public void setLoginLockedUntil(LocalDateTime loginLockedUntil) {
+        this.loginLockedUntil = loginLockedUntil;
+    }
+
+    public boolean isLoginLockedAt(LocalDateTime time) {
+        return loginLockedUntil != null && loginLockedUntil.isAfter(time);
     }
 
     public Set<Role> getRoles() {

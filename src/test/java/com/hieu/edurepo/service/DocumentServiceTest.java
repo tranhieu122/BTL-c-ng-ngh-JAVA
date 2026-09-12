@@ -1,15 +1,21 @@
 package com.hieu.edurepo.service;
 
 import com.hieu.edurepo.entity.Document;
+import com.hieu.edurepo.entity.DocumentVersion;
+import com.hieu.edurepo.entity.Role;
 import com.hieu.edurepo.entity.User;
 import com.hieu.edurepo.enums.DocumentStatus;
+import com.hieu.edurepo.enums.RoleName;
 import com.hieu.edurepo.exception.InvalidStatusException;
 import com.hieu.edurepo.repository.DocumentRepository;
+import com.hieu.edurepo.repository.DocumentVersionRepository;
 import com.hieu.edurepo.service.impl.DocumentServiceImpl;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -29,7 +35,7 @@ class DocumentServiceTest {
         document.setId(10L);
         document.setCreatedBy(owner);
         document.setStatus(DocumentStatus.DRAFT);
-        when(repository.findById(10L)).thenReturn(Optional.of(document));
+        when(repository.findByIdForUpdate(10L)).thenReturn(Optional.of(document));
         when(repository.save(document)).thenReturn(document);
 
         Document result = service.submit(10L, owner);
@@ -49,7 +55,7 @@ class DocumentServiceTest {
         document.setId(10L);
         document.setCreatedBy(owner);
         document.setStatus(DocumentStatus.DRAFT);
-        when(repository.findById(10L)).thenReturn(Optional.of(document));
+        when(repository.findByIdForUpdate(10L)).thenReturn(Optional.of(document));
 
         assertThrows(AccessDeniedException.class, () -> service.submit(10L, intruder));
     }
@@ -89,6 +95,22 @@ class DocumentServiceTest {
     }
 
     @Test
+    void reviewerSubmissionIsPublishedImmediately() {
+        DocumentRepository repository = mock(DocumentRepository.class);
+        DocumentService service = new DocumentServiceImpl(repository);
+        User reviewer = new User();
+        reviewer.setId(1L);
+        reviewer.setRoles(Set.of(new Role(RoleName.REVIEWER)));
+        Document document = new Document();
+        when(repository.save(document)).thenReturn(document);
+
+        Document saved = service.submitNew(document, reviewer);
+
+        assertEquals(DocumentStatus.PUBLISHED, saved.getStatus());
+        assertEquals(reviewer, saved.getCreatedBy());
+    }
+
+    @Test
     void updateDraftPreservesRevisionStatusAndExistingFileWhenNoReplacementIsProvided() {
         DocumentRepository repository = mock(DocumentRepository.class);
         DocumentService service = new DocumentServiceImpl(repository);
@@ -102,7 +124,7 @@ class DocumentServiceTest {
         Document changes = new Document();
         changes.setTitle("Tiêu đề mới");
         changes.setDescription("Mô tả mới");
-        when(repository.findById(10L)).thenReturn(Optional.of(document));
+        when(repository.findByIdForUpdate(10L)).thenReturn(Optional.of(document));
         when(repository.save(document)).thenReturn(document);
 
         Document result = service.updateDraft(10L, changes, owner);
@@ -124,9 +146,42 @@ class DocumentServiceTest {
         document.setId(10L);
         document.setCreatedBy(owner);
         document.setStatus(DocumentStatus.SUBMITTED);
-        when(repository.findById(10L)).thenReturn(Optional.of(document));
+        when(repository.findByIdForUpdate(10L)).thenReturn(Optional.of(document));
 
         assertThrows(InvalidStatusException.class,
                 () -> service.updateDraft(10L, new Document(), owner));
+    }
+
+    @Test
+    void replacingFileCreatesNextVersionAndKeepsChecksum() {
+        DocumentRepository repository = mock(DocumentRepository.class);
+        DocumentVersionRepository versionRepository = mock(DocumentVersionRepository.class);
+        FileStorageService storageService = mock(FileStorageService.class);
+        DocumentService service = new DocumentServiceImpl(repository, versionRepository, storageService);
+        User owner = new User();
+        owner.setId(1L);
+        Document document = new Document();
+        document.setId(10L);
+        document.setCreatedBy(owner);
+        document.setStatus(DocumentStatus.DRAFT);
+        DocumentVersion previous = new DocumentVersion();
+        previous.setVersionNumber(1);
+        Document changes = new Document();
+        changes.setTitle("Bản hai");
+        changes.setFileName("lecture-v2.pdf");
+        changes.setFilePath("stored-v2.pdf");
+        changes.setFileType("application/pdf");
+        when(repository.findByIdForUpdate(10L)).thenReturn(Optional.of(document));
+        when(repository.save(document)).thenReturn(document);
+        when(versionRepository.findTopByDocumentIdOrderByVersionNumberDesc(10L)).thenReturn(Optional.of(previous));
+        when(storageService.checksum("stored-v2.pdf")).thenReturn("abc123");
+
+        service.updateDraft(10L, changes, owner);
+
+        ArgumentCaptor<DocumentVersion> captor = ArgumentCaptor.forClass(DocumentVersion.class);
+        verify(versionRepository).save(captor.capture());
+        assertEquals(2, captor.getValue().getVersionNumber());
+        assertEquals("stored-v2.pdf", captor.getValue().getFilePath());
+        assertEquals("abc123", captor.getValue().getChecksum());
     }
 }

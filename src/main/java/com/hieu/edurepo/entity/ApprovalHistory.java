@@ -38,6 +38,10 @@ public class ApprovalHistory {
     @Column(columnDefinition = "TEXT")
     private String comment;
 
+    private Integer contentQualityScore;
+    private Integer teachingEffectivenessScore;
+    private Integer easeOfUseScore;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -84,6 +88,17 @@ public class ApprovalHistory {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public Integer getContentQualityScore() { return contentQualityScore; }
+    public void setContentQualityScore(Integer contentQualityScore) { this.contentQualityScore = contentQualityScore; }
+    public Integer getTeachingEffectivenessScore() { return teachingEffectivenessScore; }
+    public void setTeachingEffectivenessScore(Integer teachingEffectivenessScore) { this.teachingEffectivenessScore = teachingEffectivenessScore; }
+    public Integer getEaseOfUseScore() { return easeOfUseScore; }
+    public void setEaseOfUseScore(Integer easeOfUseScore) { this.easeOfUseScore = easeOfUseScore; }
+
+    public boolean hasRubricScores() {
+        return contentQualityScore != null || teachingEffectivenessScore != null || easeOfUseScore != null;
     }
 
     public LocalDateTime getCreatedAt() {

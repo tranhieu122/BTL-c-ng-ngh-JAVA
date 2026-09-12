@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="EduRepo - kho học liệu số được kiểm duyệt dành cho sinh viên.">
+    <title>EduRepo | Học liệu đáng tin cậy</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="home-page">
+<div th:replace="~{fragments/header :: header}"></div>
+<main id="main-content" class="home-main">
+<section class="home-hero" aria-labelledby="home-title">
+    <div class="home-hero-copy">
+        <span class="home-eyebrow">Kho học liệu số đã kiểm duyệt</span>
+        <h1 id="home-title">Tìm đúng học liệu.<br><span>Học sâu hơn.</span></h1>
+        <p>Giáo trình, bài giảng và tài liệu tham khảo đáng tin cậy, được sắp xếp để bạn tìm thấy điều cần học trong vài giây.</p>
+
+        <form class="hero-search" th:action="@{/repository}" method="get" role="search">
+            <label class="sr-only" for="home-search">Tìm kiếm học liệu</label>
+            <span class="hero-search-icon" aria-hidden="true"></span>
+            <input id="home-search" name="keyword" type="search"
+                   placeholder="Tìm theo tên tài liệu, môn học, tác giả..." autocomplete="off">
+            <button type="submit">Tìm kiếm <span aria-hidden="true">→</span></button>
+        </form>
+
+        <div class="hero-quick-links" th:if="${!#lists.isEmpty(exploreCategories)}">
+            <span>Tìm nhanh:</span>
+            <a th:each="category : ${exploreCategories}"
+               th:if="${categoryStat.index < 3}"
+               th:href="@{/repository(categoryId=${category.id})}"
+               th:text="${category.name}">Công nghệ thông tin</a>
+        </div>
+
+        <div class="home-actions">
+            <a class="button home-primary-cta" th:href="@{/repository}">Khám phá kho học liệu <span aria-hidden="true">→</span></a>
+            <a class="button button-secondary" sec:authorize="isAnonymous()" th:href="@{/login}">Đăng nhập để đóng góp</a>
+            <a class="button button-secondary" sec:authorize="hasAnyRole('SUBMITTER','ADMIN')" th:href="@{/documents/new}">Nộp tài liệu</a>
+        </div>
+
+        <dl class="home-stats" aria-label="Thống kê kho học liệu">
+            <div><dt th:text="${publishedDocumentCount}">0</dt><dd>Tài liệu công khai</dd></div>
+            <div><dt th:text="${activeCategoryCount}">0</dt><dd>Danh mục đang mở</dd></div>
+            <div><dt>3 bước</dt><dd>Nộp, duyệt, công bố</dd></div>
+        </dl>
+    </div>
+
+    <aside class="home-reading-panel" aria-labelledby="home-reading-title">
+        <div class="home-reading-heading"><span>TRONG KHO HỌC LIỆU</span><span class="home-reading-mark" aria-hidden="true">↗</span></div>
+        <h2 id="home-reading-title">Một điểm bắt đầu<br>cho ý tưởng mới.</h2>
+        <p>Khám phá những tài liệu vừa được công bố.</p>
+        <div class="home-reading-list" th:if="${!#lists.isEmpty(featuredDocuments)}">
+            <a class="home-reading-item" th:each="doc : ${featuredDocuments}" th:href="@{/repository/{id}(id=${doc.id})}">
+                <span class="home-reading-file" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h4M9 12h6M9 16h5"/></svg></span>
+                <span class="home-reading-copy"><strong th:text="${doc.title}">Tên học liệu</strong><small th:text="${doc.category != null ? doc.category.name : 'Tài liệu tham khảo'}">Danh mục</small></span>
+                <span class="home-reading-arrow" aria-hidden="true">→</span>
+            </a>
+        </div>
+        <p class="home-reading-empty" th:if="${#lists.isEmpty(featuredDocuments)}">Tài liệu mới sẽ xuất hiện tại đây sau khi được công bố.</p>
+        <a class="home-reading-footer" th:href="@{/repository}">Xem kho học liệu <span aria-hidden="true">→</span></a>
+    </aside>
+</section>
+
+<section class="trust-strip" aria-label="Cam kết của EduRepo">
+    <p><span>✓</span> Nội dung được kiểm duyệt</p>
+    <p><span>⌕</span> Tìm kiếm nhanh theo chủ đề</p>
+    <p><span>↗</span> Quy trình đóng góp minh bạch</p>
+</section>
+<section class="home-section home-actions-section" aria-labelledby="actions-title"><div class="home-section-heading"><div><span class="section-eyebrow">Bắt đầu từ đây</span><h2 id="actions-title">Bạn muốn làm gì hôm nay?</h2></div><p>Chọn một hướng đi rõ ràng để học, tìm kiếm hoặc đóng góp.</p></div><div class="home-action-grid"><a class="home-action-card" th:href="@{/repository}"><span class="action-icon teal">⌕</span><div><h3>Tìm tài liệu</h3><p>Tìm giáo trình, slide và PDF theo môn học hoặc chủ đề.</p></div><b>→</b></a><a class="home-action-card" th:href="@{/repository}"><span class="action-icon gold">✦</span><div><h3>Đọc tài liệu mới</h3><p>Xem những học liệu vừa được công bố trong kho.</p></div><b>→</b></a><a class="home-action-card" sec:authorize="hasAnyRole('SUBMITTER','ADMIN')" th:href="@{/documents/new}"><span class="action-icon blue">⇧</span><div><h3>Nộp tài liệu</h3><p>Chia sẻ học liệu hữu ích với cộng đồng sinh viên.</p></div><b>→</b></a><a class="home-action-card" sec:authorize="isAuthenticated()" th:href="@{/dashboard}"><span class="action-icon plum">⌘</span><div><h3>Không gian của tôi</h3><p>Theo dõi tài liệu, phản hồi và trạng thái duyệt.</p></div><b>→</b></a><a class="home-action-card" sec:authorize="isAnonymous()" th:href="@{/login}"><span class="action-icon plum">⌘</span><div><h3>Không gian của tôi</h3><p>Đăng nhập để quản lý tài liệu và tiến trình của bạn.</p></div><b>→</b></a></div></section>
+<section class="home-section" aria-labelledby="topics-title"><div class="home-section-heading"><div><span class="section-eyebrow">Khám phá</span><h2 id="topics-title">Theo môn học hoặc chủ đề</h2></div><a class="text-link" th:href="@{/repository}">Xem tất cả trong kho →</a></div><div class="topic-grid"><a class="topic-card" th:each="category, state : ${exploreCategories}" th:href="@{/repository(categoryId=${category.id})}" th:classappend="| tone-${state.index % 6}|"><span class="topic-symbol" th:text="${state.index == 0 ? '⌘' : state.index == 1 ? '◈' : state.index == 2 ? '◫' : state.index == 3 ? '⌁' : state.index == 4 ? '◌' : '✦'}">⌘</span><div><h3 th:text="${category.name}">Công nghệ thông tin</h3><p th:text="|${categoryCounts[category.name] != null ? categoryCounts[category.name] : 0} tài liệu để khám phá|">0 tài liệu để khám phá</p></div><b>→</b></a></div></section>
+<section class="home-section featured-section" aria-labelledby="featured-title"><div class="home-section-heading"><div><span class="section-eyebrow">Gợi ý cho bạn</span><h2 id="featured-title">Tài liệu nổi bật</h2></div><p>Ba học liệu mới được công bố, sẵn sàng để đọc và tham khảo.</p></div><div class="featured-grid" th:if="${!#lists.isEmpty(featuredDocuments)}"><article class="featured-document" th:each="doc : ${featuredDocuments}"><a class="document-cover" th:href="@{/download/{id}(id=${doc.id})}" aria-label="Đọc tệp tài liệu"><span th:text="${doc.fileType != null && #strings.contains(doc.fileType, 'pdf') ? 'PDF' : 'DOC'}">PDF</span><i>EduRepo</i></a><div class="featured-content"><span class="document-category" th:text="${doc.category != null ? doc.category.name : 'Học liệu'}">Học liệu</span><h3><a th:href="@{/repository/{id}(id=${doc.id})}" th:text="${doc.title}">Tên tài liệu</a></h3><p class="featured-author" th:text="${doc.authorName != null && !doc.authorName.isBlank() ? doc.authorName : (doc.createdBy != null ? doc.createdBy.fullName : 'EduRepo')}">Tác giả</p><div class="featured-meta"><span th:text="${doc.fileType != null && #strings.contains(doc.fileType, 'pdf') ? 'PDF' : 'DOCX'}">PDF</span><time class="js-date" th:if="${doc.publishedAt != null}" th:attr="datetime=${doc.publishedAt}" th:text="${doc.publishedAt}">Ngày công bố</time></div><a class="read-link" th:href="@{/download/{id}(id=${doc.id})}">Đọc tài liệu →</a></div></article></div><div class="home-empty-featured" th:if="${#lists.isEmpty(featuredDocuments)}"><span>▤</span><p>Kho tài liệu đang chờ những học liệu công khai đầu tiên.</p></div><div class="home-section-footer"><a class="button button-secondary" th:href="@{/repository}">Xem toàn bộ kho tài liệu</a></div></section>
+<section class="home-values" aria-labelledby="values-title"><div class="home-values-heading"><span class="section-eyebrow">Vì sao là EduRepo?</span><h2 id="values-title">Một kho học liệu không chỉ là nơi lưu PDF.</h2></div><div class="value-grid"><article><span>✓</span><h3>Được kiểm duyệt</h3><p>Tài liệu công khai được xem xét trước khi xuất hiện trong kho.</p></article><article><span>⌕</span><h3>Dễ tìm kiếm</h3><p>Tìm theo tên, môn học, chủ đề hoặc định dạng tệp.</p></article><article><span>↗</span><h3>Đóng góp minh bạch</h3><p>Người nộp theo dõi được trạng thái và phản hồi từ reviewer.</p></article></div></section>
+<section class="contribution-cta"><div><span class="section-eyebrow">Cùng đóng góp</span><h2>Một tài liệu tốt có thể giúp rất nhiều người học tốt hơn.</h2><p>Chia sẻ học liệu của bạn và cùng xây dựng kho tri thức PTIT.</p></div><a class="button" sec:authorize="isAnonymous()" th:href="@{/login}">Đăng nhập để đóng góp</a><a class="button" sec:authorize="hasAnyRole('SUBMITTER','ADMIN')" th:href="@{/documents/new}">Nộp tài liệu ngay</a></section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script defer th:src="@{/js/home.js}"></script>
+</body>
+</html>

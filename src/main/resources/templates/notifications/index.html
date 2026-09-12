@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Thông báo | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="page-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <main id="main-content" class="content workspace-content notifications-page">
+        <header class="workspace-heading">
+            <div>
+                <span class="workspace-kicker">Không gian cá nhân</span>
+                <h1>Thông báo</h1>
+                <p class="subtitle" th:text="${unreadCount == 0 ? 'Bạn đã đọc hết thông báo mới.' : unreadCount + ' thông báo chưa đọc đang chờ bạn.'}">
+                    Danh sách thông báo của bạn.
+                </p>
+            </div>
+            <form th:if="${unreadCount > 0}" th:action="@{/notifications/read-all}" method="post" class="workspace-actions">
+                <button class="button button-secondary" type="submit">Đánh dấu tất cả đã đọc</button>
+            </form>
+        </header>
+
+        <div th:replace="~{fragments/ui :: flashMessages}"></div>
+
+        <section class="notification-feed" th:if="${!#lists.isEmpty(notificationPage.items)}" aria-label="Danh sách thông báo">
+            <article class="notification-card"
+                     th:each="item : ${notificationPage.items}"
+                     th:classappend="${!item.read} ? ' is-unread' : ''">
+                <a th:href="@{/notifications/{id}(id=${item.id})}">
+                    <div class="notification-card-main">
+                        <span class="notification-dot" aria-hidden="true"></span>
+                        <div>
+                            <h2 th:text="${item.title}">Tiêu đề thông báo</h2>
+                            <p th:text="${item.message}">Nội dung thông báo</p>
+                            <div class="notification-meta">
+                                <span th:text="|Người gửi: ${item.senderName}|">Người gửi</span>
+                                <time th:datetime="${item.sendAt}" th:text="${#temporals.format(item.sendAt, 'dd/MM/yyyy HH:mm')}">Thời gian</time>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="notification-side">
+                        <span class="status-pill" th:classappend="| notification-level-${#strings.toLowerCase(item.level.name())}|"
+                              th:text="${item.level.label}">Mức độ</span>
+                        <span class="read-state" th:text="${item.read ? 'Đã đọc' : 'Chưa đọc'}">Trạng thái</span>
+                    </div>
+                </a>
+            </article>
+        </section>
+
+        <div class="empty-panel" th:if="${#lists.isEmpty(notificationPage.items)}">
+            <span class="workspace-icon" aria-hidden="true">◎</span>
+            <h2>Chưa có thông báo</h2>
+            <p>Các cập nhật dành cho bạn sẽ xuất hiện tại đây sau khi hệ thống hoặc quản trị viên gửi.</p>
+        </div>
+    </main>
+</div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

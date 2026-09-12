@@ -1,4 +1,4 @@
-import { debounce, normalizeText, safeStorage } from "./core.js";
+import { normalizeText, safeStorage } from "./core.js";
 
 const setupCategoryFilters = () => {
     const filters = Array.from(document.querySelectorAll("[data-category-filter]"));
@@ -14,7 +14,8 @@ const setupCategoryFilters = () => {
     const state = {
         category: "",
         categoryLabel: "Tất cả",
-        query: searchInput ? searchInput.value : ""
+        // Text search is performed by the server across all metadata and pages.
+        query: ""
     };
 
     const getSearchText = (card) => normalizeText([
@@ -75,13 +76,6 @@ const setupCategoryFilters = () => {
             applyFilter();
             filters[0].focus();
         });
-    }
-
-    if (searchInput) {
-        searchInput.addEventListener("input", debounce(() => {
-            state.query = searchInput.value;
-            applyFilter();
-        }, 140));
     }
 
     applyFilter();

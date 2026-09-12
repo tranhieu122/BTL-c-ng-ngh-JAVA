@@ -1,0 +1,91 @@
+/* Shared polish for the admin, organisation and review workspaces. */
+.workspace-content { padding-top: clamp(2rem, 4vw, 3.5rem); }
+.workspace-content::before { width: 220px; height: 4px; right: 6%; }
+.workspace-heading { padding-bottom: 1.2rem; border-bottom: 1px solid #dce9e5; }
+.workspace-heading .subtitle { max-width: 680px; color: #607b80; }
+.workspace-content .data-panel,
+.workspace-content .workspace-panel { border: 1px solid #dcebe7; box-shadow: 0 12px 28px rgba(15, 72, 64, .055); }
+.workspace-content .data-panel { overflow: hidden; border-radius: 18px; background: rgba(255,255,255,.92); }
+.workspace-content .data-panel-header { min-height: 64px; padding: 1rem 1.25rem; background: #fbfefd; border-bottom: 1px solid #e4efec; }
+.workspace-content .data-panel-header > strong { color: #183d40; font-size: .95rem; }
+.workspace-content .record-count { border-color: #bfe0d8; color: #087b6a; background: #edf9f5; }
+.workspace-content .data-table thead th { padding-top: .92rem; padding-bottom: .92rem; color: #527077; background: #f3faf8; font-size: .69rem; letter-spacing: .08em; }
+.workspace-content .data-table tbody td { padding-top: 1rem; padding-bottom: 1rem; vertical-align: middle; }
+.workspace-content .data-table tbody tr { transition: background .16s ease; }
+.workspace-content .data-table tbody tr:hover { background: #f4fbf9; }
+.workspace-content .entity-cell { gap: .75rem; }
+.workspace-content .entity-avatar { width: 38px; height: 38px; color: #087b6b; background: #dff3ed; border: 1px solid #c6e7df; }
+.workspace-content .entity-copy strong { color: #193c40; font-size: .86rem; }
+.workspace-content .entity-copy small { margin-top: .14rem; }
+.workspace-content .status-pill { padding: .34rem .6rem; border: 1px solid #d6e9e4; color: #4f7072; background: #f4faf8; font-size: .66rem; letter-spacing: .02em; }
+.workspace-content .status-pill.is-active,
+.workspace-content .status-published,
+.workspace-content .status-approved { border-color: #bde5d5; color: #087353; background: #e9f8f0; }
+.workspace-content .status-submitted { border-color: #f2d89a; color: #94630d; background: #fff7df; }
+.workspace-content .status-revision_required,
+.workspace-content .status-rejected { border-color: #f1c6bf; color: #ad392d; background: #fff0ed; }
+.workspace-content .role-badges { display: flex; flex-wrap: wrap; gap: .32rem; }
+.workspace-content .role-badges .status-pill { color: #245d81; border-color: #c9e1f1; background: #edf7fd; }
+.workspace-content .table-action { display: inline-flex; align-items: center; gap: .35rem; min-height: 34px; padding: .34rem .55rem; border-radius: 8px; color: #087b6b; background: transparent; font-size: .72rem; font-weight: 800; }
+.workspace-content .table-action:hover { color: #066759; background: #e9f7f3; }
+.workspace-content .empty-panel { padding: 3.5rem 1.5rem; border: 1px dashed #b8dad1; border-radius: 16px; background: #fbfefd; }
+.workspace-content .empty-panel h2 { margin-top: 1rem; }
+
+/* Forms become a clear two-column administration surface on larger screens. */
+.workspace-content .form-card { border: 1px solid #dcebe7; border-radius: 18px; box-shadow: 0 12px 28px rgba(15,72,64,.055); }
+.workspace-content .form-card-header { padding: 1.2rem 1.4rem; background: #f7fcfa; border-bottom: 1px solid #e1eeeb; }
+.workspace-content .field-grid { gap: 1.1rem; }
+.workspace-content .form-section { padding: 1.35rem 1.4rem; }
+.workspace-content .form-section + .form-section { border-top: 1px solid #e1eeeb; }
+.workspace-content .form-section-heading h2 { color: #1b4144; }
+.workspace-content .form-section label { color: #214449; font-size: .77rem; font-weight: 800; }
+.workspace-content input:not([type="checkbox"]),
+.workspace-content select,
+.workspace-content textarea { border-color: #cfe2dd; background: #fff; }
+.workspace-content input:not([type="checkbox"]):focus,
+.workspace-content select:focus,
+.workspace-content textarea:focus { border-color: #15927d; box-shadow: 0 0 0 4px rgba(21,146,125,.12); }
+.workspace-content .form-submit-row { margin: 0; padding: 1.1rem 1.4rem; border-top: 1px solid #e1eeeb; background: #fbfefd; }
+
+/* Review queue benefits from a visible status rail and high-contrast decision zone. */
+.workspace-content .review-layout { gap: 1.25rem; }
+.workspace-content .review-summary { border-top: 4px solid #d5a43f; }
+.workspace-content .review-actions { position: sticky; top: calc(var(--header-height) + 1rem); border-top: 4px solid #0f766e; }
+.workspace-content .review-actions .button { width: 100%; justify-content: center; }
+.workspace-content .review-actions .button + .button { margin-top: .65rem; }
+.workspace-content .review-history-item { padding: 1rem; border-left: 3px solid #b6ded4; background: #fbfefd; }
+
+/* Dashboard stays denser than the management tables. */
+.admin-dashboard { max-width: none; }
+.admin-dashboard .workspace-hero { border-radius: 20px; }
+.admin-dashboard .metric-card { border: 1px solid #dcebe7; box-shadow: 0 9px 20px rgba(15,72,64,.05); }
+.admin-dashboard .dashboard-command-bar { border-radius: 14px; }
+.admin-dashboard .dashboard-analysis-grid { gap: 1.25rem; }
+
+/* Organization tables need the full content width for readable department/faculty names. */
+.organization-page .organization-tables { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.organization-page .data-panel { min-width: 0; border: 1px solid #e2eae4; border-radius: 12px; box-shadow: none; }
+.organization-page .data-panel-header { padding: 15px 20px; background: #fff; }
+.organization-page .table-scroll { overflow-x: auto; }
+.organization-page .data-table { width: 100%; table-layout: fixed; min-width: 640px; }
+.organization-page .data-table th, .organization-page .data-table td { padding: 13px 20px; }
+.organization-page .data-table thead th { color: #7b8c80; background: #f8faf7; font-size: .7rem; font-weight: 600; letter-spacing: .025em; }
+.organization-page .data-table tbody td { color: #46604e; font-size: .84rem; line-height: 1.55; vertical-align: middle; overflow-wrap: break-word; }
+.organization-page .department-table th:nth-child(1) { width: 30%; }
+.organization-page .department-table th:nth-child(2) { width: 30%; }
+.organization-page .department-table th:nth-child(3) { width: 16%; }
+.organization-page .department-table th:nth-child(4) { width: 24%; }
+.organization-page .faculty-table th:nth-child(1) { width: 60%; }
+.organization-page .faculty-table th:nth-child(2) { width: 16%; }
+.organization-page .faculty-table th:nth-child(3) { width: 24%; }
+.organization-page .organization-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.organization-page .organization-actions form { margin: 0; }
+.organization-page .organization-actions .button,
+.organization-page .organization-actions .table-action { min-height: 30px; padding: 5px 9px; border: 1px solid #dce7df; border-radius: 6px; background: #fff; color: #587160; box-shadow: none; font-size: .74rem; font-weight: 500; line-height: 1.3; white-space: nowrap; }
+.organization-page .organization-actions .button:hover,
+.organization-page .organization-actions .table-action:hover { border-color: #abc8b5; background: #f1f6f1; color: #256d47; box-shadow: none; transform: none; }
+.organization-page .status-pill { padding: 4px 9px; border: 0; border-radius: 6px; font-size: .7rem; font-weight: 500; white-space: nowrap; box-shadow: none; }
+.organization-page .status-pill.is-active { color: #36734e; background: #eef6ef; }
+.organization-page .record-count { padding: 4px 8px; border-radius: 6px; background: #f1f6f0; color: #6c8371; font-size: .72rem; }
+
+@media (max-width: 760px) { .workspace-content { padding-top: 1.5rem; }.workspace-heading { align-items: flex-start; flex-direction: column; }.workspace-actions { width: 100%; }.workspace-actions .button { flex: 1; justify-content: center; }.workspace-content .data-panel { border-radius: 14px; }.workspace-content .data-table tbody td { padding-top: .8rem; padding-bottom: .8rem; } }

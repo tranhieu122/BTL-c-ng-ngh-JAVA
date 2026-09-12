@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quản lý thông báo | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="page-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <main id="main-content" class="content workspace-content notification-admin-page">
+        <header class="workspace-heading">
+            <div>
+                <span class="workspace-kicker">Quản trị hệ thống</span>
+                <h1>Gửi thông báo</h1>
+                <p class="subtitle">Tạo thông báo và gửi đến toàn bộ người dùng, một vai trò hoặc một tài khoản cụ thể.</p>
+            </div>
+        </header>
+
+        <div th:replace="~{fragments/ui :: flashMessages}"></div>
+
+        <form class="form-card notification-form" th:action="@{/admin/notifications}"
+              th:object="${notificationForm}" method="post" novalidate>
+            <div class="form-card-header">
+                <div>
+                    <span class="workspace-kicker">Nội dung</span>
+                    <h2>Tạo thông báo mới</h2>
+                </div>
+            </div>
+
+            <section class="form-section">
+                <div class="field-grid two-columns">
+                    <label>
+                        <span>Tiêu đề thông báo</span>
+                        <input type="text" th:field="*{title}" maxlength="180" placeholder="Ví dụ: Lịch bảo trì hệ thống">
+                        <small class="field-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></small>
+                    </label>
+
+                    <label>
+                        <span>Mức độ thông báo</span>
+                        <select th:field="*{level}">
+                            <option th:each="level : ${notificationLevels}" th:value="${level}" th:text="${level.label}"></option>
+                        </select>
+                        <small class="field-error" th:if="${#fields.hasErrors('level')}" th:errors="*{level}"></small>
+                    </label>
+                </div>
+
+                <label class="full-field">
+                    <span>Nội dung thông báo</span>
+                    <textarea th:field="*{content}" rows="6" maxlength="1000" placeholder="Nhập nội dung cần gửi cho người dùng"></textarea>
+                    <small class="field-error" th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></small>
+                </label>
+            </section>
+
+            <section class="form-section">
+                <div class="form-section-heading">
+                    <h2>Đối tượng nhận</h2>
+                    <p>Chọn một nhóm nhận duy nhất để hệ thống không tạo trùng thông báo cho cùng người dùng.</p>
+                </div>
+
+                <div class="target-options">
+                    <label class="target-option" th:each="target : ${targetTypes}">
+                        <input type="radio" th:field="*{targetType}" th:value="${target}">
+                        <span>
+                            <strong th:text="${target.label}">Đối tượng</strong>
+                        </span>
+                    </label>
+                </div>
+                <small class="field-error" th:if="${#fields.hasErrors('targetType')}" th:errors="*{targetType}"></small>
+
+                <div class="field-grid two-columns">
+                    <label>
+                        <span>Vai trò nhận</span>
+                        <select th:field="*{role}">
+                            <option value="">Chọn vai trò</option>
+                            <option th:each="role : ${roleNames}" th:value="${role}" th:text="${role}"></option>
+                        </select>
+                        <small class="field-error" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></small>
+                    </label>
+
+                    <label>
+                        <span>Người dùng cụ thể</span>
+                        <select th:field="*{receiverId}">
+                            <option value="">Chọn người dùng</option>
+                            <option th:each="user : ${users}" th:value="${user.id}"
+                                    th:text="${user.fullName != null && !#strings.isEmpty(user.fullName) ? user.fullName + ' - ' + user.email : user.email}">
+                                Người dùng
+                            </option>
+                        </select>
+                        <small class="field-error" th:if="${#fields.hasErrors('receiverId')}" th:errors="*{receiverId}"></small>
+                    </label>
+                </div>
+
+                <label class="send-time-field">
+                    <span>Ngày giờ gửi</span>
+                    <input type="datetime-local" th:field="*{sendAt}">
+                    <small class="field-hint">Để trống nếu muốn ghi nhận thời gian gửi là hiện tại.</small>
+                </label>
+            </section>
+
+            <div class="form-submit-row">
+                <button class="button" type="submit">Gửi thông báo</button>
+                <button class="button button-secondary" type="reset">Làm mới</button>
+            </div>
+        </form>
+    </main>
+</div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

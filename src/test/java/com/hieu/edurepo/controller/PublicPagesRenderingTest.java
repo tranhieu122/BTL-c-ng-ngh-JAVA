@@ -53,10 +53,23 @@ class PublicPagesRenderingTest {
         document.setPublishedAt(LocalDateTime.now());
         Document savedDocument = documentRepository.save(document);
 
+        mockMvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("public/home"))
+                .andExpect(content().string((org.hamcrest.Matcher<? super String>) containsString("Tìm đúng học liệu")))
+                .andExpect(content().string((org.hamcrest.Matcher<? super String>) containsString("name=\"keyword\"")))
+                .andExpect(content().string((org.hamcrest.Matcher<? super String>) containsString("Tài liệu công khai")))
+                .andExpect(content().string((org.hamcrest.Matcher<? super String>) containsString("Giáo trình kiểm thử giao diện")));
+
         mockMvc.perform(get("/login"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/login"))
                 .andExpect(content().string((org.hamcrest.Matcher<? super String>) containsString("data-login-form")));
+
+        mockMvc.perform(get("/login").param("expired", ""))
+                .andExpect(status().isOk())
+                .andExpect(content().string((org.hamcrest.Matcher<? super String>) containsString("auth-alert-copy")))
+                .andExpect(content().string((org.hamcrest.Matcher<? super String>) containsString("Phiên đăng nhập đã hết hiệu lực")));
 
         mockMvc.perform(get("/register"))
                 .andExpect(status().isOk())

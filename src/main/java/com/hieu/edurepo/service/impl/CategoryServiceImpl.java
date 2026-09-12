@@ -42,6 +42,15 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public Category save(@NonNull Category category) {
+        String normalizedName = category.getName() == null ? "" : category.getName().trim();
+        category.setName(normalizedName);
+
+        boolean nameAlreadyUsed = category.getId() == null
+                ? categoryRepository.existsByNameIgnoreCase(normalizedName)
+                : categoryRepository.existsByNameIgnoreCaseAndIdNot(normalizedName, category.getId());
+        if (nameAlreadyUsed) {
+            throw new IllegalStateException("CATEGORY_EXISTS");
+        }
         return categoryRepository.save(category);
     }
 

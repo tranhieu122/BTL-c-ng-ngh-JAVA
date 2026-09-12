@@ -31,7 +31,7 @@ class ReviewServiceTest {
         Document document = new Document();
         document.setStatus(DocumentStatus.SUBMITTED);
         User reviewer = new User();
-        when(documentService.findById(2L)).thenReturn(document);
+        when(documentRepository.findByIdForUpdate(2L)).thenReturn(java.util.Optional.of(document));
 
         service.review(2L, ReviewAction.APPROVED, "Đạt yêu cầu", reviewer);
 
@@ -39,6 +39,26 @@ class ReviewServiceTest {
         ArgumentCaptor<ApprovalHistory> captor = ArgumentCaptor.forClass(ApprovalHistory.class);
         verify(historyRepository).save(captor.capture());
         assertEquals(ReviewAction.APPROVED, captor.getValue().getAction());
+    }
+
+    @Test
+    void structuredRubricIsStoredWithReviewDecision() {
+        DocumentService documentService = mock(DocumentService.class);
+        DocumentRepository documentRepository = mock(DocumentRepository.class);
+        ApprovalHistoryRepository historyRepository = mock(ApprovalHistoryRepository.class);
+        ReviewService service = new ReviewServiceImpl(documentService, documentRepository, historyRepository);
+        Document document = new Document();
+        document.setStatus(DocumentStatus.SUBMITTED);
+        User reviewer = new User();
+        when(documentRepository.findByIdForUpdate(8L)).thenReturn(java.util.Optional.of(document));
+
+        service.review(8L, ReviewAction.APPROVED, "Rubric đầy đủ", reviewer, 5, 4, 3);
+
+        ArgumentCaptor<ApprovalHistory> captor = ArgumentCaptor.forClass(ApprovalHistory.class);
+        verify(historyRepository).save(captor.capture());
+        assertEquals(5, captor.getValue().getContentQualityScore());
+        assertEquals(4, captor.getValue().getTeachingEffectivenessScore());
+        assertEquals(3, captor.getValue().getEaseOfUseScore());
     }
 
     @Test
@@ -57,7 +77,7 @@ class ReviewServiceTest {
         Document document = new Document();
         document.setStatus(DocumentStatus.APPROVED);
         User reviewer = new User();
-        when(documentService.findById(3L)).thenReturn(document);
+        when(documentRepository.findByIdForUpdate(3L)).thenReturn(java.util.Optional.of(document));
 
         service.review(3L, ReviewAction.PUBLISHED, "Công bố", reviewer);
 
@@ -77,7 +97,7 @@ class ReviewServiceTest {
                 documentService, documentRepository, historyRepository);
         Document document = new Document();
         document.setStatus(DocumentStatus.SUBMITTED);
-        when(documentService.findById(4L)).thenReturn(document);
+        when(documentRepository.findByIdForUpdate(4L)).thenReturn(java.util.Optional.of(document));
 
         assertThrows(com.hieu.edurepo.exception.InvalidStatusException.class,
                 () -> service.review(4L, null, "Không hợp lệ", new User()));
@@ -94,7 +114,7 @@ class ReviewServiceTest {
                 documentService, documentRepository, historyRepository);
         Document document = new Document();
         document.setStatus(DocumentStatus.SUBMITTED);
-        when(documentService.findById(5L)).thenReturn(document);
+        when(documentRepository.findByIdForUpdate(5L)).thenReturn(java.util.Optional.of(document));
 
         service.review(5L, action, "Phản hồi", new User());
 

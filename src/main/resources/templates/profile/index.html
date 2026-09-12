@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Hồ sơ cá nhân | EduRepo</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body><div th:replace="~{fragments/header :: header}"></div>
+<main id="main-content" class="profile-page" data-profile-page>
+<header><p class="eyebrow">Không gian cá nhân</p><h1>Hồ sơ của tôi</h1><p>Quản lý thông tin cá nhân và bảo mật tài khoản.</p></header>
+<div class="alert success" th:if="${success}" th:text="${success}" role="status"></div>
+<div class="alert error" th:if="${error}" th:text="${error}" role="alert"></div>
+<p class="alert" data-profile-remote hidden role="status">Hồ sơ đã thay đổi ở phiên khác. <a th:href="@{/profile}">Tải lại để xem thông tin mới</a>. Nội dung đang nhập vẫn được giữ.</p>
+<div class="profile-grid">
+<section class="profile-card"><h2>Ảnh đại diện</h2>
+<img class="profile-avatar" data-account-avatar data-avatar-preview th:src="@{/profile/avatar(v=${account.avatarRevision})}" alt="Ảnh đại diện của bạn" width="144" height="144">
+<form th:action="@{/profile/avatar}" method="post" enctype="multipart/form-data" data-avatar-form>
+<label for="avatar">Chọn ảnh mới</label><input id="avatar" name="avatar" type="file" accept=".png,.jpg,.jpeg" required data-avatar-input aria-describedby="avatar-help avatar-error">
+<small id="avatar-help">PNG hoặc JPEG, tối đa 2 MB. Mỗi chiều tối đa 4096 px; tối đa 16 triệu điểm ảnh.</small>
+<p id="avatar-error" class="field-error" data-avatar-error role="alert"></p><button type="submit">Lưu ảnh đại diện</button></form>
+<form th:action="@{/profile/avatar/delete}" method="post"><button type="submit" class="button-secondary">Xóa ảnh, dùng ảnh mặc định</button></form></section>
+<section class="profile-card"><h2>Thông tin cá nhân</h2>
+<form th:action="@{/profile}" th:object="${profileForm}" method="post" data-profile-form th:attr="data-preserve-input=${#fields.hasErrors('*')}">
+<label for="fullName">Họ tên</label><input th:field="*{fullName}" required maxlength="150" autocomplete="name"><small class="field-error" th:errors="*{fullName}"></small>
+<label for="profile-email">Email đăng nhập</label><input id="profile-email" type="email" th:value="${account.email}" readonly><small>Liên hệ quản trị viên nếu cần thay đổi email đăng nhập.</small>
+<label for="phoneNumber">Số điện thoại</label><input th:field="*{phoneNumber}" type="tel" maxlength="30" autocomplete="tel"><small class="field-error" th:errors="*{phoneNumber}"></small>
+<label for="affiliation">Đơn vị / Trường học</label><input th:field="*{affiliation}" maxlength="150" autocomplete="organization"><small class="field-error" th:errors="*{affiliation}"></small>
+<label for="bio">Giới thiệu</label><textarea th:field="*{bio}" maxlength="1000" rows="4"></textarea><small class="field-error" th:errors="*{bio}"></small>
+<button type="submit">Lưu thông tin</button></form></section>
+<section class="profile-card"><h2>Đổi mật khẩu</h2><p>Sau khi đổi mật khẩu, bạn cần đăng nhập lại trên các thiết bị.</p>
+<form th:action="@{/profile/password}" method="post" data-password-form>
+<label for="current-password">Mật khẩu hiện tại</label><input id="current-password" type="password" name="currentPassword" autocomplete="current-password" required maxlength="72">
+<label for="new-password">Mật khẩu mới</label><input id="new-password" type="password" name="newPassword" autocomplete="new-password" required minlength="8" maxlength="72"><small>Ít nhất 8 ký tự, tối đa 72 byte UTF-8.</small>
+<label for="confirm-password">Xác nhận mật khẩu mới</label><input id="confirm-password" type="password" name="confirmPassword" autocomplete="new-password" required minlength="8" maxlength="72">
+<button type="submit">Đổi mật khẩu</button></form></section>
+<section class="profile-card profile-danger"><h2>Xóa tài khoản</h2><p>Thao tác không thể hoàn tác. Thông tin cá nhân, ảnh, dấu trang và bộ sưu tập riêng sẽ bị xóa. Tài liệu đã nộp và lịch sử nghiệp vụ được giữ dưới tên “Tài khoản đã xóa”.</p>
+<details><summary>Tôi muốn xóa tài khoản</summary><form th:action="@{/profile/delete}" method="post">
+<label for="delete-password">Nhập lại mật khẩu hiện tại</label><input id="delete-password" type="password" name="currentPassword" autocomplete="current-password" required maxlength="72">
+<label for="delete-confirmation">Nhập chính xác: XÓA TÀI KHOẢN</label><input id="delete-confirmation" name="confirmation" required pattern="XÓA TÀI KHOẢN" autocomplete="off">
+<label class="profile-check"><input type="checkbox" name="acknowledged" value="true" required> Tôi hiểu và xác nhận xóa tài khoản của mình.</label>
+<button type="submit" class="button-danger">Xóa vĩnh viễn tài khoản của tôi</button></form></details></section>
+</div><p data-profile-loading hidden role="status" aria-live="polite">Đang lưu thay đổi, vui lòng chờ…</p>
+</main><div th:replace="~{fragments/footer :: footer}"></div></body></html>

@@ -25,13 +25,16 @@ public class OrganizationManagementController {
     private final FacultyRepository facultyRepository;
     private final DepartmentRepository departmentRepository;
     private final DocumentRepository documentRepository;
+    private final com.hieu.edurepo.service.AuditLogService auditLogs;
 
     public OrganizationManagementController(FacultyRepository facultyRepository,
                                             DepartmentRepository departmentRepository,
-                                            DocumentRepository documentRepository) {
+                                            DocumentRepository documentRepository,
+                                            com.hieu.edurepo.service.AuditLogService auditLogs) {
         this.facultyRepository = facultyRepository;
         this.departmentRepository = departmentRepository;
         this.documentRepository = documentRepository;
+        this.auditLogs = auditLogs;
     }
 
     @GetMapping
@@ -40,8 +43,19 @@ public class OrganizationManagementController {
         addData(model);
         model.addAttribute("keyword", keyword);
         model.addAttribute("selectedActive", active);
+        String query = keyword.trim().toLowerCase(java.util.Locale.ROOT);
+        model.addAttribute("faculties", facultyRepository.findAll().stream()
+                .filter(item -> active == null || item.isActive() == active)
+                .filter(item -> item.getName().toLowerCase(java.util.Locale.ROOT).contains(query)).toList());
+        model.addAttribute("departments", departmentRepository.findAll().stream()
+                .filter(item -> active == null || item.isActive() == active)
+                .filter(item -> item.getName().toLowerCase(java.util.Locale.ROOT).contains(query)
+                        || item.getFaculty() != null && item.getFaculty().getName().toLowerCase(java.util.Locale.ROOT).contains(query)).toList());
         model.addAttribute("faculty", new Faculty());
         model.addAttribute("department", new Department());
+        audit(com.hieu.edurepo.enums.AuditAction.ORGANIZATION_MANAGEMENT_VIEWED,
+                com.hieu.edurepo.enums.AuditTargetType.PAGE, null, "Quản lý khoa/bộ môn",
+                "Xem trang quản lý khoa và bộ môn");
         return "admin/organization";
     }
 
@@ -57,7 +71,10 @@ public class OrganizationManagementController {
             model.addAttribute("department", new Department());
             return "admin/organization";
         }
-        facultyRepository.save(faculty);
+        faculty = facultyRepository.save(faculty);
+        audit(com.hieu.edurepo.enums.AuditAction.FACULTY_CREATED,
+                com.hieu.edurepo.enums.AuditTargetType.FACULTY, faculty.getId(), faculty.getName(),
+                "Thêm khoa: " + faculty.getName());
         redirectAttributes.addFlashAttribute("success", "Đã thêm khoa");
         return "redirect:/admin/organization";
     }
@@ -86,7 +103,10 @@ public class OrganizationManagementController {
             model.addAttribute("faculty", new Faculty());
             return "admin/organization";
         }
-        departmentRepository.save(department);
+        department = departmentRepository.save(department);
+        audit(com.hieu.edurepo.enums.AuditAction.DEPARTMENT_CREATED,
+                com.hieu.edurepo.enums.AuditTargetType.DEPARTMENT, department.getId(), department.getName(),
+                "Thêm bộ môn: " + department.getName());
         redirectAttributes.addFlashAttribute("success", "Đã thêm bộ môn");
         return "redirect:/admin/organization";
     }
@@ -96,6 +116,9 @@ public class OrganizationManagementController {
         Faculty faculty = facultyRepository.findById(id).orElseThrow();
         faculty.setActive(!faculty.isActive());
         facultyRepository.save(faculty);
+        audit(com.hieu.edurepo.enums.AuditAction.FACULTY_STATUS_CHANGED,
+                com.hieu.edurepo.enums.AuditTargetType.FACULTY, faculty.getId(), faculty.getName(),
+                (faculty.isActive() ? "Kích hoạt khoa: " : "Ngừng sử dụng khoa: ") + faculty.getName());
         redirectAttributes.addFlashAttribute("success", faculty.isActive() ? "Đã kích hoạt khoa" : "Đã ngừng sử dụng khoa");
         return "redirect:/admin/organization";
     }
@@ -105,6 +128,9 @@ public class OrganizationManagementController {
         Department department = departmentRepository.findById(id).orElseThrow();
         department.setActive(!department.isActive());
         departmentRepository.save(department);
+        audit(com.hieu.edurepo.enums.AuditAction.DEPARTMENT_STATUS_CHANGED,
+                com.hieu.edurepo.enums.AuditTargetType.DEPARTMENT, department.getId(), department.getName(),
+                (department.isActive() ? "Kích hoạt bộ môn: " : "Ngừng sử dụng bộ môn: ") + department.getName());
         redirectAttributes.addFlashAttribute("success", department.isActive() ? "Đã kích hoạt bộ môn" : "Đã ngừng sử dụng bộ môn");
         return "redirect:/admin/organization";
     }
@@ -135,6 +161,9 @@ public class OrganizationManagementController {
         faculty.setName(changes.getName());
         faculty.setDescription(changes.getDescription());
         facultyRepository.save(faculty);
+        audit(com.hieu.edurepo.enums.AuditAction.FACULTY_UPDATED,
+                com.hieu.edurepo.enums.AuditTargetType.FACULTY, faculty.getId(), faculty.getName(),
+                "Cập nhật khoa: " + faculty.getName());
         redirectAttributes.addFlashAttribute("success", "Đã cập nhật khoa");
         return "redirect:/admin/organization";
     }
@@ -169,6 +198,9 @@ public class OrganizationManagementController {
         department.setDescription(changes.getDescription());
         department.setFaculty(faculty);
         departmentRepository.save(department);
+        audit(com.hieu.edurepo.enums.AuditAction.DEPARTMENT_UPDATED,
+                com.hieu.edurepo.enums.AuditTargetType.DEPARTMENT, department.getId(), department.getName(),
+                "Cập nhật bộ môn: " + department.getName());
         redirectAttributes.addFlashAttribute("success", "Đã cập nhật bộ môn");
         return "redirect:/admin/organization";
     }
@@ -207,6 +239,12 @@ public class OrganizationManagementController {
         model.addAttribute("faculties", facultyRepository.findAll());
         model.addAttribute("activeFaculties", facultyRepository.findByActiveTrueOrderByNameAsc());
         model.addAttribute("departments", departmentRepository.findAll());
+    }
+
+    private void audit(com.hieu.edurepo.enums.AuditAction action,
+                       com.hieu.edurepo.enums.AuditTargetType targetType,
+                       Long id, String name, String description) {
+        auditLogs.record(action, targetType, id, name, description, com.hieu.edurepo.enums.AuditResult.SUCCESS);
     }
 
     public record DepartmentOption(Long id, String name) { }

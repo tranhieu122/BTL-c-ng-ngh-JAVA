@@ -66,7 +66,19 @@ const setupMobileNavigation = () => {
     });
 };
 
+const setupAccountMenu = () => {
+    const menu = document.querySelector("[data-account-menu]");
+    const toggle = menu?.querySelector("[data-account-toggle]");
+    const panel = menu?.querySelector("[data-account-panel]");
+    if (!menu || !toggle || !panel) return;
+    const close = () => { panel.hidden = true; toggle.setAttribute("aria-expanded", "false"); };
+    toggle.addEventListener("click", () => { const opening = panel.hidden; panel.hidden = !opening; toggle.setAttribute("aria-expanded", String(opening)); });
+    document.addEventListener("click", (event) => { if (!menu.contains(event.target)) close(); });
+    document.addEventListener("keydown", (event) => { if (event.key === "Escape") close(); });
+};
+
 export const initNavigation = () => {
     markActiveNavigation();
     setupMobileNavigation();
+    setupAccountMenu();
 };

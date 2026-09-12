@@ -15,21 +15,27 @@ public class CustomUserPrincipal implements UserDetails {
     private final String email;
     private final String password;
     private final boolean enabled;
+    private final boolean accountNonLocked;
     private final Collection<? extends GrantedAuthority> authorities;
 
-    private CustomUserPrincipal(User user) {
+    private CustomUserPrincipal(User user, boolean accountNonLocked) {
         this.id = user.getId();
         this.fullName = user.getFullName();
         this.email = user.getEmail();
         this.password = user.getPassword();
         this.enabled = user.isEnabled();
+        this.accountNonLocked = accountNonLocked;
         this.authorities = user.getRoles() == null ? Collections.emptyList() : user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName().name()))
                 .toList();
     }
 
     public static CustomUserPrincipal from(User user) {
-        return new CustomUserPrincipal(user);
+        return new CustomUserPrincipal(user, true);
+    }
+
+    public static CustomUserPrincipal from(User user, boolean accountNonLocked) {
+        return new CustomUserPrincipal(user, accountNonLocked);
     }
 
     public Long getId() {
@@ -58,5 +64,10 @@ public class CustomUserPrincipal implements UserDetails {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return accountNonLocked;
     }
 }

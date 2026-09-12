@@ -16,6 +16,13 @@
             <div class="workspace-actions"><a class="button" th:href="@{/admin/users/new}">Thêm người dùng <span aria-hidden="true">＋</span></a></div>
         </header>
         <div th:replace="~{fragments/ui :: flashMessages}"></div>
+        <section class="data-panel" th:if="${!#lists.isEmpty(resetRequests)}" aria-label="Yêu cầu khôi phục mật khẩu">
+            <div class="data-panel-header"><strong>Yêu cầu khôi phục mật khẩu</strong></div>
+            <p class="field-hint">Xác minh danh tính qua kênh đã biết của người dùng trước khi đặt mật khẩu mới. Yêu cầu tự đóng khi mật khẩu được cập nhật.</p>
+            <div class="table-scroll"><table class="data-table"><thead><tr><th>Tài khoản</th><th>Thời gian yêu cầu</th><th>Thao tác</th></tr></thead><tbody>
+                <tr th:each="requester : ${resetRequests}"><td th:text="${requester.email}"></td><td th:text="${#temporals.format(requester.passwordResetRequestedAt, 'dd/MM/yyyy HH:mm')}"></td><td><a th:href="@{/admin/users/{id}/edit(id=${requester.id})}">Đặt mật khẩu mới</a></td></tr>
+            </tbody></table></div>
+        </section>
         <section class="data-panel" aria-labelledby="users-table-title">
             <div class="data-panel-header"><strong id="users-table-title">Danh sách tài khoản</strong><span class="record-count" th:text="|${#lists.size(users)} bản ghi|">0 bản ghi</span></div>
             <div class="table-scroll" th:if="${!#lists.isEmpty(users)}">
@@ -32,7 +39,7 @@
                             <span class="field-hint" th:if="${#sets.isEmpty(user.roles)}">Chưa cấp vai trò</span>
                         </td>
                         <td><span class="status-pill" th:classappend="${user.enabled} ? ' is-active' : ''" th:text="${user.enabled ? 'Đang hoạt động' : 'Đã khóa'}">Trạng thái</span></td>
-                        <td><a class="table-action" th:href="@{/admin/users/{id}/edit(id=${user.id})}">Chỉnh sửa <span aria-hidden="true">→</span></a></td>
+                        <td><a class="table-action" th:href="@{/admin/users/{id}/edit(id=${user.id})}">Chỉnh sửa <span aria-hidden="true">→</span></a><form th:action="@{/admin/users/{id}/delete(id=${user.id})}" method="post"><button type="submit" class="button button-danger button-sm" data-confirm-message="Xóa tài khoản này? Tài khoản có tài liệu hoặc lịch sử duyệt sẽ không được xóa.">Xóa tài khoản</button></form></td>
                     </tr>
                     </tbody>
                 </table>

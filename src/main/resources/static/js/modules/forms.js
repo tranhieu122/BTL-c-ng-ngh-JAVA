@@ -26,7 +26,7 @@ const createUploadPreview = (input) => {
 };
 
 const setupFilePreviews = () => {
-    document.querySelectorAll('input[type="file"]').forEach((input) => {
+    document.querySelectorAll('input[type="file"]:not([data-avatar-input])').forEach((input) => {
         const acceptedExtensions = getAcceptedExtensions(input);
         const preview = createUploadPreview(input);
 
@@ -105,7 +105,8 @@ const setupSubmitState = () => {
 
         if (submitter instanceof HTMLButtonElement) {
             submitter.dataset.originalText = submitter.textContent;
-            submitter.disabled = true;
+            // Preserve named submit-button values while the browser builds the request.
+            window.setTimeout(() => { submitter.disabled = true; }, 0);
             submitter.textContent = "Đang xử lý...";
         }
     });
@@ -193,12 +194,17 @@ const setupFacultyDepartmentSelects = () => {
         const updateDepartments = () => {
             const facultyId = facultySelect.value;
             Array.from(departmentSelect.options).forEach((option, index) => {
-                if (index === 0) return;
+                if (index === 0) {
+                    option.textContent = facultyId ? "Chọn bộ môn" : "Chọn khoa để lọc bộ môn";
+                    return;
+                }
                 option.hidden = Boolean(facultyId) && option.dataset.facultyId !== facultyId;
                 option.disabled = Boolean(facultyId) && option.dataset.facultyId !== facultyId;
             });
             if (departmentSelect.selectedOptions[0]?.disabled) departmentSelect.value = "";
-            departmentSelect.disabled = !facultyId;
+            // Keep the control clickable so the user can inspect available departments.
+            // Selecting a faculty only narrows the list; it no longer locks the field.
+            departmentSelect.disabled = false;
         };
 
         facultySelect.addEventListener("change", updateDepartments);

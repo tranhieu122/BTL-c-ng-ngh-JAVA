@@ -14,16 +14,20 @@ public class AdminDashboardController {
 
     private final DocumentRepository documentRepository;
     private final UserRepository userRepository;
+    private final com.hieu.edurepo.service.AuditLogService auditLogs;
 
     public AdminDashboardController(DocumentRepository documentRepository,
-                                    UserRepository userRepository) {
+                                    UserRepository userRepository,
+                                    com.hieu.edurepo.service.AuditLogService auditLogs) {
         this.documentRepository = documentRepository;
         this.userRepository = userRepository;
+        this.auditLogs = auditLogs;
     }
 
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
         long totalDocuments = documentRepository.count();
+        long draftCount = documentRepository.countByStatus(DocumentStatus.DRAFT);
         long submittedCount = documentRepository.countByStatus(DocumentStatus.SUBMITTED);
         long approvedCount = documentRepository.countByStatus(DocumentStatus.APPROVED);
         long publishedCount = documentRepository.countByStatus(DocumentStatus.PUBLISHED);
@@ -32,6 +36,7 @@ public class AdminDashboardController {
 
         model.addAttribute("userCount", userRepository.count());
         model.addAttribute("documentCount", totalDocuments);
+        model.addAttribute("draftCount", draftCount);
         model.addAttribute("pendingCount", submittedCount);
         model.addAttribute("publishedCount", publishedCount);
         model.addAttribute("approvedCount", approvedCount);
@@ -39,9 +44,18 @@ public class AdminDashboardController {
         model.addAttribute("rejectedCount", rejectedCount);
         model.addAttribute("publicationRate", percent(publishedCount, totalDocuments));
         model.addAttribute("reviewRate", percent(approvedCount + publishedCount + rejectedCount + revisionCount, totalDocuments));
+        model.addAttribute("pendingRate", percent(submittedCount, totalDocuments));
+        model.addAttribute("approvedRate", percent(approvedCount, totalDocuments));
         model.addAttribute("categoryCounts", documentRepository.countByCategory());
         model.addAttribute("facultyCounts", documentRepository.countByFaculty());
         model.addAttribute("recentDocuments", documentRepository.findTop8ByOrderByCreatedAtDesc());
+        model.addAttribute("totalViews", documentRepository.sumViewCount());
+        model.addAttribute("totalDownloads", documentRepository.sumDownloadCount());
+        model.addAttribute("popularDocuments", documentRepository
+                .findTop8ByStatusOrderByDownloadCountDescViewCountDescPublishedAtDesc(DocumentStatus.PUBLISHED));
+        auditLogs.record(com.hieu.edurepo.enums.AuditAction.ADMIN_DASHBOARD_VIEWED,
+                com.hieu.edurepo.enums.AuditTargetType.PAGE, null, "Dashboard quản trị",
+                "Xem dashboard quản trị", com.hieu.edurepo.enums.AuditResult.SUCCESS);
         return "admin/dashboard";
     }
 

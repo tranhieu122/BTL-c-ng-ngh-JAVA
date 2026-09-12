@@ -1,6 +1,9 @@
 package com.hieu.edurepo.entity;
 
 import com.hieu.edurepo.enums.DocumentStatus;
+import com.hieu.edurepo.enums.EducationLevel;
+import com.hieu.edurepo.enums.LearningResourceType;
+import com.hieu.edurepo.enums.LicenseType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -17,6 +20,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
 @Entity
+@org.hibernate.annotations.DynamicUpdate
 @Table(name = "documents")
 public class Document {
 
@@ -29,6 +33,27 @@ public class Document {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(columnDefinition = "TEXT")
+    private String summary;
+
+    @Column(length = 1000)
+    private String keywords;
+
+    @Column(length = 10)
+    private String languageCode = "vi";
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 40)
+    private LearningResourceType learningResourceType = LearningResourceType.OTHER;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private EducationLevel educationLevel = EducationLevel.ALL_LEVELS;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 40)
+    private LicenseType licenseType = LicenseType.ALL_RIGHTS_RESERVED;
 
     private String authorName;
     private String fileName;
@@ -60,6 +85,12 @@ public class Document {
 
     private LocalDateTime submittedAt;
     private LocalDateTime publishedAt;
+
+    @Column(nullable = false)
+    private long viewCount;
+
+    @Column(nullable = false)
+    private long downloadCount;
 
     public Document() {
     }
@@ -99,6 +130,19 @@ public class Document {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public String getSummary() { return summary; }
+    public void setSummary(String summary) { this.summary = summary; }
+    public String getKeywords() { return keywords; }
+    public void setKeywords(String keywords) { this.keywords = keywords; }
+    public String getLanguageCode() { return languageCode; }
+    public void setLanguageCode(String languageCode) { this.languageCode = languageCode; }
+    public LearningResourceType getLearningResourceType() { return learningResourceType; }
+    public void setLearningResourceType(LearningResourceType learningResourceType) { this.learningResourceType = learningResourceType; }
+    public EducationLevel getEducationLevel() { return educationLevel; }
+    public void setEducationLevel(EducationLevel educationLevel) { this.educationLevel = educationLevel; }
+    public LicenseType getLicenseType() { return licenseType; }
+    public void setLicenseType(LicenseType licenseType) { this.licenseType = licenseType; }
 
     public String getAuthorName() {
         return authorName;
@@ -203,4 +247,9 @@ public class Document {
     public void setPublishedAt(LocalDateTime publishedAt) {
         this.publishedAt = publishedAt;
     }
+
+    public long getViewCount() { return viewCount; }
+    public void setViewCount(long viewCount) { this.viewCount = viewCount; }
+    public long getDownloadCount() { return downloadCount; }
+    public void setDownloadCount(long downloadCount) { this.downloadCount = downloadCount; }
 }

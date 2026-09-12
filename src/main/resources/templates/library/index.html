@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Thư viện của tôi | EduRepo</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="page-shell"><div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main id="main-content" class="content workspace-content library-page">
+    <header class="workspace-heading"><div><span class="workspace-kicker">Không gian cá nhân</span><h1>Thư viện của tôi</h1><p class="subtitle">Lưu học liệu quan trọng và sắp xếp thành các bộ sưu tập riêng.</p></div><div class="workspace-actions"><a class="button button-secondary" th:href="@{/repository}">Khám phá kho</a></div></header>
+    <div th:replace="~{fragments/ui :: flashMessages}"></div>
+    <div class="library-layout">
+        <section class="review-card"><div class="panel-heading"><div><h2>Tài liệu đã lưu</h2><p th:text="|${#lists.size(bookmarks)} tài liệu trong thư viện|">0 tài liệu</p></div></div>
+            <div class="saved-document-grid" th:if="${!#lists.isEmpty(bookmarks)}"><article class="saved-document-card" th:each="bookmark : ${bookmarks}"><span th:text="${bookmark.document.category != null ? bookmark.document.category.name : 'Học liệu'}">Danh mục</span><h3><a th:href="@{/repository/{id}(id=${bookmark.document.id})}" th:text="${bookmark.document.title}">Tài liệu</a></h3><p th:text="${bookmark.document.summary ?: bookmark.document.description}">Mô tả</p><small th:text="|Đã lưu ${bookmark.createdAt}|">Ngày lưu</small></article></div>
+            <div class="empty-panel" th:if="${#lists.isEmpty(bookmarks)}"><h2>Chưa lưu tài liệu nào</h2><p>Mở một tài liệu công khai và chọn “Lưu vào thư viện”.</p><a class="button" th:href="@{/repository}">Tìm học liệu</a></div>
+        </section>
+        <aside class="form-card"><div class="form-section-heading"><h2>Tạo bộ sưu tập</h2><p>Nhóm học liệu theo môn học, đề tài hoặc kế hoạch học tập.</p></div><form th:action="@{/library/collections}" th:object="${collectionForm}" method="post" class="form-grid"><label><span class="field-label">Tên bộ sưu tập</span><input th:field="*{name}" maxlength="150" required placeholder="Ví dụ: Ôn tập Java"><small class="field-error" th:errors="*{name}"></small></label><label><span class="field-label">Mô tả</span><textarea th:field="*{description}" rows="3" maxlength="500" placeholder="Mục đích của bộ sưu tập"></textarea><small class="field-error" th:errors="*{description}"></small></label><button type="submit">Tạo bộ sưu tập</button></form></aside>
+    </div>
+    <section class="collection-section"><div class="panel-heading"><div><h2>Bộ sưu tập</h2><p>Sắp xếp các tài liệu đã chọn theo cách của bạn.</p></div></div><div class="collection-grid" th:if="${!#lists.isEmpty(collections)}"><a class="collection-card" th:each="item : ${collections}" th:href="@{/library/collections/{id}(id=${item.id})}"><span class="collection-icon">▦</span><strong th:text="${item.name}">Tên</strong><p th:text="${item.description ?: 'Chưa có mô tả'}">Mô tả</p><small th:text="|${collectionSizes[item.id]} tài liệu|">0 tài liệu</small></a></div><div class="empty-panel compact-empty" th:if="${#lists.isEmpty(collections)}"><h2>Chưa có bộ sưu tập</h2><p>Tạo bộ sưu tập đầu tiên bằng biểu mẫu phía trên.</p></div></section>
+</main></div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body></html>

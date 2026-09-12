@@ -12,6 +12,7 @@
 <div th:replace="~{fragments/header :: header}"></div>
 
 <main id="main-content" class="detail-main page-container">
+    <div th:replace="~{fragments/ui :: flashMessages}"></div>
     <nav class="breadcrumb" aria-label="Đường dẫn">
         <a th:href="@{/repository}">Kho học liệu</a>
         <span aria-hidden="true">/</span>
@@ -40,6 +41,18 @@
                 </div>
             </header>
 
+            <section class="document-reader" th:if="${#strings.containsIgnoreCase(document.fileType, 'pdf')}"
+                     aria-labelledby="reader-title">
+                <div class="document-reader-heading">
+                    <div><span class="eyebrow">Đọc trực tiếp</span><h2 id="reader-title">Trình xem tài liệu</h2></div>
+                    <a class="reader-download" th:href="@{/download/{id}(id=${document.id})}">Tải PDF ↓</a>
+                </div>
+                <iframe class="document-reader-frame" th:src="@{/view/{id}(id=${document.id})}"
+                        th:title="${'Trình xem PDF: ' + document.title}" scrolling="yes" tabindex="0">
+                    Trình duyệt của bạn không hỗ trợ xem PDF trực tiếp.
+                </iframe>
+            </section>
+
             <section class="detail-section" aria-labelledby="abstract-title">
                 <div class="detail-section-heading">
                     <span class="section-number" aria-hidden="true">01</span>
@@ -51,6 +64,8 @@
                 <p class="document-abstract" th:text="${#strings.isEmpty(document.description) ? 'Tài liệu này chưa có phần mô tả chi tiết. Bạn có thể tải xuống để xem đầy đủ nội dung.' : document.description}">
                     Mô tả chi tiết của tài liệu.
                 </p>
+                <div class="academic-summary" th:if="${!#strings.isEmpty(document.summary)}"><h3>Tóm tắt học thuật</h3><p th:text="${document.summary}">Tóm tắt</p></div>
+                <p class="keyword-list" th:if="${!#strings.isEmpty(document.keywords)}"><strong>Từ khóa:</strong> <span th:text="${document.keywords}">Từ khóa</span></p>
             </section>
 
             <section class="detail-section" aria-labelledby="information-title">
@@ -94,7 +109,68 @@
                             <span th:unless="${document.publishedAt != null}">Chưa cập nhật</span>
                         </dd>
                     </div>
+                    <div><dt>Loại học liệu</dt><dd th:text="${document.learningResourceType.label}">Loại học liệu</dd></div>
+                    <div><dt>Trình độ</dt><dd th:text="${document.educationLevel.label}">Trình độ</dd></div>
+                    <div><dt>Ngôn ngữ</dt><dd th:text="${document.languageCode == 'vi' ? 'Tiếng Việt' : document.languageCode == 'en' ? 'English' : document.languageCode}">Ngôn ngữ</dd></div>
+                    <div><dt>Lượt xem</dt><dd th:text="${document.viewCount}">0</dd></div>
+                    <div><dt>Lượt tải</dt><dd th:text="${document.downloadCount}">0</dd></div>
                 </dl>
+            </section>
+
+            <section class="detail-section document-feedback" id="document-reviews" aria-labelledby="document-reviews-title">
+                <div class="detail-section-heading">
+                    <span class="section-number" aria-hidden="true">03</span>
+                    <div><p class="eyebrow">Phản hồi người đọc</p><h2 id="document-reviews-title">Đánh giá chất lượng tài liệu</h2></div>
+                </div>
+                <div class="rating-overview">
+                    <strong th:text="${#numbers.formatDecimal(reviewSummary.averageRating, 1, 1)}">0,0</strong>
+                    <div><span class="rating-stars" aria-hidden="true">★★★★★</span><p th:text="|${reviewSummary.reviewCount} lượt đánh giá tài liệu|">0 lượt đánh giá tài liệu</p></div>
+                </div>
+
+                <div sec:authorize="isAnonymous()" class="feedback-login-note">
+                    <a th:href="@{/login}">Đăng nhập</a> để chia sẻ mức độ hữu ích của tài liệu này.
+                </div>
+
+                <form sec:authorize="isAuthenticated()" class="review-form" th:object="${documentReviewForm}"
+                      th:action="${ownReview == null ? '/document-reviews/' + document.id : '/document-reviews/' + document.id + '/' + ownReview.id}" method="post">
+                    <h3 th:text="${ownReview == null ? 'Bạn thấy tài liệu này thế nào?' : 'Chỉnh sửa đánh giá của bạn'}">Đánh giá tài liệu</h3>
+                    <fieldset class="star-picker"><legend>Số sao <span aria-hidden="true">*</span></legend>
+                        <label th:each="star : ${#numbers.sequence(5, 1)}">
+                            <input type="radio" th:field="*{rating}" th:value="${star}" required>
+                            <span th:text="${star + ' sao'}">5 sao</span>
+                        </label>
+                    </fieldset>
+                    <label>Nhận xét ngắn
+                        <textarea th:field="*{comment}" maxlength="500" rows="3" placeholder="Điều gì trong tài liệu hữu ích hoặc cần cải thiện?"></textarea>
+                    </label>
+                    <fieldset class="criteria-picker"><legend>Tiêu chí phù hợp (không bắt buộc)</legend>
+                        <label><input type="checkbox" th:field="*{helpful}"> Hữu ích</label>
+                        <label><input type="checkbox" th:field="*{easyToUnderstand}"> Dễ hiểu</label>
+                        <label><input type="checkbox" th:field="*{onTopic}"> Đúng chủ đề</label>
+                        <label><input type="checkbox" th:field="*{goodFileQuality}"> Chất lượng file tốt</label>
+                    </fieldset>
+                    <div class="feedback-actions">
+                        <button class="button" type="submit" th:text="${ownReview == null ? 'Gửi đánh giá' : 'Lưu thay đổi'}">Gửi đánh giá</button>
+                    </div>
+                </form>
+                <form sec:authorize="isAuthenticated()" th:if="${ownReview != null}" class="review-delete-form"
+                      th:action="@{/document-reviews/{documentId}/{reviewId}/delete(documentId=${document.id},reviewId=${ownReview.id})}" method="post">
+                    <button type="submit">Xóa đánh giá của tôi</button>
+                </form>
+
+                <div class="review-list" aria-label="Nhận xét về tài liệu">
+                    <article th:each="review : ${documentReviews}" class="reader-review">
+                        <header><strong th:text="${#strings.isEmpty(review.user.fullName) ? 'Người đọc EduRepo' : review.user.fullName}">Người đọc</strong>
+                            <span class="review-stars" th:attr="aria-label=${review.rating + ' trên 5 sao'}"><i th:each="star : ${#numbers.sequence(1, 5)}" th:classappend="${star <= review.rating ? ' is-active' : ''}" aria-hidden="true">★</i></span>
+                        </header>
+                        <p th:text="${review.comment}">Nhận xét</p>
+                        <div class="review-criteria" th:if="${review.helpful or review.easyToUnderstand or review.onTopic or review.goodFileQuality}">
+                            <span th:if="${review.helpful}">Hữu ích</span><span th:if="${review.easyToUnderstand}">Dễ hiểu</span>
+                            <span th:if="${review.onTopic}">Đúng chủ đề</span><span th:if="${review.goodFileQuality}">File tốt</span>
+                        </div>
+                    </article>
+                    <p class="empty-feedback" th:if="${#lists.isEmpty(documentReviews)}">Chưa có nhận xét nào về tài liệu này.</p>
+                </div>
             </section>
 
             <section class="quality-note" aria-label="Thông tin kiểm duyệt">
@@ -115,6 +191,11 @@
                 </div>
             </div>
             <p>Tải bản đầy đủ để đọc, nghiên cứu và sử dụng cho mục đích học tập.</p>
+            <a class="button preview-primary"
+               th:if="${#strings.containsIgnoreCase(document.fileType, 'pdf')}"
+               th:href="@{/view/{id}(id=${document.id})}" target="_blank" rel="noopener">
+                <span aria-hidden="true">↗</span> Mở PDF ở tab mới
+            </a>
             <a class="button download-primary" th:href="@{/download/{id}(id=${document.id})}">
                 <span aria-hidden="true">↓</span>
                 Tải tài liệu
@@ -124,16 +205,41 @@
                 <span aria-hidden="true">↗</span>
                 Chia sẻ tài liệu
             </button>
+            <form sec:authorize="isAuthenticated()" th:action="@{/library/bookmarks/{id}(id=${document.id})}" method="post">
+                <button class="button button-secondary library-action" type="submit" th:text="${bookmarked ? 'Bỏ khỏi thư viện' : 'Lưu vào thư viện'}">Lưu vào thư viện</button>
+            </form>
+            <div class="collection-add-form" sec:authorize="isAuthenticated()" th:if="${!#lists.isEmpty(userCollections)}">
+                <strong>Thêm vào bộ sưu tập</strong>
+                <form th:each="item : ${userCollections}" th:action="@{/library/collections/{collectionId}/items/{documentId}(collectionId=${item.id},documentId=${document.id})}" method="post"><button class="button button-secondary" type="submit" th:text="${item.name}">Bộ sưu tập</button></form>
+            </div>
             <div class="download-features">
                 <span><i aria-hidden="true">✓</i> Không cần đăng nhập</span>
                 <span><i aria-hidden="true">✓</i> Nguồn đã xác minh</span>
                 <span><i aria-hidden="true">✓</i> Tải trực tiếp an toàn</span>
             </div>
+            <details sec:authorize="isAuthenticated()" class="report-document">
+                <summary>Báo cáo tài liệu có vấn đề</summary>
+                <p>Báo cáo sẽ được chuyển tới đội ngũ kiểm duyệt và không tự động xóa tài liệu.</p>
+                <form th:action="@{/document-reports/{id}(id=${document.id})}" th:object="${documentReportForm}" method="post">
+                    <label>Lý do
+                        <select th:field="*{reason}" required><option value="">Chọn lý do</option><option th:each="reason : ${reportReasons}" th:value="${reason}" th:text="${reason.label}">Lý do</option></select>
+                    </label>
+                    <label>Mô tả bổ sung
+                        <textarea th:field="*{description}" maxlength="1000" rows="3" placeholder="Thông tin giúp đội ngũ kiểm tra nhanh hơn"></textarea>
+                    </label>
+                    <button class="button button-secondary" type="submit">Gửi báo cáo</button>
+                </form>
+            </details>
             <a class="back-to-library" th:href="@{/repository}">
                 <span aria-hidden="true">←</span> Quay lại kho học liệu
             </a>
         </aside>
     </div>
+
+    <section class="recommendation-section" th:if="${!#lists.isEmpty(recommendations)}" aria-labelledby="recommendation-title">
+        <div class="section-intro"><div><p class="eyebrow">Gợi ý không dùng AI</p><h2 id="recommendation-title">Tài liệu liên quan</h2></div><p>Dựa trên danh mục bạn đang xem và những tài liệu đã lưu.</p></div>
+        <div class="recommendation-grid"><article class="recommendation-card" th:each="item : ${recommendations}"><span th:text="${item.category != null ? item.category.name : 'Học liệu'}">Danh mục</span><h3><a th:href="@{/repository/{id}(id=${item.id})}" th:text="${item.title}">Tài liệu</a></h3><small th:text="|${item.viewCount} lượt xem · ${item.downloadCount} lượt tải|">Thống kê</small></article></div>
+    </section>
 
     <section class="detail-cta">
         <div>

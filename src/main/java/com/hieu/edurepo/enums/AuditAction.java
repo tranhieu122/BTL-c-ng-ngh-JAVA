@@ -1,0 +1,51 @@
+package com.hieu.edurepo.enums;
+
+public enum AuditAction {
+    HOME_VIEWED("Xem trang chủ"),
+    REPOSITORY_VIEWED("Xem kho tài liệu"),
+    DOCUMENT_DETAIL_VIEWED("Xem chi tiết tài liệu"),
+    LOGIN_SUCCESS("Đăng nhập thành công"),
+    LOGIN_FAILURE("Đăng nhập thất bại"),
+    LOGOUT("Đăng xuất"),
+    USER_REGISTERED("Đăng ký tài khoản"),
+    DOCUMENT_UPLOADED("Upload tài liệu"),
+    DOCUMENT_DRAFT_SAVED("Lưu bản nháp"),
+    DOCUMENT_CREATED("Tạo tài liệu"),
+    DOCUMENT_UPDATED("Cập nhật tài liệu"),
+    DOCUMENT_DRAFT_DELETED("Xóa bản nháp"),
+    DOCUMENT_SUBMITTED("Gửi tài liệu để duyệt"),
+    DOCUMENT_APPROVED("Duyệt tài liệu"),
+    DOCUMENT_REJECTED("Từ chối tài liệu"),
+    DOCUMENT_REVISION_REQUESTED("Yêu cầu chỉnh sửa"),
+    DOCUMENT_PUBLISHED("Công bố tài liệu"),
+    DOCUMENT_DOWNLOADED("Tải tài liệu"),
+    BOOKMARK_SAVED("Lưu bookmark"),
+    BOOKMARK_REMOVED("Bỏ bookmark"),
+    REVIEW_QUEUE_VIEWED("Xem hàng chờ duyệt"),
+    REVIEW_DOCUMENT_VIEWED("Xem tài liệu cần duyệt"),
+    ADMIN_DASHBOARD_VIEWED("Xem dashboard quản trị"),
+    USER_MANAGEMENT_VIEWED("Xem quản lý người dùng"),
+    USER_CREATED("Tạo người dùng"),
+    USER_UPDATED("Sửa người dùng"),
+    USER_DELETED("Xóa người dùng"),
+    USER_ROLE_CHANGED("Thay đổi vai trò"),
+    USER_STATUS_CHANGED("Thay đổi trạng thái tài khoản"),
+    CATEGORY_MANAGEMENT_VIEWED("Xem quản lý danh mục"),
+    CATEGORY_CREATED("Thêm danh mục"),
+    CATEGORY_UPDATED("Sửa danh mục"),
+    CATEGORY_STATUS_CHANGED("Đổi trạng thái danh mục"),
+    ORGANIZATION_MANAGEMENT_VIEWED("Xem quản lý khoa/bộ môn"),
+    FACULTY_CREATED("Thêm khoa"),
+    FACULTY_UPDATED("Sửa khoa"),
+    FACULTY_STATUS_CHANGED("Đổi trạng thái khoa"),
+    DEPARTMENT_CREATED("Thêm bộ môn"),
+    DEPARTMENT_UPDATED("Sửa bộ môn"),
+    DEPARTMENT_STATUS_CHANGED("Đổi trạng thái bộ môn"),
+    SYSTEM_NOTIFICATION_SENT("Gửi thông báo hệ thống"),
+    DOCUMENT_REPORTED("Báo cáo tài liệu");
+
+    private final String label;
+
+    AuditAction(String label) { this.label = label; }
+    public String getLabel() { return label; }
+}

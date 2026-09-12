@@ -229,7 +229,7 @@
     }
 
     .sidebar a.active {
-        box-shadow: inset 0 -3px 0 var(--cyan-300);
+        box-shadow: none;
     }
 }
 
@@ -595,8 +595,8 @@
 
     .footer-main {
         grid-template-columns: 1fr 1fr;
-        gap: 2rem 1.25rem;
-        padding-top: 3rem;
+        gap: 1.25rem;
+        padding-top: 1.5rem;
     }
 
     .footer-brand-block {

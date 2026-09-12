@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Báo cáo và đánh giá tài liệu | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="moderation-page">
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="page-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <main id="main-content" class="content workspace-content">
+        <header class="workspace-heading">
+            <div><span class="eyebrow">Kiểm soát chất lượng</span><h1>Báo cáo tài liệu</h1>
+                <p class="subtitle">Xem xét phản hồi về file, nội dung, trùng lặp và bản quyền. Báo cáo không tự động xóa tài liệu.</p></div>
+        </header>
+        <div th:replace="~{fragments/ui :: flashMessages}"></div>
+
+        <section class="data-panel moderation-panel" aria-labelledby="report-list-title">
+            <header class="data-panel-header"><strong id="report-list-title">Danh sách cần xem xét</strong><span class="record-count" th:text="|${#lists.size(reports)} báo cáo|">0 báo cáo</span></header>
+            <div class="table-scroll">
+                <table class="data-table moderation-table">
+                    <thead><tr><th>Tài liệu</th><th>Lý do &amp; mô tả</th><th>Người báo cáo</th><th>Thời gian</th><th>Trạng thái xử lý</th></tr></thead>
+                    <tbody>
+                    <tr th:each="report : ${reports}" th:classappend="${seriousDocumentIds.contains(report.document.id) ? ' serious-report-row' : ''}">
+                        <td><div class="entity-copy"><strong><a th:href="@{/repository/{id}(id=${report.document.id})}" th:text="${report.document.title}">Tài liệu</a></strong>
+                            <small class="serious-warning" th:if="${seriousDocumentIds.contains(report.document.id)}">⚠ Nhiều báo cáo nghiêm trọng chưa đóng</small></div></td>
+                        <td><strong th:text="${report.reason.label}">Lý do</strong><small class="report-description" th:text="${#strings.isEmpty(report.description) ? 'Không có mô tả bổ sung' : report.description}">Mô tả</small></td>
+                        <td><span th:text="${report.reporter.fullName}">Người báo cáo</span><small th:text="${report.reporter.email}">email</small></td>
+                        <td><time th:text="${#temporals.format(report.createdAt, 'dd/MM/yyyy HH:mm')}">Thời gian</time></td>
+                        <td><form class="status-update-form" th:action="@{/moderation/reports/{id}/status(id=${report.id})}" method="post">
+                            <select name="status" th:attr="aria-label=${'Trạng thái báo cáo ' + report.id}"><option th:each="status : ${reportStatuses}" th:value="${status}" th:text="${status.label}" th:selected="${status == report.status}">Trạng thái</option></select>
+                            <button class="button button-secondary" type="submit">Cập nhật</button>
+                        </form></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(reports)}"><td colspan="5" class="empty-cell">Chưa có báo cáo tài liệu.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="review-moderation" class="data-panel moderation-panel" aria-labelledby="review-list-title">
+            <header class="data-panel-header"><strong id="review-list-title">Điều tiết nhận xét</strong><span class="record-count" th:text="|${#lists.size(reviews)} đánh giá|">0 đánh giá</span></header>
+            <div class="table-scroll">
+                <table class="data-table moderation-table review-moderation-table">
+                    <thead><tr><th>Tài liệu</th><th>Đánh giá chất lượng</th><th>Người đọc</th><th>Hiển thị</th></tr></thead>
+                    <tbody>
+                    <tr th:each="review : ${reviews}">
+                        <td><a th:href="@{/repository/{id}(id=${review.document.id})}" th:text="${review.document.title}">Tài liệu</a></td>
+                        <td><span class="review-stars"><i th:each="star : ${#numbers.sequence(1, 5)}" th:classappend="${star <= review.rating ? ' is-active' : ''}">★</i></span>
+                            <p th:text="${#strings.isEmpty(review.comment) ? 'Không có nhận xét' : review.comment}">Nhận xét</p></td>
+                        <td><span th:text="${review.user.fullName}">Người đọc</span><small th:text="${review.user.email}">email</small></td>
+                        <td><form th:action="@{/moderation/reviews/{id}/visibility(id=${review.id})}" method="post">
+                            <input type="hidden" name="hidden" th:value="${!review.hidden}">
+                            <span class="status-pill" th:classappend="${review.hidden ? ' status-rejected' : ' is-active'}" th:text="${review.hidden ? 'Đang ẩn' : 'Đang hiển thị'}">Hiển thị</span>
+                            <button class="table-action" type="submit" th:text="${review.hidden ? 'Hiển thị lại' : 'Ẩn nhận xét'}">Ẩn</button>
+                        </form></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(reviews)}"><td colspan="4" class="empty-cell">Chưa có đánh giá tài liệu.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

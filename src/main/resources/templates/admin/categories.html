@@ -15,11 +15,11 @@
         <div th:replace="~{fragments/ui :: flashMessages}"></div>
         <div class="category-layout">
             <aside class="form-card">
-                <div class="form-section-heading"><h2>Thêm danh mục</h2><p>Tạo một nhóm chủ đề mới cho kho học liệu.</p></div>
-                <form th:action="@{/admin/categories}" th:object="${category}" method="post" class="form-grid">
+                <div class="form-section-heading"><h2 th:text="${category.id == null ? 'Thêm danh mục' : 'Sửa danh mục'}">Thêm danh mục</h2><p>Tạo một nhóm chủ đề mới cho kho học liệu.</p></div>
+                <form th:action="${category.id == null} ? @{/admin/categories} : @{/admin/categories/{id}(id=${category.id})}" th:object="${category}" method="post" class="form-grid">
                     <label><span class="field-label">Tên danh mục</span><input th:field="*{name}" placeholder="Ví dụ: Công nghệ thông tin" required th:attr="aria-invalid=${#fields.hasErrors('name')}"><small class="field-error" th:errors="*{name}"></small></label>
                     <label><span class="field-label">Mô tả ngắn</span><textarea th:field="*{description}" rows="4" placeholder="Phạm vi nội dung của danh mục" th:attr="aria-invalid=${#fields.hasErrors('description')}"></textarea><small class="field-error" th:errors="*{description}"></small></label>
-                    <button type="submit">Thêm danh mục</button>
+                    <button type="submit" th:text="${category.id == null ? 'Thêm danh mục' : 'Lưu thay đổi'}">Lưu</button><a th:if="${category.id != null}" th:href="@{/admin/categories}">Hủy sửa</a>
                 </form>
             </aside>
             <section class="data-panel" aria-labelledby="category-table-title">
@@ -32,7 +32,7 @@
                         <tr th:each="item : ${categories}">
                             <td><div class="entity-cell"><span class="workspace-icon" aria-hidden="true">◇</span><span class="entity-copy"><strong th:text="${item.name}">Tên</strong><small th:text="${item.description ?: 'Chưa có mô tả'}">Mô tả</small></span></div></td>
                             <td><span class="status-pill" th:classappend="${item.active} ? ' is-active' : ''" th:text="${item.active ? 'Đang sử dụng' : 'Đã ngừng'}">Trạng thái</span></td>
-                            <td><form th:if="${item.active}" th:action="@{/admin/categories/{id}/delete(id=${item.id})}" method="post"><button class="button button-warning button-sm" type="submit" data-confirm-label="Ngừng sử dụng" data-confirm-message="Ngừng sử dụng danh mục này? Danh mục sẽ không còn xuất hiện trong lựa chọn cho tài liệu mới.">Ngừng dùng</button></form><span th:unless="${item.active}" class="field-hint">Không khả dụng</span></td>
+                            <td><a class="table-action" th:href="@{/admin/categories/{id}/edit(id=${item.id})}">Sửa</a><form th:if="${item.active}" th:action="@{/admin/categories/{id}/delete(id=${item.id})}" method="post"><button class="button button-warning button-sm" type="submit" data-confirm-label="Ngừng sử dụng" data-confirm-message="Ngừng sử dụng danh mục này? Danh mục sẽ không còn xuất hiện trong lựa chọn cho tài liệu mới.">Ngừng dùng</button></form><form th:unless="${item.active}" th:action="@{/admin/categories/{id}/activate(id=${item.id})}" method="post"><button type="submit" class="button button-secondary button-sm">Kích hoạt lại</button></form></td>
                         </tr>
                         </tbody>
                     </table>
