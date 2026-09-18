@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Set;
 import java.util.UUID;
+import java.util.Objects;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -86,12 +87,14 @@ class DocumentSessionPersistenceTest {
     }
 
     private HttpSession login(String email, String password) throws Exception {
-        return mockMvc.perform(post("/login")
-                        .param("email", email)
-                        .param("password", password)
-                        .with(csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/dashboard"))
-                .andReturn().getRequest().getSession(false);
+        return Objects.requireNonNull(
+                mockMvc.perform(post("/login")
+                                .param("email", email)
+                                .param("password", password)
+                                .with(csrf()))
+                        .andExpect(status().is3xxRedirection())
+                        .andExpect(redirectedUrl("/dashboard"))
+                        .andReturn().getRequest().getSession(false),
+                "Expected login to create a session");
     }
 }

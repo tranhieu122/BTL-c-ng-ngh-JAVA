@@ -18,12 +18,15 @@ public interface DocumentService {
     Page<Document> searchByOwner(Long userId, String keyword, DocumentStatus status, Long categoryId,
                                  Long facultyId, Long departmentId, Pageable pageable);
     List<Document> findPendingReview();
+    Page<Document> searchPendingReview(String keyword, DocumentStatus status, Pageable pageable);
+    long countPendingReview(DocumentStatus status);
     Page<Document> searchPublished(String keyword, Pageable pageable);
     Page<Document> searchPublished(String keyword, Long categoryId, LearningResourceType resourceType,
                                    EducationLevel educationLevel, LicenseType licenseType,
                                    String languageCode, Pageable pageable);
     List<Document> findRelatedPublished(Document document, int limit);
     List<DocumentVersion> findVersions(Long documentId);
+    Page<DocumentVersion> findVersions(Long documentId, Pageable pageable);
     DocumentVersion findVersion(Long documentId, Long versionId);
     List<String> versionFilePaths(Long documentId);
     void recordView(Long documentId);
@@ -31,7 +34,7 @@ public interface DocumentService {
     Document saveDraft(Document document, User owner);
     Document submitNew(Document document, User owner);
     Document updateDraft(Long documentId, Document changes, User owner);
+    Document updateDraft(Long documentId, Document changes, User owner, String changeNote);
     Document submit(Long documentId, User owner);
-    Document changeStatus(Long documentId, DocumentStatus status);
     void deleteDraft(Long documentId, User owner);
 }

@@ -15,8 +15,13 @@ import java.util.stream.Collectors;
 public class RealtimeSnapshotService {
     private final UserRepository users;
     private final DocumentRepository documents;
-    public RealtimeSnapshotService(UserRepository users, DocumentRepository documents) { this.users = users; this.documents = documents; }
-    public record Snapshot(ProfileView profile, List<LiveDocument> documents, List<LiveDocument> reviewQueue, boolean canReview) { }
+    private final RealtimeChangeTracker changes;
+    public RealtimeSnapshotService(UserRepository users, DocumentRepository documents,
+                                   RealtimeChangeTracker changes) {
+        this.users = users; this.documents = documents; this.changes = changes;
+    }
+    public record Snapshot(ProfileView profile, List<LiveDocument> documents, List<LiveDocument> reviewQueue,
+                           boolean canReview, RealtimeChangeTracker.Revision revision) { }
     @Transactional(readOnly = true)
     public Snapshot snapshot(CustomUserPrincipal principal) {
         var account = users.findById(principal.getId()).orElseThrow(() -> new AccessDeniedException("Session expired"));
@@ -28,6 +33,8 @@ public class RealtimeSnapshotService {
             throw new AccessDeniedException("Session expired");
         boolean reviewer = account.getRoles().stream().anyMatch(role -> role.getName() == RoleName.ADMIN || role.getName() == RoleName.REVIEWER);
         return new Snapshot(ProfileView.from(account), documents.liveOwned(account.getId()),
-                reviewer ? documents.liveQueue(List.of(DocumentStatus.SUBMITTED, DocumentStatus.APPROVED)) : List.of(), reviewer);
+                reviewer ? documents.liveQueue(List.of(DocumentStatus.SUBMITTED, DocumentStatus.RESUBMITTED,
+                        DocumentStatus.UNDER_REVIEW, DocumentStatus.APPROVED)) : List.of(), reviewer,
+                changes.current(account.getId(), reviewer));
     }
 }

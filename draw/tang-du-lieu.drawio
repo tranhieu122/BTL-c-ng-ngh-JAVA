@@ -1,0 +1,97 @@
+<mxfile host="Electron" agent="Codex">
+  <diagram id="data-layer" name="Tầng dữ liệu">
+    <mxGraphModel dx="1717" dy="1043" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="950" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=28;fontStyle=1;fontColor=#1E293B;" value="SƠ ĐỒ XÂY DỰNG TẦNG DỮ LIỆU" vertex="1">
+          <mxGeometry height="50" width="770" x="465" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="service" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#EDE9FE;strokeColor=#7C3AED;fontColor=#4C1D95;fontSize=15;fontStyle=1;spacing=12;" value="Tầng nghiệp vụ&#xa;Service Layer" vertex="1">
+          <mxGeometry height="90" width="210" x="65" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="dataBox" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#F8FAFC;strokeColor=#94A3B8;dashed=0;fontColor=#0F172A;" value="" vertex="1">
+          <mxGeometry height="600" width="980" x="360" y="145" as="geometry" />
+        </mxCell>
+        <mxCell id="dataTitle" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=21;fontStyle=1;fontColor=#0F172A;" value="Tầng dữ liệu" vertex="1">
+          <mxGeometry height="35" width="260" x="720" y="165" as="geometry" />
+        </mxCell>
+        <mxCell id="dataNote" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#475569;" value="Quản lý truy xuất dữ liệu, ánh xạ thực thể, ràng buộc quan hệ và khởi tạo/cập nhật cấu trúc cơ sở dữ liệu" vertex="1">
+          <mxGeometry height="40" width="600" x="550" y="202" as="geometry" />
+        </mxCell>
+        <mxCell id="repositoryBox" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#FFF7ED;strokeColor=#EA580C;dashed=0;" value="" vertex="1">
+          <mxGeometry height="345" width="255" x="405" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="repositoryTitle" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=17;fontStyle=1;fontColor=#7C2D12;" value="Repository" vertex="1">
+          <mxGeometry height="30" width="130" x="467" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="repositoryList" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#FFEDD5;strokeColor=#FB923C;fontColor=#7C2D12;fontSize=13;align=left;verticalAlign=top;spacing=12;" value="Spring Data JPA Repository&#xa;&#xa;UserRepository&#xa;RoleRepository&#xa;DocumentRepository&#xa;CategoryRepository&#xa;DepartmentRepository&#xa;DocumentReviewRepository&#xa;DocumentVersionRepository&#xa;NotificationRepository&#xa;...&#xa;&#xa;Chức năng: CRUD, tìm kiếm, lọc dữ liệu, truy vấn theo nghiệp vụ" vertex="1">
+          <mxGeometry height="255" width="205" x="430" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="entityBox" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#F0FDF4;strokeColor=#16A34A;dashed=0;" value="" vertex="1">
+          <mxGeometry height="345" width="255" x="720" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="entityTitle" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=17;fontStyle=1;fontColor=#14532D;" value="Entity" vertex="1">
+          <mxGeometry height="30" width="130" x="782" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="entityList" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#DCFCE7;strokeColor=#22C55E;fontColor=#14532D;fontSize=13;align=left;verticalAlign=top;spacing=12;" value="JPA / Hibernate Entity&#xa;&#xa;User, Role&#xa;Document, Category&#xa;Faculty, Department&#xa;DocumentReview&#xa;DocumentVersion&#xa;ApprovalHistory&#xa;Notification&#xa;Bookmark, Collection&#xa;AuditLog, OTP, Report...&#xa;&#xa;Chức năng: ánh xạ lớp Java với bảng dữ liệu, khai báo khóa và quan hệ" vertex="1">
+          <mxGeometry height="255" width="205" x="745" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="migrationBox" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#EEF2FF;strokeColor=#4F46E5;dashed=0;" value="" vertex="1">
+          <mxGeometry height="345" width="255" x="1035" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="migrationTitle" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=17;fontStyle=1;fontColor=#312E81;" value="Flyway Migration" vertex="1">
+          <mxGeometry height="30" width="150" x="1092" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="migrationList" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#E0E7FF;strokeColor=#6366F1;fontColor=#312E81;fontSize=13;align=left;verticalAlign=top;spacing=12;" value="db/migration&lt;br&gt;&lt;br&gt;V1__initial_schema.sql&lt;br&gt;V2__academic_repository_features.sql&lt;br&gt;V8__document_reviews_and_reports.sql&lt;br&gt;V9__system_audit_logs.sql&lt;br&gt;V11__auth_otp_tokens.sql&lt;br&gt;V12__user_activity_and_submitter&lt;br&gt;V13__phase1_document_workflow.sql&lt;br&gt;&lt;br&gt;Chức năng: tạo bảng, cập nhật cấu trúc, quản lý phiên bản CSDL" vertex="1">
+          <mxGeometry height="255" width="205" x="1060" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="jpa" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#DBEAFE;strokeColor=#2563EB;fontColor=#1E3A8A;fontSize=15;fontStyle=1;spacing=12;" value="JPA / Hibernate&#xa;Ánh xạ object - relational, quản lý quan hệ, tạo câu truy vấn" vertex="1">
+          <mxGeometry height="105" width="210" x="1445" y="165" as="geometry" />
+        </mxCell>
+        <mxCell id="database" parent="1" style="shape=cylinder3d;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#F1F5F9;strokeColor=#475569;fontColor=#334155;fontSize=14;fontStyle=1;spacing=12;" value="Cơ sở dữ liệu MySQL&#xa;&#xa;users, roles, user_roles&#xa;documents, categories&#xa;faculties, departments&#xa;document_reviews&#xa;document_versions&#xa;approval_history&#xa;notifications&#xa;audit_logs, auth_otp_tokens&#xa;bookmarks, collections..." vertex="1">
+          <mxGeometry height="220" width="240" x="1430" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="properties" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#FEF9C3;strokeColor=#CA8A04;fontColor=#713F12;fontSize=14;fontStyle=1;spacing=12;" value="application.properties&#xa;Cấu hình kết nối MySQL, JPA/Hibernate, Flyway và thông tin vận hành" vertex="1">
+          <mxGeometry height="58" width="835" x="430" y="655" as="geometry" />
+        </mxCell>
+        <mxCell id="bottomNote" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#F1F5F9;strokeColor=#CBD5E1;fontColor=#334155;fontSize=14;align=center;spacing=12;" value="Tầng dữ liệu của project EduRepo giúp hệ thống lưu trữ và truy xuất dữ liệu học liệu một cách nhất quán.&#xa;Repository cung cấp phương thức làm việc với dữ liệu, Entity mô tả cấu trúc đối tượng, Flyway quản lý thay đổi CSDL theo từng phiên bản." vertex="1">
+          <mxGeometry height="80" width="840" x="430" y="800" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="service" style="endArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#334155;fontSize=13;fontColor=#334155;" target="repositoryBox" value="gọi repository">
+          <mxGeometry height="50" relative="1" width="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="repositoryBox" style="endArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#334155;fontSize=13;fontColor=#334155;" target="entityBox" value="sử dụng entity">
+          <mxGeometry height="50" relative="1" width="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="entityBox" style="endArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#334155;fontSize=13;fontColor=#334155;exitX=0.75;exitY=0;exitDx=0;exitDy=0;" target="jpa" value="ánh xạ ORM">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="1210" y="245" />
+              <mxPoint x="1460" y="245" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="jpa" style="endArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#334155;fontSize=13;fontColor=#334155;" target="database" value="truy vấn / cập nhật">
+          <mxGeometry height="50" relative="1" width="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="migrationBox" style="endArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#334155;fontSize=13;fontColor=#334155;" target="database" value="tạo và cập nhật schema">
+          <mxGeometry height="50" relative="1" width="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="properties" style="endArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#334155;fontSize=13;fontColor=#334155;exitX=1;exitY=0;exitDx=0;exitDy=0;" target="jpa" value="cấu hình kết nối">
+          <mxGeometry height="50" relative="1" width="50" x="0.0031" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="database" style="endArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#334155;fontSize=13;fontColor=#334155;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="service" value="dữ liệu trả về">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="1550" y="760" />
+              <mxPoint x="170" y="760" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

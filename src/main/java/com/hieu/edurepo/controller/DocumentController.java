@@ -9,7 +9,7 @@ import com.hieu.edurepo.entity.User;
 import com.hieu.edurepo.enums.DocumentStatus;
 import com.hieu.edurepo.enums.EducationLevel;
 import com.hieu.edurepo.enums.LearningResourceType;
-import com.hieu.edurepo.enums.RoleName;
+import com.hieu.edurepo.enums.ReviewAction;
 import com.hieu.edurepo.exception.FileStorageException;
 import com.hieu.edurepo.exception.InvalidStatusException;
 import com.hieu.edurepo.exception.ResourceNotFoundException;
@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -120,11 +121,13 @@ public class DocumentController {
             @RequestParam(defaultValue = "submit") String intent,
             @AuthenticationPrincipal CustomUserPrincipal principal,
             Model model, RedirectAttributes redirectAttributes) {
+        // Tạo mới luôn cần file học liệu. Các lần chỉnh sửa sau có thể giữ file cũ nếu không upload lại.
         MultipartFile file = form.getFile();
         if (file == null || file.isEmpty()) {
             bindingResult.rejectValue("file", "required", "Vui lòng chọn tệp");
         }
 
+        // Kiểm tra dữ liệu tham chiếu từ form trước khi lưu file để tránh có file rác nếu category/khoa sai.
         Category category = resolveCategory(form.getCategoryId(), bindingResult);
         Faculty faculty = resolveFaculty(form.getFacultyId(), bindingResult);
         Department department = resolveDepartment(form.getDepartmentId(), faculty, bindingResult);
@@ -140,6 +143,7 @@ public class DocumentController {
         try {
             storedName = fileStorageService.store(validatedFile);
         } catch (FileStorageException exception) {
+            // Lỗi file được gắn vào đúng field để giao diện hiển thị ngay cạnh ô upload.
             bindingResult.rejectValue("file", "storage", exception.getMessage());
             addReferenceData(model);
             return "documents/form";
@@ -159,12 +163,14 @@ public class DocumentController {
         document.setFileSize(validatedFile.getSize());
         try {
             Document saved;
+            // "draft" lưu bản nháp; mọi thao tác "submit" đều đi vào workflow kiểm duyệt.
             if ("draft".equals(intent)) {
                 saved = documentService.saveDraft(document, owner);
                 redirectAttributes.addFlashAttribute("success", "Đã lưu bản nháp trong tài khoản của bạn");
             } else {
                 saved = documentService.submitNew(document, owner);
-                redirectAttributes.addFlashAttribute("success", submissionMessage(owner));
+                saved = saved == null ? document : saved;
+                redirectAttributes.addFlashAttribute("success", submissionMessage(saved));
             }
             saved = saved == null ? document : saved;
             audit(AuditAction.DOCUMENT_UPLOADED, saved.getId(), saved.getTitle(),
@@ -174,13 +180,11 @@ public class DocumentController {
             if ("draft".equals(intent)) {
                 audit(AuditAction.DOCUMENT_DRAFT_SAVED, saved.getId(), saved.getTitle(),
                         "Lưu bản nháp tài liệu: " + saved.getTitle());
-            } else {
-                audit(saved.getStatus() == DocumentStatus.PUBLISHED ? AuditAction.DOCUMENT_PUBLISHED
-                        : AuditAction.DOCUMENT_SUBMITTED, saved.getId(), saved.getTitle(),
-                        (saved.getStatus() == DocumentStatus.PUBLISHED ? "Tạo và công bố tài liệu: " : "Tạo và gửi duyệt tài liệu: ") + saved.getTitle());
             }
             redirectAttributes.addFlashAttribute("clearSubmissionDraft", true);
         } catch (RuntimeException exception) {
+            // File đã được chép lên disk trước khi ghi DB.
+            // Nếu DB/service lỗi thì xóa file vừa upload để metadata và thư mục lưu trữ không lệch nhau.
             try {
                 fileStorageService.delete(storedName);
             } catch (RuntimeException cleanupException) {
@@ -194,12 +198,18 @@ public class DocumentController {
     @GetMapping("/{id}")
     public String detail(@PathVariable Long id,
             @AuthenticationPrincipal CustomUserPrincipal principal,
+            @RequestParam(defaultValue = "0") int historyPage,
+            @RequestParam(defaultValue = "0") int versionPage,
             Model model) {
         Document document = documentService.findById(id);
         verifyOwnerOrAdmin(document, requirePrincipal(principal));
+        var history = reviewService.history(id, PageRequest.of(Math.max(0, historyPage), 10));
+        var versions = documentService.findVersions(id, PageRequest.of(Math.max(0, versionPage), 10));
         model.addAttribute("document", document);
-        model.addAttribute("history", reviewService.history(id));
-        model.addAttribute("versions", documentService.findVersions(id));
+        model.addAttribute("history", history.getContent());
+        model.addAttribute("historyPage", history);
+        model.addAttribute("versions", versions.getContent());
+        model.addAttribute("versionPage", versions);
         return "documents/detail";
     }
 
@@ -241,6 +251,7 @@ public class DocumentController {
         verifyOwner(current, currentPrincipal);
         verifyEditable(current);
 
+        // Khi sửa tài liệu, vẫn kiểm tra category/khoa/bộ môn vì admin có thể đã ngừng dùng dữ liệu tham chiếu.
         Category category = resolveCategory(form.getCategoryId(), bindingResult);
         Faculty faculty = resolveFaculty(form.getFacultyId(), bindingResult);
         Department department = resolveDepartment(form.getDepartmentId(), faculty, bindingResult);
@@ -254,6 +265,7 @@ public class DocumentController {
         String storedName = null;
         if (replacement != null && !replacement.isEmpty()) {
             try {
+                // Chỉ tạo phiên bản file mới khi người dùng thật sự upload file thay thế.
                 storedName = fileStorageService.store(replacement);
                 applyFileMetadata(changes, replacement, storedName);
             } catch (FileStorageException exception) {
@@ -264,7 +276,10 @@ public class DocumentController {
         }
 
         try {
-            Document saved = documentService.updateDraft(id, changes, userService.findById(currentPrincipal.getId()));
+            User owner = userService.findById(currentPrincipal.getId());
+            Document saved = form.getChangeNote() == null || form.getChangeNote().isBlank()
+                    ? documentService.updateDraft(id, changes, owner)
+                    : documentService.updateDraft(id, changes, owner, form.getChangeNote());
             saved = saved == null ? changes : saved;
             audit(AuditAction.DOCUMENT_UPDATED, saved.getId(), "Cập nhật tài liệu: " + saved.getTitle());
         } catch (RuntimeException exception) {
@@ -282,11 +297,30 @@ public class DocumentController {
             RedirectAttributes redirectAttributes) {
         User owner = userService.findById(requirePrincipal(principal).getId());
         Document submitted = documentService.submit(id, owner);
-        audit(submitted.getStatus() == DocumentStatus.PUBLISHED ? AuditAction.DOCUMENT_PUBLISHED
-                : AuditAction.DOCUMENT_SUBMITTED, submitted.getId(),
-                (submitted.getStatus() == DocumentStatus.PUBLISHED ? "Công bố tài liệu: " : "Gửi tài liệu để duyệt: ") + submitted.getTitle());
-        redirectAttributes.addFlashAttribute("success", submissionMessage(owner));
+        redirectAttributes.addFlashAttribute("success", submissionMessage(submitted));
         return "redirect:/documents";
+    }
+
+    @PostMapping("/{id}/publish")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String publish(@PathVariable Long id,
+                          @AuthenticationPrincipal CustomUserPrincipal principal,
+                          RedirectAttributes redirectAttributes) {
+        User admin = userService.findById(requirePrincipal(principal).getId());
+        reviewService.review(id, ReviewAction.PUBLISHED, "Công bố tài liệu", admin);
+        redirectAttributes.addFlashAttribute("success", "Đã công bố tài liệu");
+        return "redirect:/documents/" + id;
+    }
+
+    @PostMapping("/{id}/archive")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String archive(@PathVariable Long id,
+                          @AuthenticationPrincipal CustomUserPrincipal principal,
+                          RedirectAttributes redirectAttributes) {
+        User admin = userService.findById(requirePrincipal(principal).getId());
+        reviewService.review(id, ReviewAction.ARCHIVED, "Lưu trữ tài liệu", admin);
+        redirectAttributes.addFlashAttribute("success", "Đã chuyển tài liệu vào kho lưu trữ");
+        return "redirect:/documents/" + id;
     }
 
     @PostMapping("/{id}/delete")
@@ -391,6 +425,7 @@ public class DocumentController {
         }
         if (faculty == null || department.getFaculty() == null
                 || !department.getFaculty().getId().equals(faculty.getId())) {
+            // Không tin hoàn toàn dữ liệu hidden/select từ trình duyệt; luôn xác nhận bộ môn thuộc khoa đã chọn.
             bindingResult.rejectValue("departmentId", "facultyMismatch", "Bộ môn không thuộc khoa đã chọn");
             return null;
         }
@@ -398,6 +433,7 @@ public class DocumentController {
     }
 
     private void verifyOwnerOrAdmin(Document document, CustomUserPrincipal principal) {
+        // Trang chi tiết nội bộ cho phép admin hỗ trợ kiểm tra, còn người dùng thường chỉ xem tài liệu của mình.
         boolean admin = principal.getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
         if (!admin && (document.getCreatedBy() == null
@@ -414,6 +450,7 @@ public class DocumentController {
     }
 
     private void verifyEditable(Document document) {
+        // Sau khi đã gửi duyệt/công bố/từ chối, tác giả không được sửa trực tiếp để bảo toàn lịch sử xét duyệt.
         if (document.getStatus() != DocumentStatus.DRAFT
                 && document.getStatus() != DocumentStatus.REVISION_REQUIRED) {
             throw new InvalidStatusException("Tài liệu ở trạng thái hiện tại không thể chỉnh sửa");
@@ -427,7 +464,8 @@ public class DocumentController {
         try {
             fileStorageService.delete(storedName);
         } catch (RuntimeException exception) {
-            LOGGER.warn("Không thể xóa {}: {}", context, storedName, exception);
+            LOGGER.warn("Không thể xóa {} (exception={})", context, exception.getClass().getSimpleName());
+            LOGGER.debug("Chi tiết lỗi cleanup tệp", exception);
         }
     }
 
@@ -448,12 +486,9 @@ public class DocumentController {
         };
     }
 
-    private String submissionMessage(User owner) {
-        boolean directPublisher = owner.getRoles().stream()
-                .map(role -> role.getName())
-                .anyMatch(role -> role == RoleName.ADMIN || role == RoleName.REVIEWER);
-        return directPublisher
-                ? "Đã công bố tài liệu ngay vào kho học liệu."
+    private String submissionMessage(Document document) {
+        return document.getStatus() == DocumentStatus.RESUBMITTED
+                ? "Đã gửi lại phiên bản chỉnh sửa. Tài liệu đang chờ reviewer kiểm tra."
                 : "Đã nộp tài liệu thành công. Tài liệu đang chờ duyệt.";
     }
 

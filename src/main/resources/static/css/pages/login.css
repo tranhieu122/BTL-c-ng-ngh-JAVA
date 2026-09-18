@@ -111,14 +111,14 @@
     margin-bottom: 1rem;
 }
 
-.auth-message h1 {
+.auth-message h2 {
     margin-bottom: 1.15rem;
     color: var(--white);
     font-size: clamp(2.2rem, 4vw, 3.65rem);
     line-height: 1.04;
 }
 
-.auth-message h1 span {
+.auth-message h2 span {
     color: transparent;
     background: linear-gradient(90deg, var(--primary-300), var(--cyan-300));
     background-clip: text;
@@ -319,7 +319,7 @@
     margin-bottom: 1.5rem;
 }
 
-.auth-card-heading h2 {
+.auth-card-heading h1 {
     margin-bottom: 0.6rem;
     font-size: clamp(1.7rem, 3vw, 2.25rem);
 }

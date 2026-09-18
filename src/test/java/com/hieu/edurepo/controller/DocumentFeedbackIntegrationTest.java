@@ -23,6 +23,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -209,7 +210,8 @@ class DocumentFeedbackIntegrationTest {
 
         var result = mockMvc.perform(get("/repository/{id}", document.getId()))
                 .andExpect(status().isOk()).andReturn();
-        var summary = (com.hieu.edurepo.dto.DocumentReviewSummary) result.getModelAndView().getModel().get("reviewSummary");
+        var summary = (com.hieu.edurepo.dto.DocumentReviewSummary) Objects.requireNonNull(result.getModelAndView(),
+                "Expected the document-detail request to render a model").getModel().get("reviewSummary");
         assertEquals(4.0, summary.averageRating(), 0.001);
         assertEquals(2, summary.reviewCount());
     }

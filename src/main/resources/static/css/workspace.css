@@ -485,13 +485,16 @@
     background: #e9f8f2;
 }
 
-.status-pill.status-submitted {
+.status-pill.status-submitted,
+.status-pill.status-resubmitted,
+.status-pill.status-under_review {
     color: #9a5b08;
     background: #fff5df;
 }
 
 .status-pill.status-draft,
-.status-pill.status-revision_required {
+.status-pill.status-revision_required,
+.status-pill.status-archived {
     color: #475467;
     background: #eef1f5;
 }
@@ -778,6 +781,67 @@
     background: #cde4e0;
 }
 
+.review-history-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: .75rem;
+    margin-bottom: .45rem;
+}
+
+.review-history-heading strong {
+    color: var(--ink-800);
+    font-size: .82rem;
+}
+
+.review-history-heading time,
+.review-actor {
+    color: var(--ink-400);
+    font-size: .67rem;
+}
+
+.review-transition {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .4rem;
+    margin-bottom: .5rem;
+}
+
+.review-transition span {
+    padding: .2rem .48rem;
+    color: var(--ink-600);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #f8fafb;
+    font-size: .63rem;
+    font-weight: 800;
+}
+
+.review-transition b { color: var(--workspace-accent); }
+
+.review-comment {
+    margin: 0 0 .4rem;
+    color: var(--ink-600);
+    line-height: 1.55;
+    white-space: pre-line;
+}
+
+.review-actor,
+.review-history .rubric-summary { display: block; }
+
+.review-event-approved::before,
+.review-event-published::before { background: #15936f !important; }
+.review-event-rejected::before { background: #ba3d32 !important; }
+.review-event-revision_requested::before { background: #d1841c !important; }
+
+.review-decision-panel {
+    position: sticky;
+    top: 5.5rem;
+    max-height: calc(100vh - 6.5rem);
+    overflow-y: auto;
+}
+
 .compact-empty {
     padding: 1.75rem 1rem;
 }
@@ -821,6 +885,7 @@
     .organization-tables { grid-template-columns: 1fr; }
     .document-filter-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .category-layout { grid-template-columns: 300px minmax(0, 1fr); }
+    .review-decision-panel { position: static; max-height: none; overflow: visible; }
 }
 
 @media (max-width: 760px) {
@@ -838,4 +903,5 @@
     .form-submit-row { align-items: stretch; flex-direction: column-reverse; }
     .form-submit-row .button { width: 100%; }
     .document-filter-panel { grid-template-columns: 1fr; }
+    .review-history-heading { align-items: flex-start; flex-direction: column; gap: .2rem; }
 }

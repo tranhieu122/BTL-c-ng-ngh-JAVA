@@ -9,6 +9,7 @@
 @import url("./components/header.css");
 @import url("./components/footer.css");
 @import url("./components/feedback.css");
+@import url("./components/document-assistant.css");
 @import url("./pages/repository.css");
 @import url("./pages/document-detail.css");
 @import url("./pages/document-upload.css");
@@ -28,3 +29,4 @@
 @import url("./pages/home-refresh.css");
 @import url("./pages/document-feedback.css");
 @import url("./pages/audit-logs.css");
+@import url("./components/performance.css");

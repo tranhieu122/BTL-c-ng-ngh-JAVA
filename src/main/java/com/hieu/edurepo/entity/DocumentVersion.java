@@ -45,6 +45,9 @@ public class DocumentVersion {
     @Column(length = 1000)
     private String changeNote;
 
+    @Column(nullable = false)
+    private boolean currentVersion;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
@@ -75,6 +78,8 @@ public class DocumentVersion {
     public void setChecksum(String checksum) { this.checksum = checksum; }
     public String getChangeNote() { return changeNote; }
     public void setChangeNote(String changeNote) { this.changeNote = changeNote; }
+    public boolean isCurrentVersion() { return currentVersion; }
+    public void setCurrentVersion(boolean currentVersion) { this.currentVersion = currentVersion; }
     public User getCreatedBy() { return createdBy; }
     public void setCreatedBy(User createdBy) { this.createdBy = createdBy; }
     public LocalDateTime getCreatedAt() { return createdAt; }

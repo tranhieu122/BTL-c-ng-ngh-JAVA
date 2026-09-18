@@ -1,0 +1,32 @@
+name: Backend CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25 and Maven cache
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Verify Docker for MySQL integration tests
+        run: docker info
+
+      - name: Prepare Maven wrapper
+        run: chmod +x ./mvnw
+
+      - name: Run unit and integration tests
+        run: ./mvnw --batch-mode --no-transfer-progress verify

@@ -22,6 +22,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -95,16 +97,18 @@ public class AuditLogServiceImpl implements AuditLogService {
     public void recordAsUser(User actor, AuditAction action, AuditTargetType targetType, Long targetId,
                              String description, AuditResult result) {
         AuditLog log = baseLog(action, targetType, targetId, null, description, result);
-        if (actor != null) {
-            log.setActorId(actor.getId());
-            log.setActorName(normalize(actor.getFullName(), 255));
-            log.setActorIdentifier(normalize(actor.getEmail(), 255));
-            if (actor.getRoles() != null) {
-                log.setActorRoles(actor.getRoles().stream().map(role -> role.getName().name())
-                        .sorted().collect(Collectors.joining(", ")));
-            }
-        }
+        applyActor(log, actor);
         persistSafely(log);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void recordTransactionalAsUser(User actor, AuditAction action, AuditTargetType targetType, Long targetId,
+                                          String targetName, String description, AuditResult result) {
+        AuditLog log = baseLog(action, targetType, targetId, targetName, description, result);
+        applyActor(log, actor);
+        // Không dùng REQUIRES_NEW ở đây: workflow, lịch sử duyệt và audit phải commit/rollback cùng nhau.
+        repository.save(log);
     }
 
     @Override
@@ -160,11 +164,6 @@ public class AuditLogServiceImpl implements AuditLogService {
         return repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bản ghi nhật kí"));
     }
 
-    private AuditLog baseLog(AuditAction action, AuditTargetType targetType, Long targetId,
-                             String description, AuditResult result) {
-        return baseLog(action, targetType, targetId, null, description, result);
-    }
-
     private AuditLog baseLog(AuditAction action, AuditTargetType targetType, Long targetId, String targetName,
                              String description, AuditResult result) {
         AuditLog log = new AuditLog();
@@ -191,6 +190,17 @@ public class AuditLogServiceImpl implements AuditLogService {
             requiresNew.executeWithoutResult(status -> repository.saveAndFlush(log));
         } catch (RuntimeException exception) {
             LOGGER.warn("Không thể ghi nhật kí hệ thống cho hành động {}", log.getAction(), exception);
+        }
+    }
+
+    private void applyActor(AuditLog log, User actor) {
+        if (actor == null) return;
+        log.setActorId(actor.getId());
+        log.setActorName(normalize(actor.getFullName(), 255));
+        log.setActorIdentifier(normalize(actor.getEmail(), 255));
+        if (actor.getRoles() != null) {
+            log.setActorRoles(actor.getRoles().stream().map(role -> role.getName().name())
+                    .sorted().collect(Collectors.joining(", ")));
         }
     }
 

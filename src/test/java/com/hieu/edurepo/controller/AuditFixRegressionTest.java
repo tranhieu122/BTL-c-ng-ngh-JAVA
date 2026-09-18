@@ -21,6 +21,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.*;
+import java.util.Objects;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -133,7 +134,7 @@ class AuditFixRegressionTest {
 
     @Test
     void organizationEditsSurviveInitializerReplay() {
-        Department department = departments.findAll().getFirst();
+        Department department = departments.findAll().get(0);
         Faculty original = department.getFaculty();
         Faculty destination = new Faculty();
         destination.setName("Audit faculty " + UUID.randomUUID());
@@ -154,13 +155,13 @@ class AuditFixRegressionTest {
     void serverDraftCanBeEditedWithoutLosingLicenseAndThenSubmitted() throws Exception {
         User owner = account(RoleName.SUBMITTER);
         Category category = category();
-        Department department = departments.findAll().getFirst();
+        Department department = departments.findAll().get(0);
         mvc.perform(multipart("/documents").file(pdf()).with(user(CustomUserPrincipal.from(owner))).with(csrf())
                         .param("intent", "draft").param("title", "Server draft").param("description", "Draft description")
                         .param("categoryId", category.getId().toString()).param("facultyId", department.getFaculty().getId().toString())
                         .param("departmentId", department.getId().toString()).param("licenseType", "CC_BY"))
                 .andExpect(redirectedUrl("/documents")).andExpect(flash().attribute("clearSubmissionDraft", true));
-        Document draft = documents.findByCreatedByIdOrderByCreatedAtDesc(owner.getId()).getFirst();
+        Document draft = documents.findByCreatedByIdOrderByCreatedAtDesc(owner.getId()).get(0);
         assertEquals(DocumentStatus.DRAFT, draft.getStatus());
         assertEquals(1, documentService.findVersions(draft.getId()).size());
         mvc.perform(get("/repository/" + draft.getId())).andExpect(status().isNotFound());
@@ -185,23 +186,26 @@ class AuditFixRegressionTest {
     }
 
     @Test
-    void approvedReviewPageOffersOnlyPublishing() throws Exception {
+    void approvedReviewPageOffersPublishingOnlyToAdmin() throws Exception {
         Document document = document(account(RoleName.SUBMITTER), DocumentStatus.APPROVED);
         mvc.perform(get("/reviews/" + document.getId()).with(user("reviewer").roles("REVIEWER")))
-                .andExpect(status().isOk()).andExpect(content().string(containsString("value=\"PUBLISHED\"")))
+                .andExpect(status().isOk()).andExpect(content().string(not(containsString("/publish"))))
                 .andExpect(content().string(not(containsString("value=\"REJECTED\""))))
                 .andExpect(content().string(not(containsString("value=\"APPROVED\""))));
+        mvc.perform(get("/reviews/" + document.getId()).with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk()).andExpect(content().string(containsString("/publish")));
     }
 
     @Test
     void competingReviewDecisionsCannotBothCommit() throws Exception {
-        Document document = document(account(RoleName.SUBMITTER), DocumentStatus.SUBMITTED);
+        Document document = document(account(RoleName.SUBMITTER), DocumentStatus.UNDER_REVIEW);
         User firstReviewer = account(RoleName.REVIEWER);
         User secondReviewer = account(RoleName.REVIEWER);
         CountDownLatch decisionSaved = new CountDownLatch(1);
         CountDownLatch allowCommit = new CountDownLatch(1);
         CountDownLatch secondStarted = new CountDownLatch(1);
-        try (var executor = Executors.newFixedThreadPool(2)) {
+        var executor = Executors.newFixedThreadPool(2);
+        try {
             var first = executor.submit(() -> new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
                 reviewService.review(document.getId(), ReviewAction.APPROVED, "Approve", firstReviewer);
                 decisionSaved.countDown();
@@ -222,7 +226,10 @@ class AuditFixRegressionTest {
             assertInstanceOf(InvalidStatusException.class, conflict.getCause());
             assertEquals(DocumentStatus.APPROVED, documents.findById(document.getId()).orElseThrow().getStatus());
             assertEquals(1, reviewService.history(document.getId()).size());
-        } finally { allowCommit.countDown(); }
+        } finally {
+            allowCommit.countDown();
+            executor.shutdownNow();
+        }
     }
 
     @Test
@@ -270,9 +277,12 @@ class AuditFixRegressionTest {
     }
 
     private MockHttpSession login(User account) throws Exception {
-        return (MockHttpSession) mvc.perform(post("/login").param("email", account.getEmail())
-                        .param("password", "Password123").with(csrf())).andExpect(redirectedUrl("/dashboard"))
-                .andReturn().getRequest().getSession(false);
+        return (MockHttpSession) Objects.requireNonNull(
+                mvc.perform(post("/login").param("email", account.getEmail())
+                                .param("password", "Password123").with(csrf()))
+                        .andExpect(redirectedUrl("/dashboard"))
+                        .andReturn().getRequest().getSession(false),
+                "Expected login to create a session");
     }
 
     private Category category() {

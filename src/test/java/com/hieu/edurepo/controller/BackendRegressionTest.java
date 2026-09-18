@@ -19,9 +19,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -88,6 +90,29 @@ class BackendRegressionTest {
         mockMvc.perform(get("/reviews/pending"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(document.getTitle())));
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void reviewQueueRendersRealDocumentRelationsAfterServiceTransactionCloses() throws Exception {
+        String token = UUID.randomUUID().toString();
+        User owner = saveUser("queue-owner-" + token + "@example.test", RoleName.SUBMITTER);
+        User reviewer = saveUser("queue-reviewer-" + token + "@example.test", RoleName.REVIEWER);
+        Category category = new Category();
+        category.setName("Danh mục kiểm duyệt " + token);
+        category = categoryRepository.saveAndFlush(category);
+
+        Document document = saveDocument("Hồ sơ kiểm duyệt " + token, DocumentStatus.SUBMITTED, owner);
+        document.setDescription("Hồ sơ có đầy đủ mô tả giống dữ liệu sử dụng thực tế.");
+        document.setCategory(category);
+        document = documentRepository.saveAndFlush(document);
+
+        mockMvc.perform(get("/reviews/pending").with(user(CustomUserPrincipal.from(reviewer))))
+                .andExpect(status().isOk())
+                .andExpect(view().name("reviews/pending"))
+                .andExpect(content().string(containsString(document.getTitle())))
+                .andExpect(content().string(containsString(owner.getFullName())))
+                .andExpect(content().string(containsString(category.getName())));
     }
 
     @Test

@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/events")
@@ -26,7 +27,8 @@ public class RealtimeController {
     @GetMapping(value = "/stream", produces = "text/event-stream")
     public SseEmitter stream(@AuthenticationPrincipal CustomUserPrincipal principal, HttpServletRequest request, HttpServletResponse response) {
         response.setHeader("Cache-Control", "no-store"); response.setHeader("X-Accel-Buffering", "no");
-        return realtime.connect(principal, request.getSession(false));
+        return realtime.connect(principal, Objects.requireNonNull(request.getSession(false),
+                "Authenticated realtime requests must have a session"));
     }
     @GetMapping("/snapshot")
     public RealtimeSnapshotService.Snapshot snapshot(@AuthenticationPrincipal CustomUserPrincipal principal, HttpServletResponse response) {

@@ -1,0 +1,68 @@
+/* Rendering and navigation performance refinements shared by every page. */
+
+html {
+    scrollbar-gutter: stable;
+}
+
+/* Native cross-document transitions keep server-rendered navigation intact. */
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-old(root) {
+    animation: edurepo-page-out 90ms ease-out both;
+}
+
+::view-transition-new(root) {
+    animation: edurepo-page-in 150ms ease-out both;
+}
+
+@keyframes edurepo-page-out {
+    to { opacity: 0.88; }
+}
+
+@keyframes edurepo-page-in {
+    from { opacity: 0.82; }
+}
+
+/* A blurred sticky layer is repainted continuously while the page scrolls. */
+.site-header .topbar {
+    background: rgba(255, 255, 255, 0.985);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+/* Skip layout and paint work for off-screen rows in potentially long lists. */
+@supports (content-visibility: auto) {
+    :is(.product-card, .queue-card, .library-document-card,
+        .review-history-row, .request-history > article) {
+        content-visibility: auto;
+        contain-intrinsic-size: auto 220px;
+    }
+}
+
+/* Keep list entrance feedback brief; long staggered motion feels like lag. */
+.reveal-card {
+    will-change: opacity, transform;
+}
+
+.reveal-card.is-revealed {
+    transition-duration: 220ms, 220ms, 180ms, 180ms;
+    will-change: auto;
+}
+
+@media (max-width: 900px), (update: slow) {
+    .hero-note,
+    .repository-page :is(.repository-hero, .advanced-filter-form),
+    .library-page :is(.library-hero, .library-toolbar) {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none;
+    }
+}

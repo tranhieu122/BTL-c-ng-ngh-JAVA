@@ -24,7 +24,8 @@ public class AvatarStorageService {
         root = Path.of(directory).toAbsolutePath().normalize().resolve("avatars");
     }
     public String store(Long ownerId, MultipartFile file) {
-        String name = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase(Locale.ROOT);
+        String originalFilename = file.getOriginalFilename();
+        String name = originalFilename == null ? "" : originalFilename.toLowerCase(Locale.ROOT);
         if (file.isEmpty() || file.getSize() > MAX_BYTES || !(name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg"))
                 || !("image/png".equals(file.getContentType()) || "image/jpeg".equals(file.getContentType()))) {
             throw new IllegalArgumentException("Chọn ảnh PNG hoặc JPEG, dung lượng tối đa 2 MB.");

@@ -50,7 +50,10 @@ public class ProfileController {
     ResponseEntity<Resource> avatar(@AuthenticationPrincipal CustomUserPrincipal principal) {
         var profile = profiles.get(principal.getId());
         Resource resource = avatars.load(principal.getId(), profile.avatarRevision());
-        var type = resource.getFilename() != null && resource.getFilename().endsWith(".svg") ? MediaType.valueOf("image/svg+xml") : MediaType.IMAGE_PNG;
+        String filename = resource.getFilename();
+        var type = filename != null && filename.endsWith(".svg")
+                ? MediaType.valueOf("image/svg+xml")
+                : MediaType.IMAGE_PNG;
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).contentType(type).body(resource);
     }
     @PostMapping("/avatar")

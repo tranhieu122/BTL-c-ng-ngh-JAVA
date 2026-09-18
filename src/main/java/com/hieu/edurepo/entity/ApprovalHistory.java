@@ -1,6 +1,7 @@
 package com.hieu.edurepo.entity;
 
 import com.hieu.edurepo.enums.ReviewAction;
+import com.hieu.edurepo.enums.DocumentStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -37,6 +38,14 @@ public class ApprovalHistory {
 
     @Column(columnDefinition = "TEXT")
     private String comment;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private DocumentStatus oldStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private DocumentStatus newStatus;
 
     private Integer contentQualityScore;
     private Integer teachingEffectivenessScore;
@@ -89,6 +98,11 @@ public class ApprovalHistory {
     public void setComment(String comment) {
         this.comment = comment;
     }
+
+    public DocumentStatus getOldStatus() { return oldStatus; }
+    public void setOldStatus(DocumentStatus oldStatus) { this.oldStatus = oldStatus; }
+    public DocumentStatus getNewStatus() { return newStatus; }
+    public void setNewStatus(DocumentStatus newStatus) { this.newStatus = newStatus; }
 
     public Integer getContentQualityScore() { return contentQualityScore; }
     public void setContentQualityScore(Integer contentQualityScore) { this.contentQualityScore = contentQualityScore; }

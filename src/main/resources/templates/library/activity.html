@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title th:text="${activityType == 'views' ? 'Đã xem gần đây | EduRepo' : 'Lịch sử tải xuống | EduRepo'}">Hoạt động | EduRepo</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="page-shell"><div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main id="main-content" class="content workspace-content library-page">
+    <header class="workspace-heading"><div><span class="workspace-kicker">Không gian cá nhân</span><h1 th:text="${activityType == 'views' ? 'Đã xem gần đây' : 'Đã tải xuống'}">Hoạt động</h1><p class="subtitle" th:text="${activityType == 'views' ? 'Tiếp tục đọc những học liệu bạn vừa truy cập.' : 'Tra cứu những học liệu bạn đã tải về và thời điểm tải gần nhất.'}">Lịch sử học liệu.</p></div><div class="workspace-actions"><a class="button button-secondary" th:href="@{/repository}">Khám phá kho</a></div></header>
+    <section class="data-panel activity-panel">
+        <div class="data-panel-header"><strong th:text="${activityType == 'views' ? 'Tài liệu đã xem' : 'Tài liệu đã tải'}">Tài liệu</strong><span class="record-count" th:text="|${#lists.size(items)} tài liệu|">0 tài liệu</span></div>
+        <div class="activity-list" th:if="${!#lists.isEmpty(items)}">
+            <article class="activity-row" th:each="item : ${items}">
+                <div class="activity-copy"><span th:text="${item.document.category != null ? item.document.category.name : 'Học liệu'}">Học liệu</span><h2><a th:href="@{/repository/{id}(id=${item.document.id})}" th:text="${item.document.title}">Tài liệu</a></h2><p th:text="${item.document.summary ?: item.document.description ?: 'Không có mô tả.'}">Mô tả</p></div>
+                <div class="activity-meta" th:if="${activityType == 'views'}"><strong th:text="${#temporals.format(item.viewedAt, 'dd/MM/yyyy HH:mm')}">Thời gian</strong><small>Xem gần nhất</small></div>
+                <div class="activity-meta" th:if="${activityType == 'downloads'}"><strong th:text="${#temporals.format(item.downloadedAt, 'dd/MM/yyyy HH:mm')}">Thời gian</strong><small th:text="|${item.downloadCount} lượt tải|">1 lượt tải</small></div>
+            </article>
+        </div>
+        <div class="empty-panel" th:if="${#lists.isEmpty(items)}"><h2 th:text="${activityType == 'views' ? 'Chưa xem tài liệu nào' : 'Chưa tải tài liệu nào'}">Chưa có hoạt động</h2><p>Khám phá kho công khai để tìm học liệu phù hợp với bạn.</p><a class="button" th:href="@{/repository}">Mở kho học liệu</a></div>
+    </section>
+</main></div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body></html>

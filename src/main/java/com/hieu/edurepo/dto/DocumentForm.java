@@ -46,6 +46,9 @@ public class DocumentForm {
     private Long departmentId;
     private MultipartFile file;
 
+    @Size(max = 1000, message = "Ghi chú thay đổi không được vượt quá 1000 ký tự")
+    private String changeNote;
+
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public String getDescription() { return description; }
@@ -72,4 +75,6 @@ public class DocumentForm {
     public void setDepartmentId(Long departmentId) { this.departmentId = departmentId; }
     public MultipartFile getFile() { return file; }
     public void setFile(MultipartFile file) { this.file = file; }
+    public String getChangeNote() { return changeNote; }
+    public void setChangeNote(String changeNote) { this.changeNote = changeNote; }
 }

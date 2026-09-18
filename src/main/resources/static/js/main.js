@@ -1,32 +1,48 @@
-import { initAuth } from "./modules/auth.js";
-import { initCatalog } from "./modules/catalog.js";
 import { initCoreUi, ready, setupCardReveal } from "./modules/core.js";
-import { initDocumentActions } from "./modules/document-actions.js";
-import { initDocumentSubmission } from "./modules/document-submission.js";
 import { initForms } from "./modules/forms.js";
 import { initNavigation } from "./modules/navigation.js";
-import { initReviewQueue } from "./modules/review-queue.js";
-import { initAdminDashboard } from "./modules/admin-dashboard.js";
-import { initProfile } from "./modules/profile.js";
-import { initRealtimeRegions } from "./modules/realtime-regions.js";
-import { initRealtime } from "./modules/realtime.js";
-import { initNotifications } from "./modules/notifications.js";
+
+const loadFeature = (selector, modulePath, initializer) => {
+    if (!document.querySelector(selector)) return Promise.resolve();
+    return import(modulePath).then((module) => module[initializer]());
+};
+
+const initRealtimeFeatures = async () => {
+    if (!document.querySelector("[data-realtime]")) return;
+
+    // Register snapshot consumers before opening the SSE connection so the
+    // first snapshot cannot arrive before a page-specific listener is ready.
+    const [{ initRealtimeRegions }, { initNotifications }, { initRealtime }] = await Promise.all([
+        import("./modules/realtime-regions.js"),
+        import("./modules/notifications.js"),
+        import("./modules/realtime.js")
+    ]);
+    const refreshReviewQueue = () => import("./modules/review-queue.js")
+        .then(({ initReviewQueue }) => initReviewQueue());
+    initRealtimeRegions(refreshReviewQueue);
+    initNotifications();
+    initRealtime();
+};
 
 ready(() => {
     document.documentElement.classList.add("js-ready");
 
     initCoreUi();
     initNavigation();
-    initReviewQueue();
-    initAdminDashboard();
-    initCatalog();
-    initDocumentActions();
-    initDocumentSubmission();
-    initProfile();
     initForms();
-    initRealtimeRegions(initReviewQueue);
-    initRealtime();
-    initNotifications();
-    initAuth();
     setupCardReveal();
+
+    // Most pages only need the shared shell. Loading feature modules on demand
+    // avoids parsing the whole frontend bundle again after every navigation.
+    void Promise.allSettled([
+        loadFeature("[data-password-toggle], [data-login-form]", "./modules/auth.js", "initAuth"),
+        loadFeature("[data-document-grid], [data-search-input]", "./modules/catalog.js", "initCatalog"),
+        loadFeature("[data-share-link]", "./modules/document-actions.js", "initDocumentActions"),
+        loadFeature("[data-document-submission]", "./modules/document-submission.js", "initDocumentSubmission"),
+        loadFeature("[data-review-list]", "./modules/review-queue.js", "initReviewQueue"),
+        loadFeature("[data-admin-dashboard]", "./modules/admin-dashboard.js", "initAdminDashboard"),
+        loadFeature("[data-profile-page]", "./modules/profile.js", "initProfile"),
+        loadFeature("[data-document-assistant]", "./modules/document-assistant.js", "initDocumentAssistant"),
+        initRealtimeFeatures()
+    ]);
 });

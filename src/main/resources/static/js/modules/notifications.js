@@ -40,11 +40,16 @@ export function initNotifications() {
     const refreshList = async () => {
         if (loading) return;
         loading = true;
+        list.classList.remove("is-empty", "is-error");
+        list.classList.add("is-loading");
+        list.setAttribute("aria-busy", "true");
+        list.replaceChildren();
         try {
             const response = await request(`${apiUrl}?page=0&size=20`);
             if (!response.ok) throw new Error("notifications unavailable");
             const page = await response.json();
             list.replaceChildren();
+            list.classList.remove("is-loading", "is-error");
             for (const item of page.items) {
                 const row = document.createElement("li");
                 if (!item.read) row.classList.add("is-unread");
@@ -70,9 +75,11 @@ export function initNotifications() {
             await refreshCount();
         } catch {
             list.replaceChildren();
+            list.classList.remove("is-loading", "is-empty");
             list.classList.add("is-error");
         } finally {
             loading = false;
+            list.removeAttribute("aria-busy");
         }
     };
 

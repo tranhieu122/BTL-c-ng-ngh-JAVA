@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.ui.ConcurrentModel;
@@ -22,7 +23,8 @@ class GlobalModelAttributesTest {
 
         assertThat(model.getAttribute("appZoneId")).isEqualTo("Asia/Ho_Chi_Minh");
         assertThat(model.getAttribute("currentDateTimeText")).isEqualTo("12/09/2026 10:45");
-        assertThat(model.getAttribute("currentDateTime").toString())
+        assertThat(Objects.requireNonNull(model.getAttribute("currentDateTime"),
+                        "Global model must expose currentDateTime").toString())
                 .contains("2026-09-12T10:45+07:00[Asia/Ho_Chi_Minh]");
     }
 }

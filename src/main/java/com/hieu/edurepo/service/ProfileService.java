@@ -27,12 +27,14 @@ public class ProfileService {
     private final PasswordEncoder encoder;
     private final AvatarStorageService avatars;
     private final Validator validator;
+    private final RealtimeChangeTracker realtimeChanges;
     public ProfileService(UserRepository users, RoleRepository roles, BookmarkRepository bookmarks,
                           DocumentCollectionRepository collections, CollectionItemRepository items,
-                          PasswordEncoder encoder, AvatarStorageService avatars, Validator validator) {
+                          PasswordEncoder encoder, AvatarStorageService avatars, Validator validator,
+                          RealtimeChangeTracker realtimeChanges) {
         this.users = users; this.roles = roles; this.bookmarks = bookmarks;
         this.collections = collections; this.items = items; this.encoder = encoder;
-        this.avatars = avatars; this.validator = validator;
+        this.avatars = avatars; this.validator = validator; this.realtimeChanges = realtimeChanges;
     }
     private User active(User user) {
         if (!user.isEnabled() || user.getDeletedAt() != null) throw new AccessDeniedException("Tài khoản không còn hoạt động.");
@@ -51,6 +53,7 @@ public class ProfileService {
         User account = locked(id);
         account.setFullName(clean(form.getFullName())); account.setPhoneNumber(clean(form.getPhoneNumber()));
         account.setAffiliation(clean(form.getAffiliation())); account.setBio(clean(form.getBio()));
+        realtimeChanges.changedForUserAfterCommit(id);
     }
     private String clean(String value) { return value == null ? "" : value.strip(); }
     private void verify(User account, String password) {
@@ -65,6 +68,7 @@ public class ProfileService {
         if (!next.equals(confirmation)) throw new IllegalArgumentException("Xác nhận mật khẩu mới không khớp.");
         if (encoder.matches(next, account.getPassword())) throw new IllegalArgumentException("Mật khẩu mới phải khác mật khẩu hiện tại.");
         account.setPassword(encoder.encode(next)); account.setPasswordResetRequestedAt(null);
+        realtimeChanges.changedForUserAfterCommit(id);
     }
     public void uploadAvatar(Long id, MultipartFile file) {
         User account = locked(id);
@@ -76,10 +80,12 @@ public class ProfileService {
             }
         });
         account.setAvatarKey(key);
+        realtimeChanges.changedForUserAfterCommit(id);
     }
     public void removeAvatar(Long id) {
         User account = locked(id);
         removeAfterCommit(id, account.getAvatarKey()); account.setAvatarKey(null);
+        realtimeChanges.changedForUserAfterCommit(id);
     }
     private void removeAfterCommit(Long id, String key) {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -110,5 +116,6 @@ public class ProfileService {
         account.setEnabled(false); account.getRoles().clear(); account.setPasswordResetRequestedAt(null);
         account.setDeletedAt(java.time.LocalDateTime.now());
         users.flush();
+        realtimeChanges.changedForUserAfterCommit(id);
     }
 }

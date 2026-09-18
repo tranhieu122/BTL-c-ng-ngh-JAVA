@@ -92,8 +92,10 @@ public class DocumentFeedbackController {
     }
 
     private String validationError(Long documentId, BindingResult result, RedirectAttributes attributes) {
-        String message = result.getFieldError() == null ? "Dữ liệu chưa hợp lệ"
-                : result.getFieldError().getDefaultMessage();
+        var fieldError = result.getFieldError();
+        String message = fieldError == null || fieldError.getDefaultMessage() == null
+                ? "Dữ liệu chưa hợp lệ"
+                : fieldError.getDefaultMessage();
         attributes.addFlashAttribute("error", message);
         return detail(documentId);
     }

@@ -8,6 +8,7 @@ import com.hieu.edurepo.enums.RoleName;
 import com.hieu.edurepo.repository.DocumentRepository;
 import com.hieu.edurepo.repository.RoleRepository;
 import com.hieu.edurepo.repository.UserRepository;
+import com.hieu.edurepo.security.CustomUserPrincipal;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -19,9 +20,14 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 @SpringBootTest
@@ -201,16 +207,43 @@ class PublicPagesRenderingTest {
         reviewDocument.setTitle("Tài liệu cần kiểm duyệt giao diện");
         reviewDocument.setFileName("review.pdf");
         reviewDocument.setFileType("application/pdf");
-        reviewDocument.setStatus(DocumentStatus.SUBMITTED);
+        reviewDocument.setStatus(DocumentStatus.UNDER_REVIEW);
         Document savedReviewDocument = documentRepository.save(reviewDocument);
 
         mockMvc.perform(get("/reviews/{id}", savedReviewDocument.getId()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("reviews/detail"))
                 .andExpect(content().string((org.hamcrest.Matcher<? super String>) containsString("data-review-action")))
+                .andExpect(content().string((org.hamcrest.Matcher<? super String>) containsString("value=\"PUBLISHED\"")))
                 .andExpect(content().string((org.hamcrest.Matcher<? super String>) containsString("value=\"APPROVED\"")))
                 .andExpect(content().string((org.hamcrest.Matcher<? super String>) containsString("value=\"REVISION_REQUESTED\"")))
                 .andExpect(content().string((org.hamcrest.Matcher<? super String>) containsString("value=\"REJECTED\"")))
                 .andExpect(content().string((org.hamcrest.Matcher<? super String>) containsString("name=\"_csrf\"")));
+
+        Document submittedDocument = new Document();
+        submittedDocument.setTitle("Tài liệu chuẩn bị bắt đầu review");
+        submittedDocument.setFileName("start-review.pdf");
+        submittedDocument.setFileType("application/pdf");
+        submittedDocument.setStatus(DocumentStatus.SUBMITTED);
+        submittedDocument.setCreatedBy(adminUser);
+        Document savedSubmittedDocument = documentRepository.save(submittedDocument);
+
+        mockMvc.perform(get("/reviews/{id}", savedSubmittedDocument.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().string((org.hamcrest.Matcher<? super String>) containsString("Tài liệu chuẩn bị bắt đầu review")))
+                .andExpect(content().string((org.hamcrest.Matcher<? super String>) containsString("value=\"PUBLISHED\"")))
+                .andExpect(content().string((org.hamcrest.Matcher<? super String>) containsString("name=\"_csrf\"")))
+                .andExpect(content().string((org.hamcrest.Matcher<? super String>) containsString("Lưu quyết định")));
+        assertEquals(DocumentStatus.SUBMITTED,
+                documentRepository.findById(savedSubmittedDocument.getId()).orElseThrow().getStatus(),
+                "Mở trang chi tiết không được tự động đổi trạng thái hồ sơ");
+
+        mockMvc.perform(post("/reviews/{id}", savedSubmittedDocument.getId())
+                        .param("action", "PUBLISHED")
+                        .with(user(CustomUserPrincipal.from(adminUser))).with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/repository/" + savedSubmittedDocument.getId()));
+        assertEquals(DocumentStatus.PUBLISHED,
+                documentRepository.findById(savedSubmittedDocument.getId()).orElseThrow().getStatus());
     }
 }

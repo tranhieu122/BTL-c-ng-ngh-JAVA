@@ -132,7 +132,8 @@ public class UserManagementController {
                     com.hieu.edurepo.enums.AuditResult.SUCCESS);
         }
         if (!creating && previousEnabled != user.isEnabled()) {
-            audit(com.hieu.edurepo.enums.AuditAction.USER_STATUS_CHANGED, user.getId(),
+            audit(user.isEnabled() ? com.hieu.edurepo.enums.AuditAction.USER_UNLOCKED
+                            : com.hieu.edurepo.enums.AuditAction.USER_LOCKED, user.getId(),
                     "Thay đổi trạng thái tài khoản " + user.getEmail() + " thành "
                             + (user.isEnabled() ? "đang hoạt động" : "đã khóa"),
                     com.hieu.edurepo.enums.AuditResult.SUCCESS);

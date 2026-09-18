@@ -38,54 +38,64 @@
         <section class="review-metrics" aria-label="Tổng quan hàng chờ">
             <article class="review-metric review-metric-total">
                 <span class="review-metric-icon" aria-hidden="true">▤</span>
-                <div><strong data-live-queue-total th:text="${#lists.size(documents)}">0</strong><small>Tổng hồ sơ đang chờ</small></div>
+                <div><strong data-live-queue-total th:text="${queueTotal}">0</strong><small>Tổng hồ sơ đang chờ</small></div>
                 <span class="review-metric-trend">Cần xử lý</span>
             </article>
             <article class="review-metric review-metric-new">
                 <span class="review-metric-icon" aria-hidden="true">◷</span>
                 <div><strong data-live-queue-submitted th:text="${submittedCount}">0</strong><small>Mới gửi để đánh giá</small></div>
-                <span class="review-metric-trend">SUBMITTED</span>
+                <span class="review-metric-trend">MỚI GỬI</span>
+            </article>
+            <article class="review-metric review-metric-ready">
+                <span class="review-metric-icon" aria-hidden="true">◉</span>
+                <div><strong th:text="${underReviewCount}">0</strong><small>Đang kiểm duyệt</small></div>
+                <span class="review-metric-trend">ĐANG XỬ LÝ</span>
             </article>
             <article class="review-metric review-metric-ready">
                 <span class="review-metric-icon" aria-hidden="true">✓</span>
                 <div><strong data-live-queue-approved th:text="${approvedCount}">0</strong><small>Sẵn sàng công bố</small></div>
-                <span class="review-metric-trend">APPROVED</span>
+                <span class="review-metric-trend">ĐÃ DUYỆT</span>
             </article>
         </section>
 
         <div data-live-region="review-queue" data-live-source="reviewQueue">
-        <section id="review-queue" class="review-queue-panel" th:if="${!#lists.isEmpty(documents)}"
+        <section id="review-queue" class="review-queue-panel" th:if="${queueTotal > 0}"
                  aria-labelledby="review-queue-title">
             <header class="review-queue-header">
                 <div>
                     <span class="review-section-kicker">Danh sách công việc</span>
                     <h2 id="review-queue-title">Hồ sơ cần phản hồi</h2>
                 </div>
-                <span class="review-live-count" data-review-count
-                      th:text="|${#lists.size(documents)} tài liệu|">0 tài liệu</span>
+                <span class="review-live-count" data-review-count role="status" aria-live="polite"
+                      th:text="|${documentPage.totalElements} kết quả|">0 kết quả</span>
             </header>
 
-            <div class="review-toolbar">
+            <form class="review-toolbar" method="get" th:action="@{/reviews/pending}" data-review-server-filter>
                 <label class="review-search">
                     <span aria-hidden="true">⌕</span>
                     <span class="sr-only">Tìm tài liệu hoặc người nộp</span>
-                    <input type="search" placeholder="Tìm theo tiêu đề hoặc người nộp..."
-                           autocomplete="off" data-review-search>
+                    <input type="search" name="keyword" th:value="${keyword}"
+                           placeholder="Tên tài liệu, tác giả hoặc người nộp..." autocomplete="off">
                 </label>
                 <label class="review-filter">
                     <span class="sr-only">Lọc theo trạng thái</span>
-                    <select data-review-status>
-                        <option value="all">Tất cả trạng thái</option>
-                        <option value="SUBMITTED">Mới gửi</option>
-                        <option value="APPROVED">Đã duyệt</option>
+                    <select name="status">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="SUBMITTED" th:selected="${selectedStatus != null and selectedStatus.name() == 'SUBMITTED'}">Mới gửi</option>
+                        <option value="RESUBMITTED" th:selected="${selectedStatus != null and selectedStatus.name() == 'RESUBMITTED'}">Gửi lại</option>
+                        <option value="UNDER_REVIEW" th:selected="${selectedStatus != null and selectedStatus.name() == 'UNDER_REVIEW'}">Đang kiểm duyệt</option>
+                        <option value="APPROVED" th:selected="${selectedStatus != null and selectedStatus.name() == 'APPROVED'}">Đã duyệt</option>
                     </select>
                 </label>
-            </div>
+                <button class="button review-filter-submit" type="submit">Lọc hồ sơ</button>
+                <a class="review-clear-filter" th:if="${!#strings.isEmpty(keyword) or selectedStatus != null}"
+                   th:href="@{/reviews/pending}">Xóa bộ lọc</a>
+            </form>
 
             <div class="review-card-list" data-review-list>
                 <article class="queue-card" th:each="doc, loop : ${documents}"
                          th:attr="data-review-item='',data-title=${doc.title},data-owner=${doc.createdBy != null ? doc.createdBy.fullName : ''},data-status=${doc.status}">
-                    <div class="queue-order" th:text="${#numbers.formatInteger(loop.index + 1, 2)}">01</div>
+                    <div class="queue-order" th:text="${#numbers.formatInteger(documentPage.number * documentPage.size + loop.index + 1, 2)}">01</div>
                     <div class="queue-file-icon" aria-hidden="true">
                         <span th:text="${doc.fileName != null && doc.fileName.contains('.') ? #strings.toUpperCase(#strings.substringAfter(doc.fileName, '.')) : 'FILE'}">PDF</span>
                     </div>
@@ -93,9 +103,12 @@
                     <div class="queue-card-main">
                         <div class="queue-card-topline">
                             <span class="queue-status"
-                                  th:classappend="${doc.status.name() == 'APPROVED' ? ' queue-status-approved' : ' queue-status-submitted'}">
+                                  th:classappend="| queue-status-${#strings.toLowerCase(doc.status.name())}|">
                                 <i aria-hidden="true"></i>
-                                <span th:text="${doc.status.name() == 'APPROVED' ? 'Đã duyệt · chờ công bố' : 'Mới gửi kiểm duyệt'}">Mới gửi</span>
+                                <span th:switch="${doc.status.name()}">
+                                    <span th:case="'APPROVED'" th:text="|${doc.status.label} · chờ công bố|">Đã phê duyệt · chờ công bố</span>
+                                    <span th:case="*" th:text="${doc.status.label}">Trạng thái</span>
+                                </span>
                             </span>
                             <time th:datetime="${doc.submittedAt}"
                                   th:text="${doc.submittedAt != null ? #temporals.format(doc.submittedAt, 'dd/MM/yyyy · HH:mm') : 'Chưa ghi nhận thời gian'}">20/08/2026</time>
@@ -121,15 +134,22 @@
                 </article>
             </div>
 
-            <div class="review-filter-empty" data-review-empty hidden>
+            <div class="review-filter-empty" th:if="${#lists.isEmpty(documents)}">
                 <span aria-hidden="true">⌕</span>
                 <h3>Không tìm thấy hồ sơ phù hợp</h3>
                 <p>Thử từ khóa khác hoặc chọn lại tất cả trạng thái.</p>
-                <button type="button" class="button button-secondary" data-review-reset>Xóa bộ lọc</button>
+                <a class="button button-secondary" th:href="@{/reviews/pending}">Xóa bộ lọc</a>
             </div>
+            <nav class="review-pagination" th:if="${documentPage.totalPages > 1}" aria-label="Phân trang hàng chờ kiểm duyệt">
+                <a th:if="${documentPage.hasPrevious()}"
+                   th:href="@{/reviews/pending(page=${documentPage.number - 1},keyword=${keyword},status=${selectedStatus})}">← Trang trước</a>
+                <span aria-current="page" th:text="|Trang ${documentPage.number + 1}/${documentPage.totalPages}|">Trang 1/1</span>
+                <a th:if="${documentPage.hasNext()}"
+                   th:href="@{/reviews/pending(page=${documentPage.number + 1},keyword=${keyword},status=${selectedStatus})}">Trang sau →</a>
+            </nav>
         </section>
 
-        <section class="review-empty-state" th:if="${#lists.isEmpty(documents)}">
+        <section class="review-empty-state" th:if="${queueTotal == 0}">
             <div class="review-empty-check" aria-hidden="true">✓</div>
             <span class="review-section-kicker">Tuyệt vời</span>
             <h2>Hàng chờ đã được xử lý</h2>

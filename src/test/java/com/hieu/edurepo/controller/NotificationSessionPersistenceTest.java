@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Set;
 import java.util.UUID;
+import java.util.Objects;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -97,11 +98,13 @@ class NotificationSessionPersistenceTest {
     }
 
     private MockHttpSession login(String email) throws Exception {
-        return (MockHttpSession) mvc.perform(post("/login").with(csrf())
-                        .param("email", email).param("password", PASSWORD))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/dashboard"))
-                .andReturn().getRequest().getSession(false);
+        return (MockHttpSession) Objects.requireNonNull(
+                mvc.perform(post("/login").with(csrf())
+                                .param("email", email).param("password", PASSWORD))
+                        .andExpect(status().is3xxRedirection())
+                        .andExpect(redirectedUrl("/dashboard"))
+                        .andReturn().getRequest().getSession(false),
+                "Expected login to create a session");
     }
 
     private User account(RoleName roleName) {

@@ -200,14 +200,22 @@
                 <span aria-hidden="true">↓</span>
                 Tải tài liệu
             </a>
-            <button class="button button-secondary share-button" type="button" data-share-link
-                    th:attr="data-share-title=${document.title}">
-                <span aria-hidden="true">↗</span>
-                Chia sẻ tài liệu
-            </button>
-            <form sec:authorize="isAuthenticated()" th:action="@{/library/bookmarks/{id}(id=${document.id})}" method="post">
-                <button class="button button-secondary library-action" type="submit" th:text="${bookmarked ? 'Bỏ khỏi thư viện' : 'Lưu vào thư viện'}">Lưu vào thư viện</button>
-            </form>
+            <div class="download-actions">
+                <button class="button button-secondary share-button" type="button" data-share-link
+                        th:attr="data-share-title=${document.title}">
+                    <span aria-hidden="true">↗</span>
+                    Chia sẻ tài liệu
+                </button>
+                <form sec:authorize="isAuthenticated()" th:action="@{/library/bookmarks/{id}(id=${document.id})}" method="post">
+                    <button class="button button-secondary library-action" type="submit" th:text="${bookmarked ? 'Bỏ khỏi thư viện' : 'Lưu vào thư viện'}">Lưu vào thư viện</button>
+                </form>
+                <form sec:authorize="hasRole('ADMIN')" th:action="@{/documents/{id}/archive(id=${document.id})}" method="post">
+                    <button class="button button-secondary" type="submit"
+                            data-confirm-message="Bạn có chắc muốn lưu trữ tài liệu này? Tài liệu sẽ không còn xuất hiện công khai.">
+                        Lưu trữ tài liệu
+                    </button>
+                </form>
+            </div>
             <div class="collection-add-form" sec:authorize="isAuthenticated()" th:if="${!#lists.isEmpty(userCollections)}">
                 <strong>Thêm vào bộ sưu tập</strong>
                 <form th:each="item : ${userCollections}" th:action="@{/library/collections/{collectionId}/items/{documentId}(collectionId=${item.id},documentId=${document.id})}" method="post"><button class="button button-secondary" type="submit" th:text="${item.name}">Bộ sưu tập</button></form>

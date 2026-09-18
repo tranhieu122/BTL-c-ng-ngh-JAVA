@@ -224,7 +224,7 @@ class ProfileRealtimeIntegrationTest {
 
     @Test void realHttpSseIsIsolatedAcrossThreeSessionsAndResynchronizesAfterReconnect() throws Exception {
         User owner = account(RoleName.SUBMITTER), other = account(RoleName.SUBMITTER), reviewer = account(RoleName.REVIEWER);
-        Document ownDoc = document(owner, DocumentStatus.SUBMITTED), otherDoc = document(other, DocumentStatus.DRAFT);
+        Document ownDoc = document(owner, DocumentStatus.UNDER_REVIEW), otherDoc = document(other, DocumentStatus.DRAFT);
         try (var first = new Browser(owner); var second = new Browser(other); var review = new Browser(reviewer);
              var ownerStream = first.stream(); var otherStream = second.stream(); var reviewStream = review.stream()) {
             JsonNode initial = ownerStream.snapshot(), otherInitial = otherStream.snapshot(), queue = reviewStream.snapshot();
@@ -268,8 +268,10 @@ class ProfileRealtimeIntegrationTest {
         doc.setFileName("test.pdf"); doc.setFilePath("test.pdf"); return documents.saveAndFlush(doc);
     }
     private MockHttpSession login(User user) throws Exception {
-        return (MockHttpSession)mvc.perform(post("/login").with(csrf()).param("email", user.getEmail()).param("password", "Password123"))
-                .andExpect(redirectedUrl("/dashboard")).andReturn().getRequest().getSession(false);
+        return (MockHttpSession) Objects.requireNonNull(
+                mvc.perform(post("/login").with(csrf()).param("email", user.getEmail()).param("password", "Password123"))
+                        .andExpect(redirectedUrl("/dashboard")).andReturn().getRequest().getSession(false),
+                "Expected login to create a session");
     }
     private byte[] png() throws IOException {
         return imageBytes("png", 16, 16);
@@ -293,7 +295,7 @@ class ProfileRealtimeIntegrationTest {
             assertEquals(200, response.statusCode()); assertTrue(response.headers().firstValue("content-type").orElse("").contains("text/event-stream"));
             return new Stream(response.body());
         }
-        public void close() { client.shutdownNow(); }
+        public void close() { }
     }
     private record Event(String name, String data) { }
     private final class Stream implements AutoCloseable {
@@ -302,7 +304,7 @@ class ProfileRealtimeIntegrationTest {
         final Thread reader;
         Stream(InputStream input) {
             this.input = input;
-            reader = Thread.ofVirtual().start(() -> {
+            reader = new Thread(() -> {
                 try (var lines = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
                     String line, name = "", data = "";
                     while ((line = lines.readLine()) != null) {
@@ -312,6 +314,7 @@ class ProfileRealtimeIntegrationTest {
                     }
                 } catch (IOException ignored) { }
             });
+            reader.start();
         }
         Event next() throws Exception { var event = events.poll(10, TimeUnit.SECONDS); assertNotNull(event, "Timed out waiting for SSE event"); return event; }
         JsonNode snapshot() throws Exception { var event = next(); assertEquals("snapshot", event.name()); return mapper.readTree(event.data()); }

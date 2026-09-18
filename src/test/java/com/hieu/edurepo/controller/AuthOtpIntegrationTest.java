@@ -22,10 +22,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -33,6 +36,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@SuppressWarnings("unused")
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:auth_otp;MODE=MySQL;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000",
         "app.upload.dir=target/auth-otp-test-uploads"
@@ -50,7 +54,8 @@ class AuthOtpIntegrationTest {
     @BeforeEach
     void prepareMail() {
         reset(emailService);
-        when(emailService.sendOtp(anyString(), anyString(), anyString())).thenReturn(true);
+        when(emailService.sendOtpStatus(anyString(), anyString(), anyPurpose()))
+                .thenReturn(EmailService.OtpDeliveryStatus.SUCCESS);
     }
 
     @Test
@@ -70,7 +75,7 @@ class AuthOtpIntegrationTest {
                 email, OtpPurpose.REGISTER).orElseThrow();
         assertNotEquals(otp, token.getCodeHash());
 
-        MockHttpSession session = (MockHttpSession) start.getRequest().getSession(false);
+        MockHttpSession session = sessionFrom(start);
         mvc.perform(post("/register/verify").session(session).with(csrf()).param("code", "000000"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/verify-register"))
@@ -100,7 +105,7 @@ class AuthOtpIntegrationTest {
         token.setExpiresAt(token.getCreatedAt().minusMinutes(1));
         otpTokens.saveAndFlush(token);
 
-        MockHttpSession session = (MockHttpSession) start.getRequest().getSession(false);
+        MockHttpSession session = sessionFrom(start);
         mvc.perform(post("/register/verify").session(session).with(csrf()).param("code", otp))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/verify-register"))
@@ -119,11 +124,37 @@ class AuthOtpIntegrationTest {
                 .andExpect(redirectedUrl("/register/verify"))
                 .andReturn();
 
-        MockHttpSession session = (MockHttpSession) start.getRequest().getSession(false);
+        MockHttpSession session = sessionFrom(start);
         mvc.perform(post("/register/verify/resend").session(session).with(csrf()))
                 .andExpect(redirectedUrl("/register/verify"))
                 .andExpect(flash().attributeExists("otpCooldownSeconds"));
-        verify(emailService, times(1)).sendOtp(eq(email), anyString(), anyString());
+        verify(emailService, times(1)).sendOtpStatus(eq(email), anyString(), purpose(OtpPurpose.REGISTER));
+    }
+
+    @Test
+    void failedEmailDeliveryRevokesOtpAndDoesNotKeepCooldown() throws Exception {
+        String email = email();
+        when(emailService.sendOtpStatus(eq(email), anyString(), purpose(OtpPurpose.REGISTER)))
+                .thenReturn(EmailService.OtpDeliveryStatus.CONFIGURATION_ERROR,
+                        EmailService.OtpDeliveryStatus.SUCCESS);
+
+        MvcResult start = mvc.perform(post("/register").with(csrf())
+                        .param("fullName", "Mail Failure")
+                        .param("email", email)
+                        .param("password", "Password123")
+                        .param("confirmPassword", "Password123"))
+                .andExpect(redirectedUrl("/register/verify"))
+                .andExpect(flash().attribute("otpMailSkipped", true))
+                .andReturn();
+
+        assertTrue(otpTokens.findTopByEmailIgnoreCaseAndPurposeAndConsumedAtIsNullOrderByCreatedAtDesc(
+                email, OtpPurpose.REGISTER).isEmpty());
+
+        MockHttpSession session = sessionFrom(start);
+        mvc.perform(post("/register/verify/resend").session(session).with(csrf()))
+                .andExpect(redirectedUrl("/register/verify"))
+                .andExpect(flash().attribute("otpSent", true));
+        verify(emailService, times(2)).sendOtpStatus(eq(email), anyString(), purpose(OtpPurpose.REGISTER));
     }
 
     @Test
@@ -139,7 +170,7 @@ class AuthOtpIntegrationTest {
                 .andExpect(flash().attribute("resetRequested", true));
 
         String otp = capturedOtp(account.getEmail());
-        MockHttpSession session = (MockHttpSession) existing.getRequest().getSession(false);
+        MockHttpSession session = sessionFrom(existing);
         mvc.perform(post("/forgot-password/verify").session(session).with(csrf()).param("code", otp))
                 .andExpect(redirectedUrl("/reset-password"));
 
@@ -156,8 +187,21 @@ class AuthOtpIntegrationTest {
 
     private String capturedOtp(String email) {
         ArgumentCaptor<String> code = ArgumentCaptor.forClass(String.class);
-        verify(emailService, atLeastOnce()).sendOtp(eq(email), code.capture(), anyString());
-        return code.getAllValues().getLast();
+        verify(emailService, atLeastOnce()).sendOtpStatus(eq(email), code.capture(), anyPurpose());
+        List<String> values = code.getAllValues();
+        return values.get(values.size() - 1);
+    }
+
+    private static MockHttpSession sessionFrom(MvcResult result) {
+        return (MockHttpSession) Objects.requireNonNull(result.getRequest().getSession(false));
+    }
+
+    private static OtpPurpose anyPurpose() {
+        return any(OtpPurpose.class);
+    }
+
+    private static OtpPurpose purpose(OtpPurpose value) {
+        return eq(value);
     }
 
     private User account() {

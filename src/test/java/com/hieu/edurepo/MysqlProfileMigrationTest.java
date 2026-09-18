@@ -4,31 +4,48 @@ import com.hieu.edurepo.repository.*;
 import com.hieu.edurepo.service.*;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import java.nio.file.Path;
 import java.sql.DriverManager;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Opt-in: scripts/test-profile-mysql.ps1 starts an isolated MySQL datadir, never the existing database. */
-@EnabledIfSystemProperty(named = "profile.mysql.port", matches = "[0-9]+")
+/** Runs the migration/restart path against an isolated real MySQL instance when Docker is available. */
+@Testcontainers(disabledWithoutDocker = true)
 class MysqlProfileMigrationTest {
+    @Container
+    static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4")
+            .withDatabaseName("edurepo_profile_test")
+            .withUsername("edurepo_test")
+            .withPassword("edurepo_test");
+
     @Test void migratesV3DataWithoutLossAndPersistsProfileAndDeletionAcrossRestart() throws Exception {
-        String url = "jdbc:mysql://127.0.0.1:" + System.getProperty("profile.mysql.port")
-                + "/edurepo_profile_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh";
-        Flyway.configure().dataSource(url, "root", "").target("3").load().migrate();
+        String baseUrl = MYSQL.getJdbcUrl();
+        String url = baseUrl + (baseUrl.contains("?") ? "&" : "?") + "serverTimezone=Asia/Ho_Chi_Minh";
+        Flyway.configure().dataSource(url, MYSQL.getUsername(), MYSQL.getPassword()).target("3").load().migrate();
         String hash = new BCryptPasswordEncoder().encode("Password123");
-        try (var connection = DriverManager.getConnection(url, "root", "")) {
+        try (var connection = DriverManager.getConnection(url, MYSQL.getUsername(), MYSQL.getPassword())) {
             try (var statement = connection.prepareStatement("insert into users(id, username, email, full_name, password, enabled) values(1, 'migration@example.test', 'migration@example.test', 'Existing V3 account', ?, true)")) {
                 statement.setString(1, hash); statement.executeUpdate();
             }
             connection.createStatement().executeUpdate("insert into documents(id,title,status,created_by,created_at,updated_at) values(1,'Existing V3 document','PUBLISHED',1,NOW(),NOW())");
+            // Mô phỏng database cũ do Hibernate tạo: action là ENUM và chưa biết START_REVIEW.
+            connection.createStatement().executeUpdate("alter table approval_history modify column action enum('SUBMITTED','RESUBMITTED','APPROVED','REJECTED','REVISION_REQUESTED','PUBLISHED','ARCHIVED') not null");
         }
-        Flyway.configure().dataSource(url, "root", "").load().migrate();
+        Flyway.configure().dataSource(url, MYSQL.getUsername(), MYSQL.getPassword()).load().migrate();
+        try (var connection = DriverManager.getConnection(url, MYSQL.getUsername(), MYSQL.getPassword());
+             var statement = connection.prepareStatement("select data_type from information_schema.columns where table_schema = database() and table_name = 'approval_history' and column_name = 'action'");
+             var result = statement.executeQuery()) {
+            assertTrue(result.next());
+            assertEquals("varchar", result.getString(1));
+        }
         String uploads = Path.of("target/mysql-profile-uploads").toAbsolutePath().toString();
-        String[] args = {"--spring.datasource.url=" + url, "--spring.datasource.username=root", "--spring.datasource.password=",
+        String[] args = {"--spring.datasource.url=" + url, "--spring.datasource.username=" + MYSQL.getUsername(),
+                "--spring.datasource.password=" + MYSQL.getPassword(),
                 "--spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver", "--spring.jpa.hibernate.ddl-auto=validate",
                 "--spring.flyway.enabled=true", "--server.port=0", "--app.upload.dir=" + uploads,
                 "--app.admin.email=", "--app.admin.password=", "--app.user.email=", "--app.user.password=", "--debug=false"};

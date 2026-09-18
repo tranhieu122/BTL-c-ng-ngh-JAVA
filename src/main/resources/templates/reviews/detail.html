@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,7 +18,7 @@
         <div class="review-layout">
             <div>
                 <article class="review-card">
-                    <div class="panel-heading"><div><h2>Hồ sơ tài liệu</h2><p>Thông tin do tác giả cung cấp.</p></div><span class="status-pill" th:attr="data-live-document-status=${document.id}" th:classappend="| status-${#strings.toLowerCase(document.status.name())}|" th:text="${document.status}">SUBMITTED</span></div>
+                    <div class="panel-heading"><div><h2>Hồ sơ tài liệu</h2><p>Thông tin do tác giả cung cấp.</p></div><span class="status-pill" th:attr="data-live-document-status=${document.id}" th:classappend="| status-${#strings.toLowerCase(document.status.name())}|" th:text="${document.status.label}">Trạng thái</span></div>
                     <p th:text="${document.description ?: 'Tác giả chưa cung cấp mô tả cho tài liệu này.'}">Mô tả</p>
                     <dl class="metadata-grid">
                         <div><dt>Tác giả</dt><dd th:text="${document.authorName ?: 'Chưa khai báo'}">Tác giả</dd></div>
@@ -32,41 +32,71 @@
                     <div class="form-submit-row"><a class="button button-secondary" th:href="@{/reviews/{id}/download(id=${document.id})}">Tải tệp để kiểm tra</a></div>
                 </article>
                 <article class="review-card review-card-spaced">
-                    <div class="panel-heading"><div><h2>Lịch sử đánh giá</h2><p>Dấu vết các quyết định trước đây.</p></div></div>
-                    <ol class="review-history" th:if="${!#lists.isEmpty(history)}">
-                        <li th:each="item : ${history}"><strong th:text="${item.action}">ACTION</strong><br><span th:text="|${item.createdAt} · ${item.comment ?: 'Không có ghi chú'}|">Nội dung</span><small class="rubric-summary" th:if="${item.hasRubricScores()}" th:text="|Nội dung ${item.contentQualityScore}/5 · Hiệu quả ${item.teachingEffectivenessScore}/5 · Dễ sử dụng ${item.easeOfUseScore}/5|">Rubric</small></li>
+                    <div class="panel-heading"><div><h2>Lịch sử xét duyệt</h2><p>Trạng thái, người thực hiện và phản hồi của từng bước.</p></div></div>
+                    <ol class="review-history review-timeline" th:if="${!#lists.isEmpty(history)}" aria-label="Các sự kiện xét duyệt, mới nhất trước">
+                        <li th:each="item : ${history}" th:classappend="| review-event-${#strings.toLowerCase(item.action.name())}|">
+                            <div class="review-history-heading">
+                                <strong th:switch="${item.action.name()}">
+                                    <span th:case="'SUBMITTED'">Gửi kiểm duyệt</span>
+                                    <span th:case="'START_REVIEW'">Bắt đầu kiểm duyệt</span>
+                                    <span th:case="'RESUBMITTED'">Gửi lại sau chỉnh sửa</span>
+                                    <span th:case="'APPROVED'">Phê duyệt tài liệu</span>
+                                    <span th:case="'REVISION_REQUESTED'">Yêu cầu chỉnh sửa</span>
+                                    <span th:case="'REJECTED'">Từ chối tài liệu</span>
+                                    <span th:case="'PUBLISHED'">Công bố tài liệu</span>
+                                    <span th:case="'ARCHIVED'">Lưu trữ tài liệu</span>
+                                    <span th:case="*" th:text="${item.action}">Hành động</span>
+                                </strong>
+                                <time th:datetime="${item.createdAt}" th:text="${#temporals.format(item.createdAt, 'dd/MM/yyyy HH:mm')}">Thời gian</time>
+                            </div>
+                            <div class="review-transition" th:if="${item.oldStatus != null and item.newStatus != null}" aria-label="Thay đổi trạng thái">
+                                <span th:text="${item.oldStatus.label}">Đã gửi duyệt</span><b aria-hidden="true">→</b><span th:text="${item.newStatus.label}">Đang kiểm duyệt</span>
+                            </div>
+                            <p class="review-comment" th:text="${item.comment ?: 'Không có ghi chú.'}">Nội dung</p>
+                            <small class="review-actor" th:text="|Thực hiện bởi ${item.reviewer != null ? item.reviewer.fullName : 'Không xác định'}|">Người thực hiện</small>
+                            <small class="rubric-summary" th:if="${item.hasRubricScores()}" th:text="|Nội dung ${item.contentQualityScore}/5 · Hiệu quả ${item.teachingEffectivenessScore}/5 · Dễ sử dụng ${item.easeOfUseScore}/5|">Rubric</small>
+                        </li>
                     </ol>
+                    <nav class="pagination" th:if="${historyPage.totalPages > 1}" aria-label="Phân trang lịch sử xét duyệt"><a th:if="${historyPage.hasPrevious()}" th:href="@{/reviews/{id}(id=${document.id},historyPage=${historyPage.number - 1},versionPage=${versionPage.number})}">← Trước</a><span th:text="|Trang ${historyPage.number + 1}/${historyPage.totalPages}|">Trang</span><a th:if="${historyPage.hasNext()}" th:href="@{/reviews/{id}(id=${document.id},historyPage=${historyPage.number + 1},versionPage=${versionPage.number})}">Sau →</a></nav>
                     <div class="empty-panel" th:if="${#lists.isEmpty(history)}"><h2>Chưa có lịch sử</h2><p>Quyết định đầu tiên sẽ được lưu tại đây.</p></div>
                 </article>
                 <article class="review-card review-card-spaced">
                     <div class="panel-heading"><div><h2>Lịch sử phiên bản</h2><p>Reviewer có thể đối chiếu các tệp đã nộp.</p></div></div>
-                    <ol class="version-list" th:if="${!#lists.isEmpty(versions)}"><li th:each="version : ${versions}"><div><strong th:text="|Phiên bản ${version.versionNumber}|">Phiên bản</strong><span th:text="${version.changeNote}">Thay đổi</span><small th:text="${version.fileName}">Tệp</small></div><a class="button button-secondary" th:href="@{/reviews/{id}/versions/{versionId}/download(id=${document.id},versionId=${version.id})}">Tải bản này</a></li></ol>
+                    <ol class="version-list" th:if="${!#lists.isEmpty(versions)}"><li th:each="version : ${versions}"><div><strong th:text="|v${version.versionNumber}${version.currentVersion ? ' · Hiện tại' : ''}|">Phiên bản</strong><span th:text="${version.changeNote ?: 'Không có ghi chú thay đổi'}">Thay đổi</span><small th:text="|${version.fileName} · ${#temporals.format(version.createdAt, 'dd/MM/yyyy HH:mm')} · ${version.createdBy != null ? version.createdBy.fullName : 'Không xác định'}|">Tệp</small></div><a class="button button-secondary" th:href="@{/reviews/{id}/versions/{versionId}/download(id=${document.id},versionId=${version.id})}">Tải bản này</a></li></ol>
+                    <nav class="pagination" th:if="${versionPage.totalPages > 1}" aria-label="Phân trang phiên bản"><a th:if="${versionPage.hasPrevious()}" th:href="@{/reviews/{id}(id=${document.id},historyPage=${historyPage.number},versionPage=${versionPage.number - 1})}">← Trước</a><span th:text="|Trang ${versionPage.number + 1}/${versionPage.totalPages}|">Trang</span><a th:if="${versionPage.hasNext()}" th:href="@{/reviews/{id}(id=${document.id},historyPage=${historyPage.number},versionPage=${versionPage.number + 1})}">Sau →</a></nav>
                 </article>
             </div>
-            <aside class="review-card">
-                <div class="form-section-heading"><h2>Ghi nhận quyết định</h2><p>Phản hồi cụ thể giúp tác giả cải thiện tài liệu.</p></div>
-                <form th:action="@{/reviews/{id}(id=${document.id})}" th:object="${reviewForm}" method="post" class="form-grid">
-                    <fieldset class="rubric-fieldset" th:hidden="${document.status.name() != 'SUBMITTED'}" th:disabled="${document.status.name() != 'SUBMITTED'}"><legend>Rubric đánh giá (1–5 điểm)</legend><p>Chấm độc lập ba tiêu chí trước khi ra quyết định.</p><div class="rubric-grid"><label><span>Chất lượng nội dung</span><select th:field="*{contentQualityScore}" required><option value="">Chọn điểm</option><option th:each="score : ${#numbers.sequence(1,5)}" th:value="${score}" th:text="|${score}/5|"></option></select><small class="field-error" th:errors="*{contentQualityScore}"></small></label><label><span>Hiệu quả học tập</span><select th:field="*{teachingEffectivenessScore}" required><option value="">Chọn điểm</option><option th:each="score : ${#numbers.sequence(1,5)}" th:value="${score}" th:text="|${score}/5|"></option></select><small class="field-error" th:errors="*{teachingEffectivenessScore}"></small></label><label><span>Tính dễ sử dụng</span><select th:field="*{easeOfUseScore}" required><option value="">Chọn điểm</option><option th:each="score : ${#numbers.sequence(1,5)}" th:value="${score}" th:text="|${score}/5|"></option></select><small class="field-error" th:errors="*{easeOfUseScore}"></small></label></div></fieldset>
+            <aside class="review-card review-decision-panel" aria-labelledby="review-decision-title">
+                <div class="form-section-heading"><h2 id="review-decision-title">Ghi nhận quyết định</h2><p>Phản hồi cụ thể giúp tác giả cải thiện tài liệu.</p></div>
+                <form th:if="${document.status.name() == 'SUBMITTED' or document.status.name() == 'RESUBMITTED' or document.status.name() == 'UNDER_REVIEW'}"
+                      th:action="@{/reviews/{id}(id=${document.id})}" th:object="${reviewForm}" method="post" class="form-grid">
                     <label>
-                        <span class="field-label">Kết quả kiểm duyệt</span>
-                        <select th:field="*{action}" required data-review-action
-                                th:attr="aria-invalid=${#fields.hasErrors('action')}">
-                            <option value="">Chọn quyết định</option>
-                            <option th:if="${document.status.name() == 'SUBMITTED'}" value="APPROVED">Phê duyệt</option>
-                            <option th:if="${document.status.name() == 'SUBMITTED'}" value="REVISION_REQUESTED">Yêu cầu chỉnh sửa</option>
-                            <option th:if="${document.status.name() == 'SUBMITTED'}" value="REJECTED">Từ chối</option>
-                            <option th:if="${document.status.name() == 'APPROVED'}" value="PUBLISHED">Công bố</option>
+                        <span class="field-label">Chọn quyết định</span>
+                        <select th:field="*{action}" required data-review-action th:attr="aria-invalid=${#fields.hasErrors('action')}">
+                            <option value="">Chọn kết quả</option>
+                            <option sec:authorize="hasRole('ADMIN')" value="PUBLISHED">Công khai</option>
+                            <option value="APPROVED">Phê duyệt</option>
+                            <option value="REVISION_REQUESTED">Yêu cầu chỉnh sửa</option>
+                            <option value="REJECTED">Từ chối</option>
                         </select>
                         <small class="field-error" th:errors="*{action}"></small>
                     </label>
-                    <label><span class="field-label">Góp ý cho tác giả</span><textarea th:field="*{comment}" rows="8" placeholder="Nêu rõ điểm đạt yêu cầu hoặc nội dung cần điều chỉnh"></textarea><small class="field-error" th:errors="*{comment}"></small></label>
-                    <button type="submit" data-review-submit
-                            data-confirm-label="Lưu quyết định"
-                            data-confirm-message="Lưu quyết định kiểm duyệt này? Kết quả sẽ được ghi vào lịch sử tài liệu.">
-                        <span data-review-submit-label>Lưu kết quả</span>
-                        <span aria-hidden="true">→</span>
+                    <label>
+                        <span class="field-label">Góp ý cho tác giả</span>
+                        <textarea th:field="*{comment}" rows="7" placeholder="Có thể nhập nhận xét hoặc để trống khi công khai"></textarea>
+                        <small class="field-error" th:errors="*{comment}"></small>
+                    </label>
+                    <button type="submit" data-review-submit data-confirm-label="Lưu quyết định"
+                            data-confirm-message="Xác nhận lưu quyết định này? Trạng thái tài liệu sẽ được cập nhật ngay.">
+                        <span data-review-submit-label>Lưu quyết định</span><span aria-hidden="true">→</span>
                     </button>
                 </form>
+                <form sec:authorize="hasRole('ADMIN')" th:if="${document.status.name() == 'APPROVED'}"
+                      th:action="@{/documents/{id}/publish(id=${document.id})}" method="post" class="form-grid">
+                    <p>Tài liệu đã được duyệt và sẵn sàng để quản trị viên công bố.</p>
+                    <button type="submit" data-confirm-message="Bạn có chắc muốn công bố tài liệu này?">Công bố tài liệu</button>
+                </form>
+                <p th:if="${document.status.name() == 'APPROVED'}" sec:authorize="!hasRole('ADMIN')">Tài liệu đang chờ quản trị viên công bố.</p>
             </aside>
         </div>
     </main>

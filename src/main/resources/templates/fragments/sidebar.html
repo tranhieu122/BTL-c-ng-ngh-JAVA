@@ -17,9 +17,29 @@
         <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6l2 2 2-2h6v15h-6l-2 2-2-2H4z"/><path d="M12 6v15"/></svg></span>
         <span>Thư viện của tôi</span>
     </a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/library/recently-viewed}" data-sidebar-link aria-label="Đã xem gần đây">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+        <span>Đã xem gần đây</span>
+    </a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/library/download-history}" data-sidebar-link aria-label="Đã tải xuống">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M4 20h16"/></svg></span>
+        <span>Đã tải xuống</span>
+    </a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/library/my-reviews}" data-sidebar-link aria-label="Đánh giá của tôi">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2-4.5-4.4 6.2-.9z"/></svg></span>
+        <span>Đánh giá của tôi</span>
+    </a>
     <a sec:authorize="isAuthenticated()" th:href="@{/notifications}" data-sidebar-link aria-label="Thông báo của tôi">
         <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></span>
         <span>Thông báo</span>
+    </a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/profile}" data-sidebar-link aria-label="Hồ sơ cá nhân">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>
+        <span>Hồ sơ cá nhân</span>
+    </a>
+    <a sec:authorize="hasRole('USER')" th:href="@{/submitter-request}" data-sidebar-link aria-label="Yêu cầu quyền nộp tài liệu">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5"/><rect x="4" y="18" width="16" height="3" rx="1"/></svg></span>
+        <span>Yêu cầu quyền nộp</span>
     </a>
 
     <p class="sidebar-label" sec:authorize="hasAnyRole('SUBMITTER','REVIEWER','ADMIN')">Công việc</p>
@@ -48,6 +68,10 @@
     <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/users}" data-sidebar-link aria-label="Quản lý người dùng">
         <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5"/></svg></span>
         <span>Người dùng</span>
+    </a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/submitter-requests}" data-sidebar-link aria-label="Quản lý yêu cầu quyền nộp tài liệu">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v5h4M9 13h6M12 10v6"/></svg></span>
+        <span>Yêu cầu quyền nộp</span>
     </a>
     <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/categories}" data-sidebar-link aria-label="Quản lý danh mục">
         <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>

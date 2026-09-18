@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Đánh giá của tôi | EduRepo</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="page-shell"><div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main id="main-content" class="content workspace-content library-page">
+    <header class="workspace-heading"><div><span class="workspace-kicker">Không gian cá nhân</span><h1>Đánh giá của tôi</h1><p class="subtitle">Xem lại nhận xét và quay về tài liệu để cập nhật đánh giá khi cần.</p></div></header>
+    <section class="data-panel activity-panel">
+        <div class="data-panel-header"><strong>Đánh giá đã gửi</strong><span class="record-count" th:text="|${#lists.size(reviews)} đánh giá|">0 đánh giá</span></div>
+        <div class="review-history" th:if="${!#lists.isEmpty(reviews)}">
+            <article class="review-history-row" th:each="review : ${reviews}">
+                <div><span class="review-stars" th:text="|${review.rating}/5 sao|">5/5 sao</span><h2><a th:href="@{/repository/{id}(id=${review.document.id})}" th:text="${review.document.title}">Tài liệu</a></h2><p th:text="${review.comment ?: 'Bạn chưa để lại nhận xét bằng chữ.'}">Nhận xét</p></div>
+                <div class="activity-meta"><strong th:text="${#temporals.format(review.updatedAt, 'dd/MM/yyyy HH:mm')}">Thời gian</strong><small th:text="${review.hidden ? 'Đang được ẩn' : 'Đang hiển thị'}">Trạng thái</small><a class="table-action" th:href="@{/repository/{id}(id=${review.document.id})} + '#document-reviews'">Mở tài liệu</a></div>
+            </article>
+        </div>
+        <div class="empty-panel" th:if="${#lists.isEmpty(reviews)}"><h2>Chưa có đánh giá nào</h2><p>Đánh giá học liệu đã đọc để giúp cộng đồng lựa chọn tốt hơn.</p><a class="button" th:href="@{/repository}">Tìm học liệu</a></div>
+    </section>
+</main></div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body></html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Yêu cầu quyền nộp tài liệu | EduRepo</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="page-shell"><div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main id="main-content" class="content workspace-content submitter-request-page">
+    <header class="workspace-heading"><div><span class="workspace-kicker">Quyền đóng góp</span><h1>Yêu cầu quyền nộp tài liệu</h1><p class="subtitle">Gửi lý do để quản trị viên xem xét cấp thêm vai trò SUBMITTER cho tài khoản.</p></div></header>
+    <div th:replace="~{fragments/ui :: flashMessages}"></div>
+    <div class="request-layout">
+        <section class="form-card request-form-card">
+            <div class="form-section-heading"><h2>Gửi yêu cầu</h2><p>Quyền USER hiện tại vẫn được giữ nguyên trong suốt quá trình xét duyệt.</p></div>
+            <div class="request-notice is-approved" th:if="${alreadySubmitter}"><strong>Bạn đã có quyền nộp tài liệu</strong><p>Bạn có thể vào mục “Nộp tài liệu” trong sidebar.</p></div>
+            <div class="request-notice" th:if="${hasPendingRequest and !alreadySubmitter}"><strong>Yêu cầu đang chờ duyệt</strong><p>Bạn chỉ có thể gửi yêu cầu mới sau khi yêu cầu hiện tại được xử lý.</p></div>
+            <form th:if="${!hasPendingRequest and !alreadySubmitter}" th:action="@{/submitter-request}" th:object="${submitterRequestForm}" method="post" class="form-grid">
+                <div class="alert error" th:if="${#fields.hasGlobalErrors()}" th:each="error : ${#fields.globalErrors()}" th:text="${error}">Lỗi</div>
+                <label><span class="field-label">Lý do xin quyền nộp tài liệu</span><textarea th:field="*{reason}" rows="6" maxlength="1000" required placeholder="Mô tả loại học liệu bạn dự định đóng góp và mục đích sử dụng..."></textarea><small class="field-error" th:errors="*{reason}"></small></label>
+                <button type="submit">Gửi yêu cầu</button>
+            </form>
+        </section>
+        <section class="data-panel">
+            <div class="data-panel-header"><strong>Lịch sử yêu cầu</strong><span class="record-count" th:text="|${#lists.size(requests)} yêu cầu|">0 yêu cầu</span></div>
+            <div class="request-history" th:if="${!#lists.isEmpty(requests)}">
+                <article th:each="request : ${requests}"><div class="request-history-heading"><span class="status-pill" th:classappend="|status-${#strings.toLowerCase(request.status.name())}|" th:text="${request.status.label}">Trạng thái</span><time th:text="${#temporals.format(request.createdAt, 'dd/MM/yyyy HH:mm')}">Thời gian</time></div><p th:text="${request.reason}">Lý do</p><div class="rejection-note" th:if="${request.status.name() == 'REJECTED'}"><strong>Lý do từ chối</strong><p th:text="${request.rejectionReason}">Lý do</p></div></article>
+            </div>
+            <div class="empty-panel compact-empty" th:if="${#lists.isEmpty(requests)}"><h2>Chưa có yêu cầu</h2><p>Yêu cầu đầu tiên của bạn sẽ xuất hiện tại đây.</p></div>
+        </section>
+    </div>
+</main></div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body></html>

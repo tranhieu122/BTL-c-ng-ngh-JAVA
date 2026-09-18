@@ -1,0 +1,276 @@
+<mxfile host="Electron" agent="Codex" pages="2">
+  <diagram id="edurepo-components-overview" name="01 - Tổng quan (dùng báo cáo)">
+    <mxGraphModel dx="1717" dy="1043" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="o0" />
+        <mxCell id="o1" parent="o0" />
+        <mxCell id="obg" parent="o1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="1000" width="1600" as="geometry" />
+        </mxCell>
+        <mxCell id="otitle" parent="o1" style="text;html=1;align=center;verticalAlign=middle;fontSize=30;fontStyle=1;fontColor=#0F172A;strokeColor=none;fillColor=none;" value="SƠ ĐỒ THÀNH PHẦN HỆ THỐNG EDUREPO" vertex="1">
+          <mxGeometry height="45" width="880" x="360" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="oactorsBox" parent="o1" style="swimlane;html=1;rounded=1;startSize=52;fillColor=#E2E8F0;swimlaneFillColor=#F8FAFC;strokeColor=#64748B;strokeWidth=2;fontColor=#0F172A;fontSize=16;fontStyle=1;horizontal=1;" value="NGƯỜI SỬ DỤNG" vertex="1">
+          <mxGeometry height="665" width="230" x="45" y="175" as="geometry" />
+        </mxCell>
+        <mxCell id="oactorGuest" parent="o1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#FFFFFF;strokeColor=#CBD5E1;fontColor=#334155;fontSize=15;fontStyle=1;" value="Khách vãng lai" vertex="1">
+          <mxGeometry height="55" width="170" x="75" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="oactorReader" parent="o1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#FFFFFF;strokeColor=#CBD5E1;fontColor=#334155;fontSize=15;fontStyle=1;" value="Người đọc" vertex="1">
+          <mxGeometry height="55" width="170" x="75" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="oactorAuthor" parent="o1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#FFFFFF;strokeColor=#CBD5E1;fontColor=#334155;fontSize=15;fontStyle=1;" value="Người đóng góp" vertex="1">
+          <mxGeometry height="55" width="170" x="75" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="oactorReviewer" parent="o1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#FFFFFF;strokeColor=#CBD5E1;fontColor=#334155;fontSize=15;fontStyle=1;" value="Kiểm duyệt viên" vertex="1">
+          <mxGeometry height="55" width="170" x="75" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="oactorAdmin" parent="o1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#FFFFFF;strokeColor=#CBD5E1;fontColor=#334155;fontSize=15;fontStyle=1;" value="Quản trị viên" vertex="1">
+          <mxGeometry height="55" width="170" x="75" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="obrowser" parent="o1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#475569;strokeWidth=2;fontColor=#0F172A;fontSize=14;fontStyle=1;spacing=10;" value="TRÌNH DUYỆT WEB&#xa;HTTPS • HTML • CSS • JavaScript" vertex="1">
+          <mxGeometry height="90" width="170" x="75" y="685" as="geometry" />
+        </mxCell>
+        <mxCell id="osystem" parent="o1" style="swimlane;html=1;rounded=1;startSize=52;fillColor=#CCFBF1;swimlaneFillColor=#FFFFFF;strokeColor=#14B8A6;strokeWidth=2;fontColor=#134E4A;fontSize=17;fontStyle=1;horizontal=1;" value="&amp;nbsp;EDUREPO — SPRING BOOT" vertex="1">
+          <mxGeometry height="815" width="1230" x="320" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="ouiLayer" parent="o1" style="swimlane;html=1;rounded=1;startSize=38;fillColor=#DBEAFE;swimlaneFillColor=#F8FAFC;strokeColor=#60A5FA;strokeWidth=1.5;fontColor=#1E3A8A;fontSize=15;fontStyle=1;horizontal=1;" value="TẦNG TRÌNH BÀY" vertex="1">
+          <mxGeometry height="145" width="1170" x="350" y="205" as="geometry" />
+        </mxCell>
+        <mxCell id="ouiPublic" parent="o1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2563EB;strokeWidth=2;fontColor=#1E3A8A;fontSize=14;fontStyle=1;spacing=10;" value="CỔNG HỌC LIỆU&lt;br&gt;Trang chủ • Tìm kiếm • Chi tiết" vertex="1">
+          <mxGeometry height="72" width="310" x="390" y="255" as="geometry" />
+        </mxCell>
+        <mxCell id="ouiWorkspace" parent="o1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2563EB;strokeWidth=2;fontColor=#1E3A8A;fontSize=14;fontStyle=1;spacing=10;" value="KHÔNG GIAN CÁ NHÂN&lt;br&gt;Nộp tài liệu • Thư viện • Hồ sơ" vertex="1">
+          <mxGeometry height="72" width="310" x="780" y="255" as="geometry" />
+        </mxCell>
+        <mxCell id="ouiManagement" parent="o1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2563EB;strokeWidth=2;fontColor=#1E3A8A;fontSize=14;fontStyle=1;spacing=10;" value="KHÔNG GIAN NGHIỆP VỤ&lt;br&gt;Kiểm duyệt • Công bố • Quản trị" vertex="1">
+          <mxGeometry height="72" width="310" x="1170" y="255" as="geometry" />
+        </mxCell>
+        <mxCell id="ocoreLayer" parent="o1" style="swimlane;html=1;rounded=1;startSize=38;fillColor=#D1FAE5;swimlaneFillColor=#F8FAFC;strokeColor=#34D399;strokeWidth=1.5;fontColor=#065F46;fontSize=15;fontStyle=1;horizontal=1;" value="TẦNG NGHIỆP VỤ CỐT LÕI" vertex="1">
+          <mxGeometry height="210" width="1170" x="350" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="oauth" parent="o1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#059669;strokeWidth=2;fontColor=#065F46;fontSize=14;fontStyle=1;spacing=10;" value="XÁC THỰC &amp;amp; PHÂN QUYỀN&lt;br&gt;RBAC • OTP • BCrypt" vertex="1">
+          <mxGeometry height="92" width="245" x="380" y="455" as="geometry" />
+        </mxCell>
+        <mxCell id="odocument" parent="o1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#059669;strokeWidth=2;fontColor=#065F46;fontSize=14;fontStyle=1;spacing=10;" value="QUẢN LÝ TÀI LIỆU&lt;br&gt;Bản nháp • Tệp • Phiên bản" vertex="1">
+          <mxGeometry height="92" width="245" x="665" y="455" as="geometry" />
+        </mxCell>
+        <mxCell id="oreview" parent="o1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#059669;strokeWidth=2;fontColor=#065F46;fontSize=14;fontStyle=1;spacing=10;" value="KIỂM DUYỆT &amp;amp; CÔNG BỐ&lt;br&gt;Rubric • Phản hồi • Trạng thái" vertex="1">
+          <mxGeometry height="92" width="245" x="950" y="455" as="geometry" />
+        </mxCell>
+        <mxCell id="ocatalog" parent="o1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#059669;strokeWidth=2;fontColor=#065F46;fontSize=14;fontStyle=1;spacing=10;" value="KHO HỌC LIỆU&lt;br&gt;Tìm kiếm • Bộ lọc • Thống kê" vertex="1">
+          <mxGeometry height="92" width="245" x="1235" y="455" as="geometry" />
+        </mxCell>
+        <mxCell id="osupportLayer" parent="o1" style="swimlane;html=1;rounded=1;startSize=38;fillColor=#FEF3C7;swimlaneFillColor=#F8FAFC;strokeColor=#FBBF24;strokeWidth=1.5;fontColor=#78350F;fontSize=15;fontStyle=1;horizontal=1;" value="DỊCH VỤ HỖ TRỢ" vertex="1">
+          <mxGeometry height="125" width="1170" x="350" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="olibrary" parent="o1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;strokeWidth=2;fontColor=#78350F;fontSize=14;fontStyle=1;" value="&amp;nbsp;Thư viện cá nhân" vertex="1">
+          <mxGeometry height="52" width="250" x="395" y="690" as="geometry" />
+        </mxCell>
+        <mxCell id="onotification" parent="o1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;strokeWidth=2;fontColor=#78350F;fontSize=14;fontStyle=1;" value="Thông báo thời gian thực" vertex="1">
+          <mxGeometry height="52" width="300" x="685" y="690" as="geometry" />
+        </mxCell>
+        <mxCell id="oadminAudit" parent="o1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;strokeWidth=2;fontColor=#78350F;fontSize=14;fontStyle=1;" value="&amp;nbsp;Quản trị &amp;amp; Nhật ký" vertex="1">
+          <mxGeometry height="52" width="275" x="1025" y="690" as="geometry" />
+        </mxCell>
+        <mxCell id="omonitor" parent="o1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;strokeWidth=2;fontColor=#78350F;fontSize=14;fontStyle=1;" value="&amp;nbsp;Giám sát hệ thống" vertex="1">
+          <mxGeometry height="52" width="145" x="1340" y="690" as="geometry" />
+        </mxCell>
+        <mxCell id="odataLayer" parent="o1" style="swimlane;html=1;rounded=1;startSize=38;fillColor=#EDE9FE;swimlaneFillColor=#F8FAFC;strokeColor=#A78BFA;strokeWidth=1.5;fontColor=#5B21B6;fontSize=15;fontStyle=1;horizontal=1;" value="DỮ LIỆU &amp; HẠ TẦNG" vertex="1">
+          <mxGeometry height="105" width="1170" x="350" y="805" as="geometry" />
+        </mxCell>
+        <mxCell id="omysql" parent="o1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;fillColor=#FFFFFF;strokeColor=#7C3AED;strokeWidth=2;fontColor=#5B21B6;fontSize=15;fontStyle=1;" value="MySQL" vertex="1">
+          <mxGeometry height="42" width="230" x="440" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="ofiles" parent="o1" style="shape=folder;tabWidth=28;tabHeight=10;tabPosition=left;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=#7C3AED;strokeWidth=2;fontColor=#5B21B6;fontSize=14;fontStyle=1;" value="&amp;nbsp;Kho tệp &amp;amp; phiên bản" vertex="1">
+          <mxGeometry height="42" width="300" x="750" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="omail" parent="o1" style="shape=cloud;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7C3AED;strokeWidth=2;fontColor=#5B21B6;fontSize=14;fontStyle=1;" value="&amp;nbsp;Mail Server" vertex="1">
+          <mxGeometry height="52" width="270" x="1140" y="845" as="geometry" />
+        </mxCell>
+        <mxCell id="oeActor" edge="1" parent="o1" source="obrowser" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#475569;strokeWidth=2;fontColor=#334155;fontSize=12;" target="ouiLayer" value="HTTPS">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oeUiCore" edge="1" parent="o1" source="ouiLayer" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#2563EB;strokeWidth=2;fontColor=#1E3A8A;fontSize=12;" target="ocoreLayer" value="sử dụng">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oeCoreSupport" edge="1" parent="o1" source="ocoreLayer" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#059669;strokeWidth=2;fontColor=#065F46;fontSize=12;" target="osupportLayer" value="phát sinh sự kiện">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oeSupportData" edge="1" parent="o1" source="osupportLayer" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#D97706;strokeWidth=2;fontColor=#78350F;fontSize=12;" target="odataLayer" value="đọc / ghi">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oeCoreData" edge="1" parent="o1" source="ocoreLayer" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#7C3AED;strokeWidth=2;fontColor=#5B21B6;fontSize=12;exitX=0.95;exitY=1;entryX=0.95;entryY=0;" target="odataLayer" value="JPA / File Storage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="olegend" parent="o1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#0F172A;strokeColor=#0F172A;fontColor=#FFFFFF;fontSize=13;align=center;" value="Ký pháp UML:  ▣ Thành phần (Component)     ⇢ Quan hệ phụ thuộc (Dependency)     Mỗi vùng màu đại diện cho một tầng kiến trúc" vertex="1">
+          <mxGeometry height="34" width="1170" x="350" y="950" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="edurepo-components" name="02 - Chi tiết kỹ thuật">
+    <mxGraphModel dx="1717" dy="1043" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="1000" width="1600" as="geometry" />
+        </mxCell>
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=28;fontStyle=1;fontColor=#0F172A;strokeColor=none;fillColor=none;" value="SƠ ĐỒ THÀNH PHẦN HỆ THỐNG EDUREPO" vertex="1">
+          <mxGeometry height="42" width="840" x="380" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontColor=#64748B;strokeColor=none;fillColor=none;" value="UML Component Diagram — Các thành phần đã triển khai và quan hệ phụ thuộc" vertex="1">
+          <mxGeometry height="28" width="800" x="400" y="67" as="geometry" />
+        </mxCell>
+        <mxCell id="clientPackage" parent="1" style="swimlane;html=1;rounded=1;startSize=48;fillColor=#F1F5F9;swimlaneFillColor=#FFFFFF;strokeColor=#94A3B8;strokeWidth=1.5;fontColor=#334155;fontSize=13;fontStyle=1;horizontal=1;" value="&lt;&lt;device&gt;&gt;&#xa;THIẾT BỊ NGƯỜI DÙNG" vertex="1">
+          <mxGeometry height="685" width="230" x="35" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="browser" parent="1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#475569;strokeWidth=2;fontColor=#0F172A;fontSize=13;fontStyle=1;spacing=10;" value="&lt;&lt;component&gt;&gt;&#xa;Trình duyệt Web&#xa;&#xa;HTML5 • CSS3 • JavaScript" vertex="1">
+          <mxGeometry height="105" width="165" x="70" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="actors" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#F8FAFC;strokeColor=#CBD5E1;fontColor=#334155;fontSize=13;align=left;spacingLeft=20;" value="&lt;&lt;actors&gt;&gt;&#xa;Khách vãng lai&#xa;Người đọc&#xa;Người đóng góp&#xa;Kiểm duyệt viên&#xa;Quản trị viên" vertex="1">
+          <mxGeometry height="170" width="165" x="70" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="protocol" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#EFF6FF;strokeColor=#60A5FA;fontColor=#1E3A8A;fontSize=12;" value="HTTPS&#xa;Request / Response&#xa;Server-Sent Events" vertex="1">
+          <mxGeometry height="105" width="165" x="70" y="615" as="geometry" />
+        </mxCell>
+        <mxCell id="appPackage" parent="1" style="swimlane;html=1;rounded=1;startSize=48;fillColor=#ECFDF5;swimlaneFillColor=#FFFFFF;strokeColor=#5EEAD4;strokeWidth=2;fontColor=#115E59;fontSize=14;fontStyle=1;horizontal=1;" value="&lt;&lt;system&gt;&gt; EDUREPO WEB APPLICATION — SPRING BOOT" vertex="1">
+          <mxGeometry height="755" width="1010" x="305" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="presentationPackage" parent="1" style="swimlane;html=1;rounded=1;startSize=38;fillColor=#E0F2FE;swimlaneFillColor=#F8FAFC;strokeColor=#7DD3FC;fontColor=#075985;fontSize=13;fontStyle=1;horizontal=1;" value="&lt;&lt;layer&gt;&gt; Tầng trình bày" vertex="1">
+          <mxGeometry height="145" width="950" x="330" y="195" as="geometry" />
+        </mxCell>
+        <mxCell id="publicUI" parent="1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0284C7;strokeWidth=1.5;fontColor=#075985;fontSize=12;fontStyle=1;spacing=8;" value="&lt;&lt;component&gt;&gt;&#xa;Cổng học liệu công khai&#xa;Trang chủ • Tìm kiếm • Chi tiết" vertex="1">
+          <mxGeometry height="75" width="245" x="365" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="workspaceUI" parent="1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0284C7;strokeWidth=1.5;fontColor=#075985;fontSize=12;fontStyle=1;spacing=8;" value="&lt;&lt;component&gt;&gt;&#xa;Không gian làm việc&#xa;Nộp tài liệu • Thư viện • Hồ sơ" vertex="1">
+          <mxGeometry height="75" width="245" x="675" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="managementUI" parent="1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0284C7;strokeWidth=1.5;fontColor=#075985;fontSize=12;fontStyle=1;spacing=8;" value="&lt;&lt;component&gt;&gt;&#xa;Giao diện nghiệp vụ&#xa;Kiểm duyệt • Công bố • Quản trị" vertex="1">
+          <mxGeometry height="75" width="245" x="985" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="businessPackage" parent="1" style="swimlane;html=1;rounded=1;startSize=38;fillColor=#ECFDF5;swimlaneFillColor=#F8FAFC;strokeColor=#6EE7B7;fontColor=#065F46;fontSize=13;fontStyle=1;horizontal=1;" value="&lt;&lt;layer&gt;&gt; Tầng nghiệp vụ" vertex="1">
+          <mxGeometry height="315" width="950" x="330" y="365" as="geometry" />
+        </mxCell>
+        <mxCell id="auth" parent="1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#059669;strokeWidth=1.5;fontColor=#065F46;fontSize=12;fontStyle=1;spacing=8;" value="&lt;&lt;component&gt;&gt;&#xa;Xác thực &amp; phân quyền&#xa;&#xa;Spring Security&#xa;RBAC • OTP • BCrypt" vertex="1">
+          <mxGeometry height="100" width="205" x="360" y="415" as="geometry" />
+        </mxCell>
+        <mxCell id="document" parent="1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#059669;strokeWidth=1.5;fontColor=#065F46;fontSize=12;fontStyle=1;spacing=8;" value="&lt;&lt;component&gt;&gt;&#xa;Quản lý tài liệu&#xa;&#xa;Bản nháp • Tệp tin&#xa;Phiên bản • Metadata" vertex="1">
+          <mxGeometry height="100" width="205" x="585" y="415" as="geometry" />
+        </mxCell>
+        <mxCell id="review" parent="1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#059669;strokeWidth=1.5;fontColor=#065F46;fontSize=12;fontStyle=1;spacing=8;" value="&lt;&lt;component&gt;&gt;&#xa;Kiểm duyệt &amp; công bố&#xa;&#xa;Rubric • Phản hồi&#xa;Chuyển trạng thái" vertex="1">
+          <mxGeometry height="100" width="205" x="810" y="415" as="geometry" />
+        </mxCell>
+        <mxCell id="catalog" parent="1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#059669;strokeWidth=1.5;fontColor=#065F46;fontSize=12;fontStyle=1;spacing=8;" value="&lt;&lt;component&gt;&gt;&#xa;Kho học liệu &amp; tìm kiếm&#xa;&#xa;Bộ lọc • Phân trang&#xa;Lượt xem • Lượt tải" vertex="1">
+          <mxGeometry height="100" width="205" x="1035" y="415" as="geometry" />
+        </mxCell>
+        <mxCell id="library" parent="1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#059669;strokeWidth=1.5;fontColor=#065F46;fontSize=12;fontStyle=1;spacing=8;" value="&lt;&lt;component&gt;&gt;&#xa;Thư viện cá nhân&#xa;&#xa;Bookmark • Bộ sưu tập&#xa;Lịch sử hoạt động" vertex="1">
+          <mxGeometry height="100" width="205" x="360" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="notification" parent="1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#059669;strokeWidth=1.5;fontColor=#065F46;fontSize=12;fontStyle=1;spacing=8;" value="&lt;&lt;component&gt;&gt;&#xa;Thông báo &amp; cập nhật&#xa;&#xa;Thông báo nghiệp vụ&#xa;SSE thời gian thực" vertex="1">
+          <mxGeometry height="100" width="205" x="585" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="administration" parent="1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#059669;strokeWidth=1.5;fontColor=#065F46;fontSize=12;fontStyle=1;spacing=8;" value="&lt;&lt;component&gt;&gt;&#xa;Quản trị hệ thống&#xa;&#xa;Người dùng • Danh mục&#xa;Khoa • Bộ môn" vertex="1">
+          <mxGeometry height="100" width="205" x="810" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="audit" parent="1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#059669;strokeWidth=1.5;fontColor=#065F46;fontSize=12;fontStyle=1;spacing=8;" value="&lt;&lt;component&gt;&gt;&#xa;Nhật ký &amp; giám sát&#xa;&#xa;Audit log • Metrics&#xa;Truy vết thao tác" vertex="1">
+          <mxGeometry height="100" width="205" x="1035" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="dataPackage" parent="1" style="swimlane;html=1;rounded=1;startSize=38;fillColor=#F5F3FF;swimlaneFillColor=#F8FAFC;strokeColor=#C4B5FD;fontColor=#5B21B6;fontSize=13;fontStyle=1;horizontal=1;" value="&lt;&lt;layer&gt;&gt; Tầng truy cập dữ liệu" vertex="1">
+          <mxGeometry height="135" width="950" x="330" y="705" as="geometry" />
+        </mxCell>
+        <mxCell id="repositories" parent="1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7C3AED;strokeWidth=1.5;fontColor=#5B21B6;fontSize=12;fontStyle=1;spacing=8;" value="&lt;&lt;component&gt;&gt;&#xa;JPA Repositories&#xa;Truy vấn và lưu dữ liệu" vertex="1">
+          <mxGeometry height="70" width="225" x="410" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="fileAdapter" parent="1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7C3AED;strokeWidth=1.5;fontColor=#5B21B6;fontSize=12;fontStyle=1;spacing=8;" value="&lt;&lt;component&gt;&gt;&#xa;File Storage Service&#xa;Lưu tệp và phiên bản" vertex="1">
+          <mxGeometry height="70" width="225" x="700" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="mailAdapter" parent="1" style="shape=component;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7C3AED;strokeWidth=1.5;fontColor=#5B21B6;fontSize=12;fontStyle=1;spacing=8;" value="&lt;&lt;component&gt;&gt;&#xa;Email Service&#xa;OTP và thông báo email" vertex="1">
+          <mxGeometry height="70" width="225" x="990" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="infraPackage" parent="1" style="swimlane;html=1;rounded=1;startSize=48;fillColor=#FFF7ED;swimlaneFillColor=#FFFFFF;strokeColor=#FDBA74;strokeWidth=1.5;fontColor=#9A3412;fontSize=13;fontStyle=1;horizontal=1;" value="&lt;&lt;infrastructure&gt;&gt;&#xa;HẠ TẦNG DỮ LIỆU" vertex="1">
+          <mxGeometry height="685" width="215" x="1355" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="smtp" parent="infraPackage" style="shape=cloud;whiteSpace=wrap;html=1;fillColor=#FFF7ED;strokeColor=#EA580C;strokeWidth=2;fontColor=#9A3412;fontSize=12;fontStyle=1;" value="&lt;&lt;external service&gt;&gt;&#xa;Mail Server&#xa;&#xa;Gửi OTP và email" vertex="1">
+          <mxGeometry height="100" width="160" x="55" y="495" as="geometry" />
+        </mxCell>
+        <mxCell id="mysql" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;fillColor=#FFF7ED;strokeColor=#EA580C;strokeWidth=2;fontColor=#9A3412;fontSize=12;fontStyle=1;" value="&lt;&lt;database&gt;&gt;&#xa;MySQL&#xa;&#xa;Dữ liệu nghiệp vụ&#xa;Lịch sử • Nhật ký" vertex="1">
+          <mxGeometry height="120" width="140" x="1390" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="filesystem" parent="1" style="shape=folder;tabWidth=40;tabHeight=14;tabPosition=left;html=1;whiteSpace=wrap;fillColor=#FFF7ED;strokeColor=#EA580C;strokeWidth=2;fontColor=#9A3412;fontSize=12;fontStyle=1;" value="&lt;&lt;storage&gt;&gt;&#xa;Kho tệp&#xa;&#xa;PDF • DOC • DOCX&#xa;Các phiên bản" vertex="1">
+          <mxGeometry height="105" width="140" x="1390" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="eBrowserPublic" edge="1" parent="1" source="browser" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#475569;strokeWidth=1.5;fontSize=11;" target="publicUI" value="HTTP/HTTPS">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eBrowserWork" edge="1" parent="1" source="browser" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#475569;strokeWidth=1.5;" target="workspaceUI">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eBrowserManage" edge="1" parent="1" source="browser" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#475569;strokeWidth=1.5;" target="managementUI">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ePublicAuth" edge="1" parent="1" source="publicUI" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#0284C7;strokeWidth=1.5;" target="auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ePublicCatalog" edge="1" parent="1" source="publicUI" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#0284C7;strokeWidth=1.5;" target="catalog">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eWorkDocument" edge="1" parent="1" source="workspaceUI" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#0284C7;strokeWidth=1.5;" target="document">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eWorkLibrary" edge="1" parent="1" source="workspaceUI" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#0284C7;strokeWidth=1.5;" target="library">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eManageReview" edge="1" parent="1" source="managementUI" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#0284C7;strokeWidth=1.5;" target="review">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eManageAdmin" edge="1" parent="1" source="managementUI" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#0284C7;strokeWidth=1.5;" target="administration">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eDocumentReview" edge="1" parent="1" source="review" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#059669;strokeWidth=1.5;fontSize=10;" target="document" value="cung cấp hồ sơ">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eReviewNotify" edge="1" parent="1" source="review" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#059669;strokeWidth=1.5;fontSize=10;" target="notification" value="phát sinh sự kiện">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eServicesRepo" edge="1" parent="1" source="document" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#7C3AED;strokeWidth=1.5;" target="repositories">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eReviewRepo" edge="1" parent="1" source="review" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#7C3AED;strokeWidth=1.5;" target="repositories">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eCatalogRepo" edge="1" parent="1" source="catalog" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#7C3AED;strokeWidth=1.5;" target="repositories">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eLibraryRepo" edge="1" parent="1" source="library" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#7C3AED;strokeWidth=1.5;" target="repositories">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eAdminRepo" edge="1" parent="1" source="administration" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#7C3AED;strokeWidth=1.5;" target="repositories">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eAuditRepo" edge="1" parent="1" source="audit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#7C3AED;strokeWidth=1.5;" target="repositories">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eDocumentFile" edge="1" parent="1" source="document" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#7C3AED;strokeWidth=1.5;" target="fileAdapter">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eNotifyMail" edge="1" parent="1" source="notification" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#7C3AED;strokeWidth=1.5;" target="mailAdapter">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eRepoDb" edge="1" parent="1" source="repositories" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#EA580C;strokeWidth=1.5;fontSize=10;" target="mysql" value="JDBC">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eFileStore" edge="1" parent="1" source="fileAdapter" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#EA580C;strokeWidth=1.5;" target="filesystem">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eMailSmtp" edge="1" parent="1" source="mailAdapter" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;endArrow=open;endFill=0;strokeColor=#EA580C;strokeWidth=1.5;fontSize=10;" target="smtp" value="SMTP">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#0F172A;strokeColor=#0F172A;fontColor=#FFFFFF;fontSize=12;align=center;" value="Ký pháp UML:  ▣ Thành phần (Component)      ⇢ Quan hệ phụ thuộc (Dependency)      Khung màu thể hiện tầng kiến trúc hoặc môi trường triển khai" vertex="1">
+          <mxGeometry height="42" width="1000" x="300" y="920" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

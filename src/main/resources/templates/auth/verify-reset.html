@@ -9,15 +9,16 @@
 <main class="auth-shell auth-shell-compact">
     <section class="auth-showcase">
         <a class="brand brand-inverse auth-brand" th:href="@{/repository}"><span class="brand-mark" aria-hidden="true"><span class="brand-mark-book"></span></span><span class="brand-copy"><strong>EduRepo</strong><small>Digital Learning Library</small></span></a>
-        <div class="auth-message"><div class="hero-badge auth-badge">✦ Khôi phục tài khoản</div><h1>Xác thực OTP<br><span>trước khi đổi mật khẩu.</span></h1><p>Nếu email thuộc tài khoản đang hoạt động, mã OTP đã được gửi và có hiệu lực trong 10 phút.</p></div>
+        <div class="auth-message"><div class="hero-badge auth-badge">✦ Khôi phục tài khoản</div><h2>Xác thực OTP<br><span>trước khi đổi mật khẩu.</span></h2><p>Nếu email thuộc tài khoản đang hoạt động, mã OTP đã được gửi và có hiệu lực trong 10 phút.</p></div>
         <div class="auth-trust-row"><span>✓ Không tiết lộ tài khoản</span><span>✓ Mật khẩu mới sau OTP</span></div>
     </section>
     <section class="auth-card" aria-labelledby="verify-reset-title">
         <div class="auth-card-content">
-            <div class="auth-card-heading"><p class="eyebrow">Mã OTP</p><h2 id="verify-reset-title">Nhập mã xác thực</h2><p th:text="'Kiểm tra hộp thư của ' + ${email}">Kiểm tra hộp thư của bạn.</p></div>
+            <div class="auth-card-heading"><p class="eyebrow">Mã OTP</p><h1 id="verify-reset-title">Nhập mã xác thực</h1><p th:text="'Kiểm tra hộp thư của ' + ${email}">Kiểm tra hộp thư của bạn.</p></div>
             <div class="alert success auth-alert" th:if="${resetRequested}" role="status"><span class="alert-icon">✓</span><div>Nếu tài khoản tồn tại, mã OTP đã được gửi tới email này.</div></div>
             <div class="alert success auth-alert" th:if="${otpSent}" role="status"><span class="alert-icon">✓</span><div>Mã OTP đã được gửi tới email của bạn.</div></div>
             <div class="alert warning auth-alert" th:if="${otpMailSkipped}" role="status"><span class="alert-icon">!</span><div>SMTP chưa được cấu hình nên email OTP chưa được gửi. Hãy cấu hình Gmail App Password trước khi thử gửi thật.</div></div>
+            <div class="alert warning auth-alert" th:if="${otpMailFailed}" role="status"><span class="alert-icon">!</span><div>Không gửi được email OTP. Hãy kiểm tra App Password Gmail, kết nối mạng và thử khởi động lại ứng dụng.</div></div>
             <div class="alert warning auth-alert" th:if="${otpCooldownSeconds}" role="alert"><span class="alert-icon">!</span><div th:text="'Vui lòng chờ ' + ${otpCooldownSeconds} + ' giây trước khi gửi lại mã.'">Vui lòng chờ trước khi gửi lại mã.</div></div>
             <form class="login-form" th:action="@{/forgot-password/verify}" th:object="${otpForm}" method="post">
                 <div class="form-field">

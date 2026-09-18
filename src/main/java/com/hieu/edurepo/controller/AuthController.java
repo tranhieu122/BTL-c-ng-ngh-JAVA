@@ -4,6 +4,7 @@ import com.hieu.edurepo.dto.RegisterForm;
 import com.hieu.edurepo.dto.OtpForm;
 import com.hieu.edurepo.dto.ResetPasswordForm;
 import com.hieu.edurepo.enums.OtpPurpose;
+import com.hieu.edurepo.observability.OperationalMetrics;
 import com.hieu.edurepo.service.EmailService;
 import com.hieu.edurepo.service.OtpService;
 import com.hieu.edurepo.service.UserService;
@@ -23,6 +24,8 @@ import java.util.Objects;
 
 @Controller
 public class AuthController {
+    // Các khóa session này lưu trạng thái tạm của luồng OTP.
+    // Dữ liệu chỉ nằm trong phiên trình duyệt, không tạo user/reset password trước khi xác thực mã.
     private static final String PENDING_REGISTRATION = "PENDING_REGISTRATION";
     private static final String PENDING_RESET_EMAIL = "PENDING_RESET_EMAIL";
     private static final String VERIFIED_RESET_EMAIL = "VERIFIED_RESET_EMAIL";
@@ -32,14 +35,17 @@ public class AuthController {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final com.hieu.edurepo.service.AuditLogService auditLogs;
+    private final OperationalMetrics metrics;
 
     public AuthController(UserService userService, OtpService otpService, EmailService emailService,
-                          PasswordEncoder passwordEncoder, com.hieu.edurepo.service.AuditLogService auditLogs) {
+                          PasswordEncoder passwordEncoder, com.hieu.edurepo.service.AuditLogService auditLogs,
+                          OperationalMetrics metrics) {
         this.userService = userService;
         this.otpService = otpService;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
         this.auditLogs = auditLogs;
+        this.metrics = metrics;
     }
 
     @GetMapping("/login")
@@ -67,14 +73,17 @@ public class AuthController {
         }
         if (bindingResult.hasErrors()) return "auth/register";
         try {
+            // Kiểm tra email trước khi gửi OTP để không tạo mã cho tài khoản chắc chắn bị từ chối.
             if (userService.emailExists(form.getEmail())) {
                 bindingResult.rejectValue("email", "email.exists", "Email này đã được đăng ký");
                 return "auth/register";
             }
+            // Chưa lưu tài khoản vào database ở bước này.
+            // Mật khẩu được mã hóa trước khi đưa vào session để tránh giữ plain text lâu hơn cần thiết.
             PendingRegistration pending = new PendingRegistration(form.getFullName(), form.getEmail(),
                     passwordEncoder.encode(form.getPassword()));
             session.setAttribute(PENDING_REGISTRATION, pending);
-            sendOtp(form.getEmail(), OtpPurpose.REGISTER, "dang ky tai khoan", redirectAttributes);
+            sendOtp(form.getEmail(), OtpPurpose.REGISTER, redirectAttributes);
             return "redirect:/register/verify";
         } catch (IllegalStateException exception) {
             if ("EMAIL_EXISTS".equals(exception.getMessage())) {
@@ -114,6 +123,8 @@ public class AuthController {
             return "auth/verify-register";
         }
         try {
+            // Chỉ khi OTP hợp lệ mới tạo user thật trong database.
+            // Cách này tránh rác tài khoản chưa xác thực và bảo đảm email thuộc về người đăng ký.
             var registeredUser = userService.registerWithEncodedPassword(pending.fullName(), pending.email(), pending.encodedPassword());
             auditLogs.recordAsUser(registeredUser, com.hieu.edurepo.enums.AuditAction.USER_REGISTERED,
                     com.hieu.edurepo.enums.AuditTargetType.USER, registeredUser.getId(),
@@ -136,7 +147,7 @@ public class AuthController {
         PendingRegistration pending = (PendingRegistration) session.getAttribute(PENDING_REGISTRATION);
         if (pending == null) return "redirect:/register";
         try {
-            sendOtp(pending.email(), OtpPurpose.REGISTER, "dang ky tai khoan", redirectAttributes);
+            sendOtp(pending.email(), OtpPurpose.REGISTER, redirectAttributes);
         } catch (OtpService.OtpCooldownException exception) {
             redirectAttributes.addFlashAttribute("otpCooldownSeconds", exception.getSecondsRemaining());
         }
@@ -151,10 +162,12 @@ public class AuthController {
                                  HttpSession session) {
         String normalizedEmail = email == null ? "" : email.trim();
         session.setAttribute(PENDING_RESET_EMAIL, normalizedEmail);
+        // Không báo khác nhau giữa email tồn tại và không tồn tại.
+        // Đây là kỹ thuật chống dò tài khoản qua màn hình quên mật khẩu.
         if (userService.activeAccountExists(normalizedEmail)) {
             userService.requestPasswordReset(normalizedEmail);
             try {
-                sendOtp(normalizedEmail, OtpPurpose.PASSWORD_RESET, "lay lai mat khau", redirectAttributes);
+                sendOtp(normalizedEmail, OtpPurpose.PASSWORD_RESET, redirectAttributes);
             } catch (OtpService.OtpCooldownException exception) {
                 redirectAttributes.addFlashAttribute("otpCooldownSeconds", exception.getSecondsRemaining());
             }
@@ -187,6 +200,8 @@ public class AuthController {
             bindingResult.rejectValue("code", "otp.invalid", otpMessage(verification));
             return "auth/verify-reset";
         }
+        // Sau khi OTP đúng, đổi trạng thái session từ "đang chờ OTP" sang "được phép đặt mật khẩu mới".
+        // Người dùng truy cập thẳng /reset-password mà chưa qua bước này sẽ bị chuyển về quên mật khẩu.
         session.removeAttribute(PENDING_RESET_EMAIL);
         session.setAttribute(VERIFIED_RESET_EMAIL, email);
         return "redirect:/reset-password";
@@ -198,7 +213,7 @@ public class AuthController {
         if (email == null || email.isBlank()) return "redirect:/forgot-password";
         if (userService.activeAccountExists(email)) {
             try {
-                sendOtp(email, OtpPurpose.PASSWORD_RESET, "lay lai mat khau", redirectAttributes);
+                sendOtp(email, OtpPurpose.PASSWORD_RESET, redirectAttributes);
             } catch (OtpService.OtpCooldownException exception) {
                 redirectAttributes.addFlashAttribute("otpCooldownSeconds", exception.getSecondsRemaining());
             }
@@ -229,15 +244,37 @@ public class AuthController {
         }
         if (bindingResult.hasErrors()) return "auth/reset-password";
         userService.resetPassword(email, form.getPassword());
+        com.hieu.edurepo.entity.User resetUser = userService.findByEmail(email);
+        auditLogs.recordAsUser(resetUser, com.hieu.edurepo.enums.AuditAction.PASSWORD_RESET,
+                com.hieu.edurepo.enums.AuditTargetType.USER, resetUser == null ? null : resetUser.getId(),
+                "Đặt lại mật khẩu qua luồng OTP", com.hieu.edurepo.enums.AuditResult.SUCCESS);
         session.removeAttribute(VERIFIED_RESET_EMAIL);
         redirectAttributes.addFlashAttribute("passwordReset", true);
         return "redirect:/login";
     }
 
-    private void sendOtp(String email, OtpPurpose purpose, String label, RedirectAttributes redirectAttributes) {
+    private void sendOtp(String email, OtpPurpose purpose, RedirectAttributes redirectAttributes) {
+        // OtpService chỉ tạo và lưu hash OTP; EmailService mới chịu trách nhiệm gửi mã gốc cho người dùng.
         OtpService.OtpIssue issue = otpService.issue(email, purpose);
-        boolean sent = emailService.sendOtp(email, issue.code(), label);
-        redirectAttributes.addFlashAttribute(sent ? "otpSent" : "otpMailSkipped", true);
+        EmailService.OtpDeliveryStatus deliveryStatus;
+        try {
+            deliveryStatus = emailService.sendOtpStatus(email, issue.code(), purpose);
+        } catch (RuntimeException deliveryFailure) {
+            otpService.revoke(issue);
+            metrics.otpRevoked(purpose);
+            throw deliveryFailure;
+        }
+        if (deliveryStatus != EmailService.OtpDeliveryStatus.SUCCESS) {
+            // The user cannot use a code they never received. Revoking this exact issue also
+            // removes its resend cooldown without affecting a newer concurrent OTP.
+            otpService.revoke(issue);
+            metrics.otpRevoked(purpose);
+        }
+        switch (deliveryStatus) {
+            case SUCCESS -> redirectAttributes.addFlashAttribute("otpSent", true);
+            case CONFIGURATION_ERROR -> redirectAttributes.addFlashAttribute("otpMailSkipped", true);
+            case DELIVERY_FAILED -> redirectAttributes.addFlashAttribute("otpMailFailed", true);
+        }
     }
 
     private String otpMessage(OtpService.OtpVerification verification) {

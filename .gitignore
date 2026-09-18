@@ -49,3 +49,9 @@ Thumbs.db
 .data/
 backups/
 uploads/
+outputs/
+downloaded_*/
+*.env
+*.env.*
+.env
+

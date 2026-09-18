@@ -29,10 +29,13 @@ import java.util.UUID;
 public class NotificationService {
     private final NotificationRepository notifications;
     private final UserRepository users;
+    private final RealtimeChangeTracker realtimeChanges;
 
-    public NotificationService(NotificationRepository notifications, UserRepository users) {
+    public NotificationService(NotificationRepository notifications, UserRepository users,
+                               RealtimeChangeTracker realtimeChanges) {
         this.notifications = notifications;
         this.users = users;
+        this.realtimeChanges = realtimeChanges;
     }
 
     @Transactional(readOnly = true)
@@ -59,10 +62,12 @@ public class NotificationService {
 
     public void markRead(Long recipientId, Long notificationId) {
         notifications.markRead(notificationId, recipientId, now());
+        realtimeChanges.changedForUserAfterCommit(recipientId);
     }
 
     public void markAllRead(Long recipientId) {
         notifications.markAllRead(recipientId, now());
+        realtimeChanges.changedForUserAfterCommit(recipientId);
     }
 
     @Transactional(readOnly = true)
@@ -104,7 +109,9 @@ public class NotificationService {
         if (pending.isEmpty()) {
             return 0;
         }
-        return notifications.saveAllAndFlush(pending).size();
+        int sent = notifications.saveAllAndFlush(pending).size();
+        pending.forEach(notification -> realtimeChanges.changedForUserAfterCommit(notification.getRecipient().getId()));
+        return sent;
     }
 
     public void submitted(Document document) {
@@ -153,6 +160,7 @@ public class NotificationService {
         notification.setTitle(title);
         notification.setMessage(message);
         notifications.save(notification);
+        realtimeChanges.changedForUserAfterCommit(recipient.getId());
     }
 
     private String eventKey(String action, Long documentId) {
@@ -163,6 +171,7 @@ public class NotificationService {
         return switch (type) {
             case ADMIN_MESSAGE -> "Thông báo từ quản trị viên";
             case DOCUMENT_APPROVED -> "Tài liệu đã được phê duyệt";
+            case DOCUMENT_UNDER_REVIEW -> "Tài liệu đang được kiểm duyệt";
             case DOCUMENT_REJECTED -> "Tài liệu bị từ chối";
             case DOCUMENT_REVISION_REQUIRED -> "Tài liệu cần chỉnh sửa";
             case DOCUMENT_PUBLISHED -> "Tài liệu đã được công bố";

@@ -86,4 +86,21 @@ class FileValidationUtilTest {
         assertThrows(FileStorageException.class,
                 () -> FileValidationUtil.validateAndGetExtension(traversalName));
     }
+
+    @Test
+    void rejectsMismatchedMimeAndDangerousWindowsOrBidiNames() {
+        var wrongMime = new MockMultipartFile("file", "document.pdf", "image/png", "%PDF-1.7".getBytes());
+        var reserved = new MockMultipartFile("file", "CON.pdf", "application/pdf", "%PDF-1.7".getBytes());
+        var bidi = new MockMultipartFile("file", "safe\u202Efdp.exe.pdf", "application/pdf", "%PDF-1.7".getBytes());
+
+        assertThrows(FileStorageException.class, () -> FileValidationUtil.validateAndGetExtension(wrongMime));
+        assertThrows(FileStorageException.class, () -> FileValidationUtil.validateAndGetExtension(reserved));
+        assertThrows(FileStorageException.class, () -> FileValidationUtil.validateAndGetExtension(bidi));
+    }
+
+    @Test
+    void rejectsDocxWithTraversalEntry() throws Exception {
+        var suspicious = wordArchive("[Content_Types].xml", "word/document.xml", "../payload.exe");
+        assertThrows(FileStorageException.class, () -> FileValidationUtil.validateContent(suspicious, "docx"));
+    }
 }

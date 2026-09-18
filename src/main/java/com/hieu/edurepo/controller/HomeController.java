@@ -39,17 +39,20 @@ public class HomeController {
     private final LibraryService libraryService;
     private final DocumentReviewService documentReviewService;
     private final com.hieu.edurepo.service.AuditLogService auditLogs;
+    private final com.hieu.edurepo.service.UserActivityService userActivityService;
 
     public HomeController(DocumentService documentService, CategoryService categoryService,
                           DocumentRepository documentRepository, LibraryService libraryService,
                           DocumentReviewService documentReviewService,
-                          com.hieu.edurepo.service.AuditLogService auditLogs) {
+                          com.hieu.edurepo.service.AuditLogService auditLogs,
+                          com.hieu.edurepo.service.UserActivityService userActivityService) {
         this.documentService = documentService;
         this.categoryService = categoryService;
         this.documentRepository = documentRepository;
         this.libraryService = libraryService;
         this.documentReviewService = documentReviewService;
         this.auditLogs = auditLogs;
+        this.userActivityService = userActivityService;
     }
 
     @GetMapping("/")
@@ -117,6 +120,7 @@ public class HomeController {
         documentService.recordView(id);
         document = documentService.findById(id);
         Long userId = principal == null ? null : principal.getId();
+        userActivityService.recordView(userId, id);
         model.addAttribute("document", document);
         model.addAttribute("bookmarked", libraryService.isBookmarked(userId, id));
         model.addAttribute("userCollections", userId == null ? List.of() : libraryService.collections(userId));

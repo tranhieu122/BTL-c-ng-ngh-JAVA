@@ -1,0 +1,79 @@
+<mxfile host="Electron" agent="Codex">
+  <diagram id="presentation-layer" name="Tầng trình bày">
+    <mxGraphModel dx="1717" dy="1043" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=28;fontStyle=1;fontColor=#1E293B;" value="SƠ ĐỒ TẦNG TRÌNH BÀY" vertex="1">
+          <mxGeometry height="50" width="760" x="420" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontColor=#64748B;" value="Website quản lý kho học liệu nội sinh" vertex="1">
+          <mxGeometry height="30" width="600" x="500" y="88" as="geometry" />
+        </mxCell>
+        <mxCell id="user" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#DBEAFE;strokeColor=#2563EB;fontColor=#1E3A8A;fontSize=15;fontStyle=1;spacing=12;" value="Người dùng&#xa;Khách / Người gửi / Kiểm duyệt / Quản trị" vertex="1">
+          <mxGeometry height="90" width="220" x="20" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="browser" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#E0F2FE;strokeColor=#0284C7;fontColor=#075985;fontSize=15;fontStyle=1;spacing=12;" value="Trình duyệt web&#xa;Hiển thị giao diện và tiếp nhận thao tác" vertex="1">
+          <mxGeometry height="90" width="240" x="360" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="presentationBox" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#F8FAFC;strokeColor=#94A3B8;dashed=0;fontColor=#0F172A;" value="" vertex="1">
+          <mxGeometry height="440" width="520" x="690" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="presentationTitle" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#0F172A;" value="Tầng trình bày" vertex="1">
+          <mxGeometry height="34" width="260" x="820" y="195" as="geometry" />
+        </mxCell>
+        <mxCell id="templates" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#DCFCE7;strokeColor=#16A34A;fontColor=#14532D;fontSize=14;fontStyle=1;spacing=10;" value="Thymeleaf Templates&#xa;templates/*.html&#xa;Trang chủ, đăng nhập, tra cứu, chi tiết, gửi tài liệu, kiểm duyệt, quản trị" vertex="1">
+          <mxGeometry height="135" width="205" x="735" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="static" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FEF9C3;strokeColor=#CA8A04;fontColor=#713F12;fontSize=14;fontStyle=1;spacing=10;" value="Tài nguyên tĩnh&#xa;static/css, static/js, images&#xa;Bố cục, màu sắc, hiệu ứng, tương tác phía người dùng" vertex="1">
+          <mxGeometry height="135" width="205" x="965" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="forms" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FCE7F3;strokeColor=#DB2777;fontColor=#831843;fontSize=14;fontStyle=1;spacing=10;" value="Form và thao tác người dùng&#xa;GET / POST&#xa;Tìm kiếm, đăng nhập, upload, duyệt tài liệu" vertex="1">
+          <mxGeometry height="85" width="435" x="735" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="controller" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#EDE9FE;strokeColor=#7C3AED;fontColor=#4C1D95;fontSize=15;fontStyle=1;spacing=12;" value="Controller&#xa;Tiếp nhận request, điều hướng, truyền dữ liệu sang view" vertex="1">
+          <mxGeometry height="95" width="230" x="1290" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="yOe-4cw9ADIKyhHMVsza-1" edge="1" parent="1" source="model" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=1;entryDx=0;entryDy=0;" target="templates">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="model" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#FFE4E6;strokeColor=#E11D48;fontColor=#881337;fontSize=15;fontStyle=1;spacing=12;" value="Model / View Data&#xa;Danh sách tài liệu, thông tin người dùng, thông báo, trạng thái xử lý" vertex="1">
+          <mxGeometry height="105" width="230" x="1290" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="note" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#F1F5F9;strokeColor=#CBD5E1;fontColor=#334155;fontSize=14;align=center;spacing=12;" value="Tầng trình bày chịu trách nhiệm hiển thị dữ liệu, tiếp nhận thao tác và gửi yêu cầu về backend.&#xa;Dữ liệu sau khi xử lý được Controller đưa vào Model để Thymeleaf render lại giao diện cho người dùng." vertex="1">
+          <mxGeometry height="80" width="740" x="430" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="user" style="endArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#334155;fontSize=13;fontColor=#334155;" target="browser" value="thao tác">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="300" y="360" as="sourcePoint" />
+            <mxPoint x="350" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="browser" style="endArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#334155;fontSize=13;fontColor=#334155;" target="templates" value="hiển thị giao diện">
+          <mxGeometry height="50" relative="1" width="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="static" style="endArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#334155;fontSize=13;fontColor=#334155;" target="browser" value="CSS / JS / hình ảnh">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="1070" y="155" />
+              <mxPoint x="480" y="155" />
+            </Array>
+            <mxPoint x="965" y="318" as="sourcePoint" />
+            <mxPoint x="600" y="340" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="forms" style="endArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#334155;fontSize=13;fontColor=#334155;" target="controller" value="request từ form">
+          <mxGeometry height="50" relative="1" width="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="controller" style="endArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#334155;fontSize=13;fontColor=#334155;" target="model" value="trả dữ liệu">
+          <mxGeometry height="50" relative="1" width="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="browser" style="endArrow=block;html=1;rounded=0;strokeWidth=2;strokeColor=#334155;fontSize=13;fontColor=#334155;exitX=0.999;exitY=0.637;exitDx=0;exitDy=0;exitPerimeter=0;" target="forms" value="gửi thao tác">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="540" y="430" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

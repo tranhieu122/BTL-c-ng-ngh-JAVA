@@ -135,9 +135,9 @@ const setupReviewDecision = () => {
         },
         PUBLISHED: {
             className: "button-success",
-            label: "Công bố tài liệu",
-            confirmLabel: "Xác nhận công bố",
-            message: "Công bố tài liệu này vào kho học liệu công khai?"
+            label: "Công khai tài liệu",
+            confirmLabel: "Xác nhận công khai",
+            message: "Công khai tài liệu này trong kho học liệu?"
         }
     };
 

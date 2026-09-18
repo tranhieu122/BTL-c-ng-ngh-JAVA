@@ -19,12 +19,14 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -70,13 +72,17 @@ class NotificationIntegrationTest {
 
         String notificationId = notificationRepository
                 .findByRecipientIdOrderByCreatedAtDescIdDesc(author.getId(), org.springframework.data.domain.Pageable.unpaged())
-                .getContent().getFirst().getId().toString();
+                .getContent().get(0).getId().toString();
 
         mvc.perform(get("/notifications/api").with(user(CustomUserPrincipal.from(author))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items", hasSize(1)))
                 .andExpect(jsonPath("$.items[0].title").value("Tài liệu đã được phê duyệt"))
                 .andExpect(jsonPath("$.items[0].read").value(false));
+        mvc.perform(get("/notifications").with(user(CustomUserPrincipal.from(author))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Tài liệu đã được phê duyệt")))
+                .andExpect(content().string(containsString("name=\"_csrf\"")));
         mvc.perform(get("/notifications/api").with(user(CustomUserPrincipal.from(other))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items", hasSize(0)));

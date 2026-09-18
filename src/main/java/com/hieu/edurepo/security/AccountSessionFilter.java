@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.lang.NonNull;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -22,11 +23,14 @@ public class AccountSessionFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                                    FilterChain chain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain chain) throws ServletException, IOException {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof CustomUserPrincipal principal) {
             var account = users.findById(principal.getId()).orElse(null);
+            // Principal trong session là ảnh chụp tại thời điểm đăng nhập.
+            // Vì vậy cần so lại password/email/role/enabled với database ở mỗi request quan trọng.
             var sessionRoles = principal.getAuthorities().stream()
                     .map(authority -> authority.getAuthority()).collect(Collectors.toSet());
             boolean valid = account != null && account.isEnabled() && account.getDeletedAt() == null
@@ -35,6 +39,7 @@ public class AccountSessionFilter extends OncePerRequestFilter {
                     && account.getRoles().stream().map(role -> "ROLE_" + role.getName().name())
                         .collect(Collectors.toSet()).equals(sessionRoles);
             if (!valid) {
+                // Nếu thông tin session đã cũ, đăng xuất cưỡng bức để quyền mới có hiệu lực ngay.
                 new SecurityContextLogoutHandler().logout(request, response, authentication);
                 if (request.getRequestURI().substring(request.getContextPath().length()).startsWith("/events/")) response.setStatus(401);
                 else response.sendRedirect(request.getContextPath() + "/login?expired");

@@ -27,29 +27,43 @@ public class DownloadController {
     private final DocumentService documentService;
     private final FileStorageService fileStorageService;
     private final com.hieu.edurepo.service.AuditLogService auditLogs;
+    private final com.hieu.edurepo.service.UserActivityService userActivityService;
 
     public DownloadController(DocumentService documentService, FileStorageService fileStorageService) {
-        this(documentService, fileStorageService, null);
+        this(documentService, fileStorageService, null, null);
     }
 
     @org.springframework.beans.factory.annotation.Autowired
     public DownloadController(DocumentService documentService, FileStorageService fileStorageService,
-                              com.hieu.edurepo.service.AuditLogService auditLogs) {
+                              com.hieu.edurepo.service.AuditLogService auditLogs,
+                              com.hieu.edurepo.service.UserActivityService userActivityService) {
         this.documentService = documentService;
         this.fileStorageService = fileStorageService;
         this.auditLogs = auditLogs;
+        this.userActivityService = userActivityService;
     }
 
     @GetMapping("/download/{id}")
-    public ResponseEntity<Resource> download(@PathVariable Long id) {
+    public ResponseEntity<Resource> download(@PathVariable Long id,
+                                             @AuthenticationPrincipal CustomUserPrincipal principal) {
         Document document = documentService.findById(id);
+        // Endpoint công khai chỉ cho tải tài liệu đã xuất bản.
+        // Tài liệu nháp/chờ duyệt trả 404 để không làm lộ sự tồn tại ra ngoài.
         if (document.getStatus() != DocumentStatus.PUBLISHED) {
             throw new ResourceNotFoundException("Tài liệu chưa được công bố");
         }
+        // Tạo response trước rồi mới tăng downloadCount để file thiếu/không đọc được không bị tính là tải thành công.
         ResponseEntity<Resource> response = createDownloadResponse(document);
         documentService.recordDownload(id);
+        if (userActivityService != null) {
+            userActivityService.recordDownload(principal == null ? null : principal.getId(), id);
+        }
         auditDownload(document, "Tải tài liệu công khai");
         return response;
+    }
+
+    ResponseEntity<Resource> download(Long id) {
+        return download(id, null);
     }
 
     @GetMapping("/view/{id}")
@@ -69,7 +83,10 @@ public class DownloadController {
     @GetMapping("/reviews/{id}/download")
     public ResponseEntity<Resource> downloadForReview(@PathVariable Long id) {
         Document document = documentService.findById(id);
+        // Reviewer chỉ tải bản đang chờ duyệt hoặc đã duyệt nhưng chưa công bố.
         if (document.getStatus() != DocumentStatus.SUBMITTED
+                && document.getStatus() != DocumentStatus.RESUBMITTED
+                && document.getStatus() != DocumentStatus.UNDER_REVIEW
                 && document.getStatus() != DocumentStatus.APPROVED) {
             throw new ResourceNotFoundException("Tài liệu không nằm trong hàng chờ kiểm duyệt");
         }
@@ -82,6 +99,8 @@ public class DownloadController {
     public ResponseEntity<Resource> downloadVersionForReview(@PathVariable Long id, @PathVariable Long versionId) {
         Document document = documentService.findById(id);
         if (document.getStatus() != DocumentStatus.SUBMITTED
+                && document.getStatus() != DocumentStatus.RESUBMITTED
+                && document.getStatus() != DocumentStatus.UNDER_REVIEW
                 && document.getStatus() != DocumentStatus.APPROVED) {
             throw new ResourceNotFoundException("Tài liệu không nằm trong hàng chờ kiểm duyệt");
         }
@@ -94,6 +113,7 @@ public class DownloadController {
     public ResponseEntity<Resource> downloadOwnVersion(@PathVariable Long id, @PathVariable Long versionId,
                                                         @AuthenticationPrincipal CustomUserPrincipal principal) {
         Document document = documentService.findById(id);
+        // Chủ tài liệu được tải phiên bản của mình; admin được tải để hỗ trợ quản trị/kiểm tra.
         boolean admin = principal != null && principal.getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
         if (!admin && (principal == null || document.getCreatedBy() == null
@@ -106,6 +126,7 @@ public class DownloadController {
     }
 
     private ResponseEntity<Resource> createDownloadResponse(Document document) {
+        // Tên file gửi về dùng tên gốc, còn filePath là tên UUID nội bộ trên server.
         Resource resource = fileStorageService.load(requireDocumentValue(document.getFilePath(), "Thiếu đường dẫn tệp"));
         ContentDisposition disposition = ContentDisposition.attachment()
                 .filename(requireDocumentValue(document.getFileName(), "Thiếu tên tệp"), StandardCharsets.UTF_8)

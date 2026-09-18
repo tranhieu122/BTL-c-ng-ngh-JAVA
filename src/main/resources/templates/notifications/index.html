@@ -51,6 +51,14 @@
             </article>
         </section>
 
+        <nav class="pagination" th:if="${notificationPage.totalPages > 1}" aria-label="Phân trang thông báo">
+            <a th:if="${notificationPage.page > 0}"
+               th:href="@{/notifications(page=${notificationPage.page - 1},size=${notificationPage.size})}">← Trang trước</a>
+            <span aria-current="page" th:text="|Trang ${notificationPage.page + 1}/${notificationPage.totalPages}|">Trang 1/1</span>
+            <a th:if="${notificationPage.page + 1 < notificationPage.totalPages}"
+               th:href="@{/notifications(page=${notificationPage.page + 1},size=${notificationPage.size})}">Trang sau →</a>
+        </nav>
+
         <div class="empty-panel" th:if="${#lists.isEmpty(notificationPage.items)}">
             <span class="workspace-icon" aria-hidden="true">◎</span>
             <h2>Chưa có thông báo</h2>

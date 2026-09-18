@@ -9,11 +9,38 @@
     --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px;
     --shadow-xs: 0 1px 2px #1a332808; --shadow-sm: 0 3px 12px #1a332807;
     --shadow-md: 0 8px 28px #1a332810; --shadow-lg: 0 18px 48px #1a33281a;
+    --color-secondary: #496b5c; --color-focus: #176b4b; --focus-ring: 0 0 0 3px #82aa8e66;
+    --color-disabled-bg: #edf1ee; --color-disabled-text: #77847c;
+    --control-height: 42px; --content-measure: 72ch;
+    --transition-fast: 90ms cubic-bezier(.2, .8, .2, 1);
+    --transition: 150ms cubic-bezier(.2, .8, .2, 1);
+    --press-transition: 60ms cubic-bezier(.2, .8, .2, 1);
 }
+body { font-size: 15px; }
 h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -.025em; }
-:where(button, .button, .btn) { font-size: .82rem; font-weight: 600; }
+:where(button, .button, .btn) {
+    font-size: .82rem;
+    font-weight: 600;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition-fast), transform var(--press-transition);
+}
 button, .button, .btn { min-height: 40px; padding: 10px 16px; border-radius: 8px; background: var(--primary-600); box-shadow: none; }
 button:hover, .button:hover, .btn:hover { background: var(--primary-700); box-shadow: none; transform: none; }
+:where(button, .button, .btn):active:not(:disabled):not([aria-disabled="true"]) {
+    opacity: .92;
+    transform: translateY(1px) scale(.985);
+    transition-duration: 60ms;
+}
+:where(a, summary, [role="button"]) {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+:where(.topnav > a, .sidebar a, .account-menu-panel a, .table-action, .card-primary-link, .card-download-link):active {
+    opacity: .76;
+    transform: translateY(1px);
+    transition-duration: 60ms;
+}
 .button-secondary, .button.secondary, .btn-secondary { background: #fff; color: var(--ink-700); border-color: var(--line-strong); }
 .button-secondary:hover, .button.secondary:hover, .btn-secondary:hover { background: #f2f6f3; color: var(--primary-700); }
 .button-danger, .btn-danger { background: #b9433a; }
@@ -133,7 +160,85 @@ main :where(input, select, textarea):focus { border-color: #7ca98b; }
 .repository-intro h1 { font-weight: 650; font-size: clamp(1.7rem, 3vw, 2.5rem); }
 .auth-page { background: #eff4ef; }
 .auth-shell { border-color: #dfe8e0; border-radius: 16px; box-shadow: 0 16px 60px #294b3510; }
-.auth-card h1 { font-family: var(--font-display); font-size: 1.65rem; }
+.auth-card :is(h1, h2) { font-family: var(--font-display); font-size: 1.65rem; }
+
+/* Shared interaction and content contracts. */
+:where(button, .button, .btn, input, select, textarea) { min-height: var(--control-height); }
+:where(button, .button, .btn):disabled,
+:where(.button, .btn)[aria-disabled="true"] {
+    color: var(--color-disabled-text);
+    border-color: #dce3de;
+    background: var(--color-disabled-bg);
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 1;
+}
+:where(input, select, textarea)[aria-invalid="true"] {
+    border-color: #c95b52;
+    box-shadow: 0 0 0 3px #b9433a1f;
+}
+:where(input, textarea)::placeholder { color: #7a887f; opacity: 1; }
+:where(input, select, textarea):disabled,
+:where(input, textarea)[readonly] { color: #68766d; background: #f1f4f2; cursor: not-allowed; }
+form[aria-busy="true"] { cursor: progress; }
+form[aria-busy="true"] :where(input, select, textarea) { opacity: .78; }
+.field-error:not(:empty) { display: block; min-height: 1.25em; margin-top: 5px; }
+.field-hint, .help-text { line-height: 1.5; }
+.required-marker { color: #a23d35; font-weight: 750; }
+
+.site-header .account-copy strong,
+.entity-copy :is(strong, small),
+.notification-card :is(h2, p),
+.activity-copy :is(h2, p),
+.queue-card :is(h2, h3, p) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.site-header .account-copy strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-gutter: stable;
+}
+.table-scroll:focus-visible { outline: 3px solid #82aa8e66; outline-offset: 2px; }
+.workspace-content .data-table tbody td { font-size: .86rem; line-height: 1.5; }
+.workspace-content .data-table tbody tr:focus-within { background: #f5faf6; }
+.workspace-actions,
+.form-submit-row,
+.request-actions,
+.organization-actions { flex-wrap: wrap; }
+.pagination a,
+.review-pagination a,
+.audit-pagination a { min-height: 40px; display: inline-flex; align-items: center; }
+
+.status-pill::before,
+.document-status::before {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 6px;
+}
+.confirm-dialog-panel { max-height: calc(100dvh - 32px); overflow-y: auto; }
+.live-panel { overscroll-behavior: contain; }
+.confirm-dialog:not([hidden]) .confirm-dialog-backdrop { animation: interaction-fade-in 120ms ease-out both; }
+.confirm-dialog:not([hidden]) .confirm-dialog-panel { animation: interaction-pop-in 160ms cubic-bezier(.2, .85, .25, 1) both; }
+.account-menu-panel:not([hidden]),
+.live-updates[open] .live-panel { animation: interaction-pop-in 140ms cubic-bezier(.2, .85, .25, 1) both; transform-origin: top right; }
+
+@keyframes interaction-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes interaction-pop-in {
+    from { opacity: 0; transform: translateY(-4px) scale(.985); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
 
 @media (min-width: 901px) and (max-width: 1150px) {
     .site-header .brand-copy small, .site-header .account-copy, .site-header .account-caret { display: none; }
@@ -147,6 +252,62 @@ main :where(input, select, textarea):focus { border-color: #7ca98b; }
     .review-hero-copy { padding: 20px; }
     .dashboard-v2 .dashboard-v2-hero { padding: 20px; }
     .site-header .brand-copy strong { font-size: 1rem; }
+    .site-header .account-summary {
+        width: 40px;
+        min-height: 40px;
+        padding: 4px;
+        justify-content: center;
+        border: 1px solid #dce8e2;
+        border-radius: 999px;
+        background: #f7faf8;
+    }
+    .page-shell .sidebar {
+        gap: 6px;
+        padding-inline: 10px;
+    }
+    .page-shell .sidebar a {
+        width: auto;
+        min-width: max-content;
+        flex-basis: auto;
+        gap: 7px;
+        padding-inline: 11px;
+        border: 1px solid #e0e8e2;
+        border-radius: 9px;
+        background: #fff;
+    }
+    .page-shell .sidebar a > span:not(.nav-icon) { display: inline; }
+    .page-shell .sidebar .nav-icon { width: 18px; height: 18px; }
+    .content { overflow-x: clip; }
+    .workspace-heading { align-items: stretch; flex-direction: column; }
+    .workspace-actions > :is(a, button, form) { max-width: 100%; }
+    .notification-card > a,
+    .activity-row,
+    .admin-request-row { align-items: flex-start; grid-template-columns: 1fr; }
+    .notification-side,
+    .activity-meta { align-items: flex-start; justify-self: stretch; }
+    .pagination,
+    .review-pagination,
+    .audit-pagination { gap: 8px; }
+}
+@media (max-width: 380px) {
+    .workspace-content { padding-inline: 12px; }
+    .site-header .topbar { padding-inline: 10px; }
+    .brand-mark { width: 36px; height: 36px; flex-basis: 36px; }
+    .confirm-dialog { padding: 10px; }
+}
+@media (prefers-contrast: more) {
+    :where(button, a, input, select, textarea, summary):focus-visible { outline-color: var(--color-focus); }
+    .workspace-content :is(.data-panel, .workspace-panel, .form-card, .review-card, .metric-card, .queue-card) { border-color: #9caca1; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .confirm-dialog:not([hidden]) .confirm-dialog-backdrop,
+    .confirm-dialog:not([hidden]) .confirm-dialog-panel,
+    .account-menu-panel:not([hidden]),
+    .live-updates[open] .live-panel { animation: none; }
+    :where(button, .button, .btn):active:not(:disabled):not([aria-disabled="true"]),
+    :where(.topnav > a, .sidebar a, .account-menu-panel a, .table-action, .card-primary-link, .card-download-link):active {
+        transform: none;
+    }
 }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }

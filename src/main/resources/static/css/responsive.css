@@ -188,7 +188,7 @@
         padding: 2rem;
     }
 
-    .auth-message h1 {
+    .auth-message h2 {
         font-size: 2.35rem;
     }
 
@@ -675,7 +675,7 @@
         font-size: 0.64rem;
     }
 
-    .auth-card-heading h2 {
+    .auth-card-heading h1 {
         font-size: 1.75rem;
     }
 }

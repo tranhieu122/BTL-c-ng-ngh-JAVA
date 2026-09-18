@@ -9,13 +9,19 @@ import com.hieu.edurepo.enums.LicenseType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.Modifying;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface DocumentRepository extends JpaRepository<Document, Long> {
+    @Override
+    @EntityGraph(attributePaths = {"createdBy", "category", "department"})
+    Optional<Document> findById(Long id);
+
     @Query("select new com.hieu.edurepo.dto.LiveDocument(d.id, d.title, d.status, d.updatedAt) from Document d where d.createdBy.id = :ownerId order by d.id desc")
     List<com.hieu.edurepo.dto.LiveDocument> liveOwned(@Param("ownerId") Long ownerId);
     @Query("select new com.hieu.edurepo.dto.LiveDocument(d.id, d.title, d.status, d.updatedAt) from Document d where d.status in :statuses order by d.id desc")
@@ -26,8 +32,25 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     List<Document> findByCreatedByIdOrderByCreatedAtDesc(Long userId);
     boolean existsByCreatedById(Long userId);
+    List<Document> findByStatus(DocumentStatus status);
     List<Document> findByStatusOrderBySubmittedAtAsc(DocumentStatus status);
     List<Document> findByStatusInOrderBySubmittedAtAsc(List<DocumentStatus> statuses);
+    @EntityGraph(attributePaths = {"createdBy", "category", "department"})
+    @Query("select d from Document d left join d.createdBy creator "
+            + "where d.status in :queueStatuses "
+            + "and (:status is null or d.status = :status) "
+            + "and (:keyword = '' or lower(d.title) like lower(concat('%', :keyword, '%')) "
+            + "or lower(coalesce(d.authorName, '')) like lower(concat('%', :keyword, '%')) "
+            + "or lower(coalesce(creator.fullName, '')) like lower(concat('%', :keyword, '%'))) "
+            + "order by case d.status "
+            + "when com.hieu.edurepo.enums.DocumentStatus.SUBMITTED then 0 "
+            + "when com.hieu.edurepo.enums.DocumentStatus.RESUBMITTED then 1 "
+            + "when com.hieu.edurepo.enums.DocumentStatus.UNDER_REVIEW then 2 else 3 end, "
+            + "d.submittedAt asc, d.id asc")
+    Page<Document> searchReviewQueue(@Param("queueStatuses") List<DocumentStatus> queueStatuses,
+                                     @Param("keyword") String keyword,
+                                     @Param("status") DocumentStatus status,
+                                     Pageable pageable);
     long countByStatus(DocumentStatus status);
     Page<Document> findByStatusAndTitleContainingIgnoreCase(
             DocumentStatus status, String keyword, Pageable pageable);
@@ -48,12 +71,15 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             + "from Document d left join d.department dep left join dep.faculty f group by f.name order by count(d) desc")
     List<NamedCount> countByFaculty();
 
-    @Query("select d from Document d left join d.category c where d.status = com.hieu.edurepo.enums.DocumentStatus.PUBLISHED "
+    @Query("select d from Document d left join d.category c left join d.department dep left join dep.faculty f where d.status = com.hieu.edurepo.enums.DocumentStatus.PUBLISHED "
             + "and (:keyword = '' or lower(d.title) like lower(concat('%', :keyword, '%')) "
             + "or lower(coalesce(d.description, '')) like lower(concat('%', :keyword, '%')) "
             + "or lower(coalesce(d.summary, '')) like lower(concat('%', :keyword, '%')) "
             + "or lower(coalesce(d.keywords, '')) like lower(concat('%', :keyword, '%')) "
-            + "or lower(coalesce(d.authorName, '')) like lower(concat('%', :keyword, '%'))) "
+            + "or lower(coalesce(d.authorName, '')) like lower(concat('%', :keyword, '%')) "
+            + "or lower(coalesce(c.name, '')) like lower(concat('%', :keyword, '%')) "
+            + "or lower(coalesce(dep.name, '')) like lower(concat('%', :keyword, '%')) "
+            + "or lower(coalesce(f.name, '')) like lower(concat('%', :keyword, '%'))) "
             + "and (:categoryId is null or c.id = :categoryId) "
             + "and (:resourceType is null or d.learningResourceType = :resourceType) "
             + "and (:educationLevel is null or d.educationLevel = :educationLevel) "

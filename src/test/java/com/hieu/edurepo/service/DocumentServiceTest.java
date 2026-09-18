@@ -95,7 +95,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void reviewerSubmissionIsPublishedImmediately() {
+    void reviewerSubmissionMustStillEnterWorkflow() {
         DocumentRepository repository = mock(DocumentRepository.class);
         DocumentService service = new DocumentServiceImpl(repository);
         User reviewer = new User();
@@ -106,7 +106,7 @@ class DocumentServiceTest {
 
         Document saved = service.submitNew(document, reviewer);
 
-        assertEquals(DocumentStatus.PUBLISHED, saved.getStatus());
+        assertEquals(DocumentStatus.SUBMITTED, saved.getStatus());
         assertEquals(reviewer, saved.getCreatedBy());
     }
 
@@ -180,8 +180,28 @@ class DocumentServiceTest {
 
         ArgumentCaptor<DocumentVersion> captor = ArgumentCaptor.forClass(DocumentVersion.class);
         verify(versionRepository).save(captor.capture());
+        verify(versionRepository).clearCurrentVersion(10L);
         assertEquals(2, captor.getValue().getVersionNumber());
         assertEquals("stored-v2.pdf", captor.getValue().getFilePath());
         assertEquals("abc123", captor.getValue().getChecksum());
+        assertEquals(true, captor.getValue().isCurrentVersion());
+    }
+
+    @Test
+    void resubmitMovesRevisionRequiredToResubmitted() {
+        DocumentRepository repository = mock(DocumentRepository.class);
+        DocumentService service = new DocumentServiceImpl(repository);
+        User owner = new User();
+        owner.setId(1L);
+        Document document = new Document();
+        document.setId(10L);
+        document.setCreatedBy(owner);
+        document.setStatus(DocumentStatus.REVISION_REQUIRED);
+        when(repository.findByIdForUpdate(10L)).thenReturn(Optional.of(document));
+        when(repository.save(document)).thenReturn(document);
+
+        Document result = service.submit(10L, owner);
+
+        assertEquals(DocumentStatus.RESUBMITTED, result.getStatus());
     }
 }

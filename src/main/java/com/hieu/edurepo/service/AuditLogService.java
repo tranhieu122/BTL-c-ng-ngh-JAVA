@@ -19,6 +19,8 @@ public interface AuditLogService {
                 String description, AuditResult result);
     void recordAsUser(User actor, AuditAction action, AuditTargetType targetType, Long targetId,
                       String description, AuditResult result);
+    void recordTransactionalAsUser(User actor, AuditAction action, AuditTargetType targetType, Long targetId,
+                                   String targetName, String description, AuditResult result);
     void recordAnonymous(String identifier, AuditAction action, AuditTargetType targetType, Long targetId,
                          String description, AuditResult result);
     Page<AuditLog> search(AuditLogFilter filter, Pageable pageable);

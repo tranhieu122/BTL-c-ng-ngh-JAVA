@@ -23,7 +23,7 @@
             <form class="form-card submission-form" data-document-submission th:attr="data-editing=${editing == true},data-draft-owner=${#authentication.name}"
                   th:action="${editing} ? @{/documents/{id}(id=${documentId})} : @{/documents}"
                   th:object="${documentForm}" method="post" enctype="multipart/form-data">
-                <nav class="submission-progress" aria-label="Tiến trình nộp tài liệu"><span class="submission-step is-active"><span class="submission-step-number">1</span>Thông tin</span><span class="submission-step"><span class="submission-step-number">2</span>Tệp đính kèm</span><span class="submission-step"><span class="submission-step-number">3</span>Gửi duyệt</span></nav>
+                <nav class="submission-progress" aria-label="Tiến trình nộp tài liệu"><span class="submission-step is-active"><span class="submission-step-number">1</span><span class="submission-step-label">Thông tin</span></span><span class="submission-step"><span class="submission-step-number">2</span><span class="submission-step-label">Tệp đính kèm</span></span><span class="submission-step"><span class="submission-step-number">3</span><span class="submission-step-label">Gửi duyệt</span></span></nav>
                 <div class="submission-content">
                 <section class="form-section submission-section">
                     <div class="submission-section-heading"><span class="submission-section-icon">▤</span><div><h2>Thông tin cơ bản</h2><p>Nội dung hiển thị trong kho học liệu sau khi công bố.</p></div></div>
@@ -81,6 +81,14 @@
                         <span class="upload-zone-content"><span class="upload-zone-icon">⇧</span><h3>Kéo thả tệp vào đây</h3><p>Hoặc nhấn để chọn tệp từ máy tính của bạn.</p><span class="upload-zone-action">Chọn tệp</span><span class="upload-formats"><span class="upload-format">PDF</span><span class="upload-format">DOC</span><span class="upload-format">DOCX</span></span></span>
                         <span class="upload-file-card" data-upload-file-card><span class="upload-file-icon" data-upload-file-icon>PDF</span><span class="upload-file-details"><span class="upload-file-name" data-upload-file-name>Tệp đã chọn</span><span class="upload-file-meta" data-upload-file-meta></span></span><button type="button" class="upload-file-remove" data-upload-file-remove aria-label="Bỏ tệp đã chọn">×</button></span>
                         <small class="field-error" th:errors="*{file}"></small>
+                    </label>
+                    <label class="submission-field" th:if="${editing}">
+                        <span class="field-label">Ghi chú thay đổi</span>
+                        <textarea th:field="*{changeNote}" rows="3"
+                                  placeholder="Ví dụ: Bổ sung tài liệu tham khảo theo góp ý reviewer"
+                                  th:attr="aria-invalid=${#fields.hasErrors('changeNote')}"></textarea>
+                        <small class="field-hint">Ghi chú này sẽ xuất hiện trong lịch sử phiên bản khi bạn thay tệp.</small>
+                        <small class="field-error" th:errors="*{changeNote}"></small>
                     </label>
                     <div class="upload-requirements"><span class="upload-requirement"><span>✓</span>Tối đa 200 MB</span><span class="upload-requirement"><span>✓</span>Chỉ PDF, DOC, DOCX</span><span class="upload-requirement"><span>✓</span>Không tải tệp nhạy cảm</span></div>
                 </section>

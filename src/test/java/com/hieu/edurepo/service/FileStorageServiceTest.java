@@ -3,6 +3,8 @@ package com.hieu.edurepo.service;
 import com.hieu.edurepo.exception.FileStorageException;
 import com.hieu.edurepo.exception.ResourceNotFoundException;
 import com.hieu.edurepo.service.impl.FileStorageServiceImpl;
+import com.hieu.edurepo.observability.OperationalMetrics;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.Resource;
@@ -19,6 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FileStorageServiceTest {
+
+    @Test
+    void rejectsBlankUploadDirectoryBeforeResolvingItToTheWorkingDirectory() {
+        assertThrows(IllegalStateException.class, () -> new FileStorageServiceImpl("  "));
+    }
 
     @Test
     void closesEveryOpenedStreamAndRejectsFakeContent() throws Exception {
@@ -97,5 +104,46 @@ class FileStorageServiceTest {
 
         assertThrows(FileStorageException.class, () -> service.load("../outside.pdf"));
         assertThrows(FileStorageException.class, () -> service.delete("../outside.pdf"));
+    }
+
+    @Test
+    void scannerCanRejectStagedFileWithoutLeavingArtifacts() throws Exception {
+        FileStorageServiceImpl service = new FileStorageServiceImpl(tempDirectory.toString(),
+                10L * 1024 * 1024, (file, originalName) -> false);
+        service.initialize();
+        var file = new MockMultipartFile("file", "unsafe.pdf", "application/pdf", "%PDF-1.7 payload".getBytes());
+
+        assertThrows(FileStorageException.class, () -> service.store(file));
+        try (var files = Files.list(tempDirectory)) { assertEquals(0, files.count()); }
+    }
+
+    @Test
+    void uploadMetricsUseOnlyBoundedReasonTags() {
+        var registry = new SimpleMeterRegistry();
+        FileStorageServiceImpl service = new FileStorageServiceImpl(tempDirectory.toString(),
+                10L * 1024 * 1024, (file, originalName) -> true, new OperationalMetrics(registry));
+        service.initialize();
+        var file = new MockMultipartFile("file", "private-name.exe", "application/octet-stream", "payload".getBytes());
+
+        assertThrows(FileStorageException.class, () -> service.store(file));
+
+        assertEquals(1.0, registry.get("edurepo.upload.completed")
+                .tag("result", "REJECTED").tag("reason", "UNSUPPORTED_EXTENSION").counter().count());
+        assertTrue(registry.getMeters().stream().flatMap(meter -> meter.getId().getTags().stream())
+                .noneMatch(tag -> tag.getValue().contains("private-name") || tag.getKey().contains("filename")));
+    }
+
+    @Test
+    void startupRemovesOnlyInterruptedUploadStagingFiles() throws Exception {
+        Path interrupted = tempDirectory.resolve(".upload-" + UUID.randomUUID() + ".tmp");
+        Path document = tempDirectory.resolve("existing.pdf");
+        Files.writeString(interrupted, "partial");
+        Files.writeString(document, "%PDF-1.7 existing");
+
+        FileStorageServiceImpl service = new FileStorageServiceImpl(tempDirectory.toString());
+        service.initialize();
+
+        assertFalse(Files.exists(interrupted));
+        assertTrue(Files.exists(document));
     }
 }

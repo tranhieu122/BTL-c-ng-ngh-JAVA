@@ -83,7 +83,8 @@ class LoginAttemptIntegrationTest {
     @Test
     void concurrentFailuresCannotLoseUpdatesOrExceedConfiguredThreshold() throws Exception {
         User user = account();
-        try (var executor = Executors.newFixedThreadPool(6)) {
+        var executor = Executors.newFixedThreadPool(6);
+        try {
             List<Callable<Void>> work = new ArrayList<>();
             for (int count = 0; count < 8; count++) {
                 work.add(() -> {
@@ -94,6 +95,8 @@ class LoginAttemptIntegrationTest {
             for (var result : executor.invokeAll(work)) {
                 result.get();
             }
+        } finally {
+            executor.shutdownNow();
         }
 
         User locked = users.findById(userId).orElseThrow();

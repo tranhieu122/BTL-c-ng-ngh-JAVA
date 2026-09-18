@@ -14,9 +14,15 @@ export function syncReviewActions(snapshot) {
     const status = item?.status || 'UNAVAILABLE';
     if (form.dataset.liveStatus === status) return;
     const previous = select.value;
-    const options = status === 'SUBMITTED'
-        ? [['APPROVED', 'Phê duyệt'], ['REVISION_REQUESTED', 'Yêu cầu chỉnh sửa'], ['REJECTED', 'Từ chối']]
-        : status === 'APPROVED' ? [['PUBLISHED', 'Công bố']] : [];
+    if (!form.dataset.canPublish) {
+        form.dataset.canPublish = String(Boolean(select.querySelector('option[value="PUBLISHED"]')));
+    }
+    const canPublish = form.dataset.canPublish === 'true';
+    const pendingDecision = ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(status);
+    const options = pendingDecision
+        ? [...(canPublish ? [['PUBLISHED', 'Công khai']] : []), ['APPROVED', 'Phê duyệt'],
+            ['REVISION_REQUESTED', 'Yêu cầu chỉnh sửa'], ['REJECTED', 'Từ chối']]
+        : status === 'APPROVED' && canPublish ? [['PUBLISHED', 'Công khai']] : [];
     select.replaceChildren(...[['', 'Chọn quyết định'], ...options].map(([value, label]) => {
         const option = document.createElement('option');
         option.value = value;

@@ -61,11 +61,18 @@
                     <svg class="live-chevron" aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m4 6 4 4 4-4"/></svg>
                 </summary>
                 <div class="live-panel">
-                    <div class="live-panel-heading"><h3>Cập nhật của bạn</h3><button class="notification-read-all" type="button" data-notification-read-all hidden>Đọc tất cả</button><span class="live-status-badge"><i class="live-connection-dot" aria-hidden="true"></i><span data-live-status>Đang kết nối</span></span></div>
-                    <p class="live-message" data-live-message role="status" aria-live="polite">Đang tải trạng thái mới nhất…</p>
-                    <a class="live-refresh" href="" data-live-refresh hidden>Tải lại dữ liệu <span aria-hidden="true">↻</span></a>
+                    <div class="live-panel-heading">
+                        <div><span class="live-eyebrow">Trung tâm cập nhật</span><h3>Cập nhật của bạn</h3></div>
+                        <span class="live-status-badge"><i class="live-connection-dot" aria-hidden="true"></i><span data-live-status>Đang kết nối</span></span>
+                    </div>
+                    <div class="live-sync-state">
+                        <span class="live-sync-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16.5 6.5A7 7 0 1 0 17 12"/><path d="M16.5 3v3.5H13"/><path d="m7 10 2 2 4-4"/></svg></span>
+                        <p class="live-message" data-live-message role="status" aria-live="polite">Đang tải trạng thái mới nhất…</p>
+                        <a class="live-refresh" href="" data-live-refresh hidden aria-label="Tải lại dữ liệu"><span aria-hidden="true">↻</span></a>
+                    </div>
+                    <div class="live-section-heading"><p class="live-section-label">Thông báo</p><button class="notification-read-all" type="button" data-notification-read-all hidden>Đánh dấu đã đọc</button></div>
                     <ul class="notification-list" data-notification-list aria-label="Thông báo gần đây"></ul>
-                    <p class="live-section-label">Tài liệu đang theo dõi</p>
+                    <div class="live-section-heading"><p class="live-section-label">Tài liệu đang theo dõi</p><span class="live-section-count" data-live-document-count>0</span></div>
                     <ul class="live-document-list" data-live-documents></ul>
                     <a class="live-queue-link" th:href="@{/reviews/pending}" data-live-queue hidden></a>
                 </div>

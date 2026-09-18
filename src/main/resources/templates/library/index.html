@@ -1,20 +1,201 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Thư viện của tôi | EduRepo</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Thư viện của tôi | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
 <body>
 <div th:replace="~{fragments/header :: header}"></div>
-<div class="page-shell"><div th:replace="~{fragments/sidebar :: sidebar}"></div>
-<main id="main-content" class="content workspace-content library-page">
-    <header class="workspace-heading"><div><span class="workspace-kicker">Không gian cá nhân</span><h1>Thư viện của tôi</h1><p class="subtitle">Lưu học liệu quan trọng và sắp xếp thành các bộ sưu tập riêng.</p></div><div class="workspace-actions"><a class="button button-secondary" th:href="@{/repository}">Khám phá kho</a></div></header>
-    <div th:replace="~{fragments/ui :: flashMessages}"></div>
-    <div class="library-layout">
-        <section class="review-card"><div class="panel-heading"><div><h2>Tài liệu đã lưu</h2><p th:text="|${#lists.size(bookmarks)} tài liệu trong thư viện|">0 tài liệu</p></div></div>
-            <div class="saved-document-grid" th:if="${!#lists.isEmpty(bookmarks)}"><article class="saved-document-card" th:each="bookmark : ${bookmarks}"><span th:text="${bookmark.document.category != null ? bookmark.document.category.name : 'Học liệu'}">Danh mục</span><h3><a th:href="@{/repository/{id}(id=${bookmark.document.id})}" th:text="${bookmark.document.title}">Tài liệu</a></h3><p th:text="${bookmark.document.summary ?: bookmark.document.description}">Mô tả</p><small th:text="|Đã lưu ${bookmark.createdAt}|">Ngày lưu</small></article></div>
-            <div class="empty-panel" th:if="${#lists.isEmpty(bookmarks)}"><h2>Chưa lưu tài liệu nào</h2><p>Mở một tài liệu công khai và chọn “Lưu vào thư viện”.</p><a class="button" th:href="@{/repository}">Tìm học liệu</a></div>
+<div class="page-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+    <main id="main-content" class="content workspace-content library-page library-dashboard">
+        <section class="library-hero" aria-labelledby="library-title">
+            <div class="library-hero-copy">
+                <span class="library-eyebrow">Không gian học tập cá nhân</span>
+                <h1 id="library-title">Thư viện của tôi</h1>
+                <p>Lưu lại học liệu quan trọng, gom chúng theo từng mục tiêu và tiếp tục học từ đúng nơi bạn dừng lại.</p>
+                <div class="library-hero-actions">
+                    <a class="button library-primary-action" th:href="@{/repository}">
+                        Khám phá học liệu <span aria-hidden="true">→</span>
+                    </a>
+                    <a class="library-text-link" th:href="@{/library/recently-viewed}">
+                        Xem hoạt động gần đây
+                    </a>
+                </div>
+            </div>
+
+            <div class="library-hero-overview" aria-label="Tổng quan thư viện">
+                <div class="library-hero-illustration" aria-hidden="true">
+                    <span class="library-book library-book-one"></span>
+                    <span class="library-book library-book-two"></span>
+                    <span class="library-book library-book-three"></span>
+                    <span class="library-bookmark-ribbon"></span>
+                </div>
+                <div class="library-overview-numbers">
+                    <div>
+                        <strong th:text="${#lists.size(bookmarks)}">0</strong>
+                        <span>Tài liệu đã lưu</span>
+                    </div>
+                    <div>
+                        <strong th:text="${#lists.size(collections)}">0</strong>
+                        <span>Bộ sưu tập</span>
+                    </div>
+                </div>
+            </div>
         </section>
-        <aside class="form-card"><div class="form-section-heading"><h2>Tạo bộ sưu tập</h2><p>Nhóm học liệu theo môn học, đề tài hoặc kế hoạch học tập.</p></div><form th:action="@{/library/collections}" th:object="${collectionForm}" method="post" class="form-grid"><label><span class="field-label">Tên bộ sưu tập</span><input th:field="*{name}" maxlength="150" required placeholder="Ví dụ: Ôn tập Java"><small class="field-error" th:errors="*{name}"></small></label><label><span class="field-label">Mô tả</span><textarea th:field="*{description}" rows="3" maxlength="500" placeholder="Mục đích của bộ sưu tập"></textarea><small class="field-error" th:errors="*{description}"></small></label><button type="submit">Tạo bộ sưu tập</button></form></aside>
-    </div>
-    <section class="collection-section"><div class="panel-heading"><div><h2>Bộ sưu tập</h2><p>Sắp xếp các tài liệu đã chọn theo cách của bạn.</p></div></div><div class="collection-grid" th:if="${!#lists.isEmpty(collections)}"><a class="collection-card" th:each="item : ${collections}" th:href="@{/library/collections/{id}(id=${item.id})}"><span class="collection-icon">▦</span><strong th:text="${item.name}">Tên</strong><p th:text="${item.description ?: 'Chưa có mô tả'}">Mô tả</p><small th:text="|${collectionSizes[item.id]} tài liệu|">0 tài liệu</small></a></div><div class="empty-panel compact-empty" th:if="${#lists.isEmpty(collections)}"><h2>Chưa có bộ sưu tập</h2><p>Tạo bộ sưu tập đầu tiên bằng biểu mẫu phía trên.</p></div></section>
-</main></div>
+
+        <div th:replace="~{fragments/ui :: flashMessages}"></div>
+
+        <nav class="library-quick-links" aria-label="Truy cập nhanh trong thư viện">
+            <a th:href="@{/library/recently-viewed}">
+                <span class="library-quick-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                </span>
+                <span><strong>Đã xem gần đây</strong><small>Tiếp tục tài liệu đang đọc</small></span>
+                <i aria-hidden="true">→</i>
+            </a>
+            <a th:href="@{/library/download-history}">
+                <span class="library-quick-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M4 20h16"/></svg>
+                </span>
+                <span><strong>Đã tải xuống</strong><small>Tra cứu lịch sử tải tài liệu</small></span>
+                <i aria-hidden="true">→</i>
+            </a>
+            <a th:href="@{/library/my-reviews}">
+                <span class="library-quick-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2-4.5-4.4 6.2-.9z"/></svg>
+                </span>
+                <span><strong>Đánh giá của tôi</strong><small>Xem lại phản hồi đã gửi</small></span>
+                <i aria-hidden="true">→</i>
+            </a>
+        </nav>
+
+        <div class="library-main-grid">
+            <section class="library-saved-panel" aria-labelledby="saved-documents-title">
+                <header class="library-section-heading">
+                    <div>
+                        <span class="library-section-kicker">Kệ học liệu</span>
+                        <h2 id="saved-documents-title">Tài liệu đã lưu</h2>
+                        <p>Những tài liệu bạn muốn quay lại đọc hoặc sử dụng cho kế hoạch học tập.</p>
+                    </div>
+                    <span class="library-count-badge" th:text="|${#lists.size(bookmarks)} tài liệu|">0 tài liệu</span>
+                </header>
+
+                <div class="library-document-grid" th:if="${!#lists.isEmpty(bookmarks)}">
+                    <article class="library-document-card" th:each="bookmark : ${bookmarks}">
+                        <div class="library-document-topline">
+                            <span class="library-category-chip"
+                                  th:text="${bookmark.document.category != null ? bookmark.document.category.name : 'Học liệu'}">Danh mục</span>
+                            <span class="library-saved-mark" aria-label="Đã lưu">
+                                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>
+                            </span>
+                        </div>
+                        <h3>
+                            <a th:href="@{/repository/{id}(id=${bookmark.document.id})}"
+                               th:text="${bookmark.document.title}">Tài liệu</a>
+                        </h3>
+                        <p class="library-document-summary"
+                           th:text="${bookmark.document.summary ?: bookmark.document.description ?: 'Tài liệu chưa có mô tả ngắn.'}">Mô tả</p>
+                        <div class="library-document-meta">
+                            <span>
+                                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>
+                                <span th:text="${#strings.isEmpty(bookmark.document.authorName) ? 'Tác giả EduRepo' : bookmark.document.authorName}">Tác giả</span>
+                            </span>
+                            <span>
+                                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+                                <time th:datetime="${bookmark.createdAt}"
+                                      th:text="${#temporals.format(bookmark.createdAt, 'dd/MM/yyyy')}">Ngày lưu</time>
+                            </span>
+                        </div>
+                        <a class="library-open-document" th:href="@{/repository/{id}(id=${bookmark.document.id})}">
+                            Mở tài liệu <span aria-hidden="true">→</span>
+                        </a>
+                    </article>
+                </div>
+
+                <div class="library-empty-state" th:if="${#lists.isEmpty(bookmarks)}">
+                    <span class="library-empty-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6l2 2 2-2h6v15h-6l-2 2-2-2H4z"/><path d="M12 6v15"/></svg>
+                    </span>
+                    <h3>Kệ tài liệu đang chờ bạn</h3>
+                    <p>Mở một tài liệu công khai và chọn “Lưu vào thư viện” để tìm lại nhanh hơn.</p>
+                    <a class="button" th:href="@{/repository}">Tìm học liệu đầu tiên</a>
+                </div>
+            </section>
+
+            <aside class="library-create-card" aria-labelledby="create-collection-title">
+                <div class="library-create-heading">
+                    <span class="library-create-icon" aria-hidden="true">＋</span>
+                    <div>
+                        <span class="library-section-kicker">Sắp xếp theo cách của bạn</span>
+                        <h2 id="create-collection-title">Tạo bộ sưu tập mới</h2>
+                    </div>
+                </div>
+                <p>Nhóm học liệu theo môn học, đề tài nghiên cứu hoặc kế hoạch ôn tập.</p>
+                <form th:action="@{/library/collections}" th:object="${collectionForm}" method="post"
+                      class="library-create-form">
+                    <label>
+                        <span class="field-label">Tên bộ sưu tập <i aria-hidden="true">*</i></span>
+                        <input th:field="*{name}" maxlength="150" required
+                               autocomplete="off" placeholder="Ví dụ: Ôn tập Java">
+                        <small class="field-error" th:errors="*{name}"></small>
+                    </label>
+                    <label>
+                        <span class="field-label">Mô tả ngắn</span>
+                        <textarea th:field="*{description}" rows="4" maxlength="500"
+                                  placeholder="Bộ sưu tập này phục vụ mục tiêu gì?"></textarea>
+                        <small class="field-error" th:errors="*{description}"></small>
+                    </label>
+                    <button type="submit">
+                        <span aria-hidden="true">＋</span> Tạo bộ sưu tập
+                    </button>
+                </form>
+                <div class="library-create-tip">
+                    <span aria-hidden="true">i</span>
+                    <p>Bạn có thể đổi tên, cập nhật mô tả hoặc xóa bộ sưu tập bất cứ lúc nào.</p>
+                </div>
+            </aside>
+        </div>
+
+        <section class="library-collections" aria-labelledby="collections-title">
+            <header class="library-section-heading">
+                <div>
+                    <span class="library-section-kicker">Góc học tập</span>
+                    <h2 id="collections-title">Bộ sưu tập của bạn</h2>
+                    <p>Mỗi bộ sưu tập là một lộ trình nhỏ dành cho môn học hoặc mục tiêu cụ thể.</p>
+                </div>
+                <span class="library-count-badge" th:text="|${#lists.size(collections)} bộ sưu tập|">0 bộ sưu tập</span>
+            </header>
+
+            <div class="library-collection-grid" th:if="${!#lists.isEmpty(collections)}">
+                <a class="library-collection-card" th:each="item, iteration : ${collections}"
+                   th:href="@{/library/collections/{id}(id=${item.id})}">
+                    <span class="library-collection-number" th:text="${#numbers.formatInteger(iteration.index + 1, 2)}">01</span>
+                    <span class="library-collection-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6l2 2 2-2h6v15h-6l-2 2-2-2H4z"/><path d="M12 6v15"/></svg>
+                    </span>
+                    <strong th:text="${item.name}">Tên bộ sưu tập</strong>
+                    <p th:text="${item.description ?: 'Chưa có mô tả cho bộ sưu tập này.'}">Mô tả</p>
+                    <span class="library-collection-footer">
+                        <small th:text="|${collectionSizes[item.id]} tài liệu|">0 tài liệu</small>
+                        <i aria-hidden="true">Mở <b>→</b></i>
+                    </span>
+                </a>
+            </div>
+
+            <div class="library-empty-state library-empty-collections" th:if="${#lists.isEmpty(collections)}">
+                <span class="library-empty-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M17.5 14v7M14 17.5h7"/></svg>
+                </span>
+                <div><h3>Chưa có bộ sưu tập</h3><p>Dùng biểu mẫu phía trên để tạo không gian học tập đầu tiên.</p></div>
+                <a href="#create-collection-title">Tạo ngay <span aria-hidden="true">↑</span></a>
+            </div>
+        </section>
+    </main>
+</div>
 <div th:replace="~{fragments/footer :: footer}"></div>
-</body></html>
+</body>
+</html>

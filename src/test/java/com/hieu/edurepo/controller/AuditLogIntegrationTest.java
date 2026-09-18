@@ -29,6 +29,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -214,9 +215,10 @@ class AuditLogIntegrationTest {
                 .andExpect(status().isOk()).andReturn();
 
         @SuppressWarnings("unchecked")
-        Page<AuditLog> page = (Page<AuditLog>) result.getModelAndView().getModel().get("logs");
+        Page<AuditLog> page = (Page<AuditLog>) Objects.requireNonNull(result.getModelAndView(),
+                "Expected the audit-log request to render a model").getModel().get("logs");
         assertEquals(1, page.getTotalElements());
-        assertEquals(AuditAction.DOCUMENT_CREATED, page.getContent().getFirst().getAction());
+        assertEquals(AuditAction.DOCUMENT_CREATED, page.getContent().get(0).getAction());
     }
 
     private void review(Document document, User reviewer, String action) throws Exception {

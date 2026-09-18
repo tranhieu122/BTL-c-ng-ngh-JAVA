@@ -27,14 +27,37 @@ public class LibraryController {
     private final UserService userService;
     private final com.hieu.edurepo.service.DocumentService documentService;
     private final com.hieu.edurepo.service.AuditLogService auditLogs;
+    private final com.hieu.edurepo.service.UserActivityService userActivityService;
 
     public LibraryController(LibraryService libraryService, UserService userService,
                              com.hieu.edurepo.service.DocumentService documentService,
-                             com.hieu.edurepo.service.AuditLogService auditLogs) {
+                             com.hieu.edurepo.service.AuditLogService auditLogs,
+                             com.hieu.edurepo.service.UserActivityService userActivityService) {
         this.libraryService = libraryService;
         this.userService = userService;
         this.documentService = documentService;
         this.auditLogs = auditLogs;
+        this.userActivityService = userActivityService;
+    }
+
+    @GetMapping("/recently-viewed")
+    public String recentlyViewed(@AuthenticationPrincipal CustomUserPrincipal principal, Model model) {
+        model.addAttribute("items", userActivityService.recentlyViewed(requirePrincipal(principal).getId()));
+        model.addAttribute("activityType", "views");
+        return "library/activity";
+    }
+
+    @GetMapping("/download-history")
+    public String downloadHistory(@AuthenticationPrincipal CustomUserPrincipal principal, Model model) {
+        model.addAttribute("items", userActivityService.downloadHistory(requirePrincipal(principal).getId()));
+        model.addAttribute("activityType", "downloads");
+        return "library/activity";
+    }
+
+    @GetMapping("/my-reviews")
+    public String myReviews(@AuthenticationPrincipal CustomUserPrincipal principal, Model model) {
+        model.addAttribute("reviews", userActivityService.reviews(requirePrincipal(principal).getId()));
+        return "library/my-reviews";
     }
 
     @GetMapping

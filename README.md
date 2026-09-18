@@ -11,22 +11,61 @@ Hồ sơ cá nhân, avatar, đổi mật khẩu, xóa tài khoản và SSE đã 
 - Thymeleaf, MySQL
 - Maven Wrapper
 
-## Cấu trúc Spring Boot
+## Cấu trúc mã nguồn
 
 ```text
-src/
-|-- main/
-|   |-- java/com/hieu/edurepo/   # Mã nguồn Spring Boot
-|   `-- resources/
-|       |-- application.properties
-|       |-- static/              # CSS, JavaScript, hình ảnh
-|       `-- templates/           # Giao diện Thymeleaf
-`-- test/
-    |-- java/                    # Kiểm thử Java
-    `-- resources/               # Cấu hình kiểm thử
+EduRepo/
+|-- src/
+|   |-- main/
+|   |   |-- java/com/hieu/edurepo/
+|   |   |   |-- EduRepoApplication.java   # Điểm khởi động ứng dụng
+|   |   |   |-- config/                   # Security, dữ liệu mẫu và cấu hình môi trường
+|   |   |   |-- controller/               # Tiếp nhận request và trả về view/JSON
+|   |   |   |   `-- admin/                 # Các màn hình quản trị
+|   |   |   |-- dto/                       # Dữ liệu form, request và response
+|   |   |   |-- entity/                    # Thực thể JPA ánh xạ bảng dữ liệu
+|   |   |   |-- enums/                     # Trạng thái, vai trò và loại dữ liệu
+|   |   |   |-- exception/                 # Ngoại lệ và xử lý lỗi toàn cục
+|   |   |   |-- observability/             # Metrics và mã theo dõi request
+|   |   |   |-- repository/                # Truy vấn dữ liệu bằng Spring Data JPA
+|   |   |   |-- security/                  # Đăng nhập, phiên và giới hạn đăng nhập sai
+|   |   |   |-- service/                   # Interface xử lý nghiệp vụ
+|   |   |   |   `-- impl/                  # Cài đặt nghiệp vụ
+|   |   |   `-- util/                      # Kiểm tra file và chính sách mật khẩu
+|   |   `-- resources/
+|   |       |-- application.properties     # Cấu hình chung
+|   |       |-- application-*.properties   # Cấu hình local, dev và prod
+|   |       |-- db/migration/              # Migration Flyway từ V1 đến V13
+|   |       |-- static/
+|   |       |   |-- css/                    # Style chung, component và từng trang
+|   |       |   |-- js/                     # JavaScript giao diện
+|   |       |   |   `-- modules/            # Module realtime, form, thông báo...
+|   |       |   `-- images/                 # Hình ảnh tĩnh
+|   |       `-- templates/                 # View Thymeleaf theo từng chức năng
+|   |           `-- fragments/             # Header, sidebar, footer và UI dùng chung
+`-- README.md
+
+
+Dự án tuân theo kiến trúc MVC nhiều tầng:
+
+```text
+Trình duyệt
+    -> Controller
+    -> Service
+    -> Repository
+    -> MySQL
+
+Controller -> DTO/Entity -> Thymeleaf template -> HTML trả về trình duyệt
 ```
 
-Dự án dùng đúng cấu trúc mặc định của Maven và Spring Boot, không cấu hình thư mục nguồn riêng trong `pom.xml`.
+- **Controller** chỉ điều phối request, kiểm tra quyền truy cập và chọn view hoặc response.
+- **Service** chứa quy tắc nghiệp vụ như nộp tài liệu, duyệt, xuất bản, OTP và thông báo.
+- **Repository** chịu trách nhiệm đọc/ghi dữ liệu, không chứa xử lý giao diện.
+- **Entity** biểu diễn dữ liệu lưu trong MySQL; **DTO** dùng để nhận form và trả dữ liệu an toàn.
+- **Templates**, **CSS** và **JavaScript** tạo giao diện; các fragment và module dùng chung giúp tránh lặp mã.
+- **Flyway migration** quản lý thay đổi cấu trúc database theo thứ tự phiên bản.
+
+Dự án dùng cấu trúc mặc định của Maven và Spring Boot, không cấu hình thư mục nguồn riêng trong `pom.xml`.
 
 ## Chạy ứng dụng
 

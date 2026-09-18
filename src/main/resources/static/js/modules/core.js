@@ -45,7 +45,8 @@ export const showToast = (message, type = "success") => {
 
     const toast = document.createElement("div");
     toast.className = `toast toast-${type}`;
-    toast.setAttribute("role", "status");
+    toast.setAttribute("role", type === "error" ? "alert" : "status");
+    toast.setAttribute("aria-atomic", "true");
 
     const icon = document.createElement("span");
     icon.className = "toast-icon";
@@ -62,7 +63,7 @@ export const showToast = (message, type = "success") => {
     window.setTimeout(() => {
         toast.classList.remove("is-visible");
         window.setTimeout(() => toast.remove(), 220);
-    }, 3200);
+    }, type === "error" ? 6000 : 4000);
 };
 
 const setCurrentYear = () => {
@@ -299,12 +300,45 @@ const setupAutoResizeTextareas = () => {
     });
 };
 
-const mirrorServerAlertsToToasts = () => {
-    document.querySelectorAll(".alert.success, .alert.error").forEach((alert) => {
-        const message = alert.textContent.trim();
-        if (!message) return;
+const enhanceStaticAccessibility = () => {
+    document.querySelectorAll("input[required], select[required], textarea[required]").forEach((field) => {
+        const label = field.closest("label") || (field.id
+            ? Array.from(document.querySelectorAll("label[for]")).find((candidate) => candidate.htmlFor === field.id)
+            : null);
+        if (!label || label.querySelector(".required-marker")) return;
+        const marker = document.createElement("span");
+        marker.className = "required-marker";
+        marker.setAttribute("aria-hidden", "true");
+        marker.title = "Bắt buộc";
+        marker.textContent = " *";
+        const labelText = label.querySelector(".field-label") || label;
+        labelText.append(marker);
+    });
 
-        showToast(message, alert.classList.contains("error") ? "error" : "success");
+    document.querySelectorAll("table thead th").forEach((header) => {
+        if (!header.hasAttribute("scope")) header.setAttribute("scope", "col");
+    });
+
+    document.querySelectorAll(".table-scroll").forEach((container, index) => {
+        if (!container.hasAttribute("tabindex")) container.tabIndex = 0;
+        if (!container.hasAttribute("role")) container.setAttribute("role", "region");
+        if (!container.hasAttribute("aria-label")) {
+            const heading = container.closest(".data-panel")?.querySelector(".data-panel-header strong");
+            container.setAttribute("aria-label", heading?.textContent?.trim() || `Bảng dữ liệu ${index + 1}`);
+        }
+    });
+
+    document.querySelectorAll(".field-error").forEach((error, index) => {
+        if (!error.textContent.trim()) return;
+        const field = error.previousElementSibling?.matches?.("input, select, textarea")
+            ? error.previousElementSibling
+            : error.closest("label, .form-field")?.querySelector("input, select, textarea");
+        if (!field) return;
+        if (!error.id) error.id = `${field.id || field.name || "field"}-error-${index + 1}`;
+        const describedBy = new Set((field.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean));
+        describedBy.add(error.id);
+        field.setAttribute("aria-describedby", Array.from(describedBy).join(" "));
+        field.setAttribute("aria-invalid", "true");
     });
 };
 
@@ -312,12 +346,12 @@ export const setupCardReveal = () => {
     const cards = Array.from(document.querySelectorAll(".product-card"));
     if (cards.length === 0 || !("IntersectionObserver" in window)) return;
 
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce), (update: slow)").matches;
     if (reduceMotion) return;
 
     cards.forEach((card, index) => {
         card.classList.add("reveal-card");
-        card.style.setProperty("--reveal-delay", `${Math.min(index % 4, 3) * 55}ms`);
+        card.style.setProperty("--reveal-delay", `${Math.min(index % 3, 2) * 30}ms`);
     });
 
     const observer = new IntersectionObserver((entries) => {
@@ -341,5 +375,5 @@ export const initCoreUi = () => {
     setupDismissibleAlerts();
     setupConfirmations();
     setupAutoResizeTextareas();
-    mirrorServerAlertsToToasts();
+    enhanceStaticAccessibility();
 };

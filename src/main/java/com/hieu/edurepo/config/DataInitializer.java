@@ -59,12 +59,13 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
+        // Role là dữ liệu nền tảng cho Spring Security, nên luôn đảm bảo đủ enum RoleName trong database.
         Arrays.stream(RoleName.values()).forEach(roleName ->
                 roleRepository.findByName(roleName)
                         .orElseGet(() -> roleRepository.save(new Role(roleName))));
 
-        // Starter organization belongs only in an empty repository. Later edits are
-        // administrator-owned; replaying name-based seeds can recreate renamed units.
+        // Dữ liệu khoa/bộ môn mẫu chỉ seed khi hệ thống hoàn toàn trống.
+        // Sau khi admin chỉnh cơ cấu tổ chức, initializer không tự tạo lại tên cũ ở lần restart.
         if (facultyRepository.count() == 0 && departmentRepository.count() == 0) {
             seedOrganizationData();
         }
@@ -77,8 +78,8 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     /**
-     * Local starter data for the submission form. Names are deliberately stable so
-     * it is safe to run on every restart without duplicating faculties or departments.
+     * Dữ liệu mẫu ban đầu cho form nộp tài liệu.
+     * Hàm này chỉ được gọi khi chưa có khoa và chưa có bộ môn nào trong hệ thống.
      */
     private void seedOrganizationData() {
         Map<String, String[]> organization = new LinkedHashMap<>();
@@ -141,24 +142,25 @@ public class DataInitializer implements CommandLineRunner {
         if (normalizedEmail.isBlank() || password.isBlank()) {
             return;
         }
+        // bootstrapKey là dấu vết ổn định theo email cấu hình để nhận diện tài khoản seed qua các lần restart.
+        // Nó giúp tránh tạo lại tài khoản demo nếu email/username cũ đã được admin chỉnh.
         String bootstrapKey;
         try {
             bootstrapKey = java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256")
                     .digest(normalizedEmail.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
         } catch (java.security.NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
 
-        // The demo account uses its email as username. Existing databases can contain
-        // either key with a different casing or surrounding whitespace, so resolve by
-        // both values before creating anything.
+        // Tài khoản seed dùng email làm username. Database cũ có thể còn email/username khác hoa thường,
+        // nên tìm bằng cả email, username và bootstrapKey trước khi quyết định tạo mới.
         List<User> matchingUsers = userRepository.findAll().stream()
                 .filter(candidate -> normalizedEmail.equals(normalizeEmail(candidate.getEmail()))
                         || normalizedEmail.equals(normalizeEmail(candidate.getUsername()))
                         || bootstrapKey.equals(candidate.getBootstrapKey()))
                 .toList();
-        // Existing accounts are owned by the administrator after first startup.
-        // Never overwrite their password, roles, profile, or enabled state here.
+        // Tài khoản đã tồn tại thuộc quyền quản trị của admin sau lần khởi động đầu.
+        // Không tự ghi đè mật khẩu, vai trò, hồ sơ hoặc trạng thái kích hoạt tại đây.
         if (!matchingUsers.isEmpty()) {
-            // Keep a bootstrap marker after anonymization so restart cannot recreate a deleted demo login.
+            // Bổ sung bootstrapKey cho dữ liệu cũ để các lần restart sau vẫn nhận ra tài khoản seed.
             matchingUsers.stream().filter(user -> user.getBootstrapKey() == null).forEach(user -> {
                 user.setBootstrapKey(bootstrapKey); userRepository.save(user);
             });

@@ -67,11 +67,12 @@ class AdminNotificationIntegrationTest {
         var saved = notifications.findByRecipientIdOrderByCreatedAtDescIdDesc(
                 receiver.getId(), org.springframework.data.domain.Pageable.unpaged()).getContent();
         assertEquals(1, saved.size());
-        assertEquals("Lịch bảo trì", saved.getFirst().getTitle());
-        assertEquals("EduRepo bảo trì lúc 21:00.", saved.getFirst().getContent());
-        assertEquals("IMPORTANT", saved.getFirst().getLevel().name());
-        assertEquals(admin.getId(), saved.getFirst().getSender().getId());
-        assertNotNull(saved.getFirst().getCreatedAt());
+        var notification = saved.get(0);
+        assertEquals("Lịch bảo trì", notification.getTitle());
+        assertEquals("EduRepo bảo trì lúc 21:00.", notification.getContent());
+        assertEquals("IMPORTANT", notification.getLevel().name());
+        assertEquals(admin.getId(), notification.getSender().getId());
+        assertNotNull(notification.getCreatedAt());
     }
 
     @Test
@@ -133,7 +134,7 @@ class AdminNotificationIntegrationTest {
                 .andExpect(jsonPath("$.items[0].title").value("Thông báo riêng"));
 
         Long notificationId = notifications.findByRecipientIdOrderByCreatedAtDescIdDesc(
-                first.getId(), org.springframework.data.domain.Pageable.unpaged()).getContent().getFirst().getId();
+                first.getId(), org.springframework.data.domain.Pageable.unpaged()).getContent().get(0).getId();
 
         mvc.perform(get("/notifications/api/unread-count").with(user(CustomUserPrincipal.from(first))))
                 .andExpect(jsonPath("$.count").value(1));
@@ -157,7 +158,7 @@ class AdminNotificationIntegrationTest {
         send(admin, receiver, "Trang thông báo");
 
         Long notificationId = notifications.findByRecipientIdOrderByCreatedAtDescIdDesc(
-                receiver.getId(), org.springframework.data.domain.Pageable.unpaged()).getContent().getFirst().getId();
+                receiver.getId(), org.springframework.data.domain.Pageable.unpaged()).getContent().get(0).getId();
 
         mvc.perform(get("/notifications").with(user(CustomUserPrincipal.from(receiver))))
                 .andExpect(status().isOk())

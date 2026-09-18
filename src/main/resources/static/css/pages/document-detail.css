@@ -314,10 +314,25 @@
 }
 
 .preview-primary,
-.download-primary,
-.share-button {
+.download-primary {
     width: 100%;
     margin-top: 0.55rem;
+}
+
+.download-actions {
+    display: grid;
+    gap: 0.55rem;
+    margin-top: 0.55rem;
+}
+
+.download-actions form,
+.download-actions .button {
+    width: 100%;
+    margin: 0;
+}
+
+.download-actions form {
+    display: block;
 }
 
 .download-features {

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Yêu cầu quyền nộp tài liệu | EduRepo</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="page-shell"><div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main id="main-content" class="content workspace-content submitter-request-admin">
+    <header class="workspace-heading"><div><span class="workspace-kicker">Quản trị truy cập</span><h1>Yêu cầu quyền nộp tài liệu</h1><p class="subtitle">Xem xét nhu cầu đóng góp trước khi cấp thêm vai trò SUBMITTER.</p></div></header>
+    <div th:replace="~{fragments/ui :: flashMessages}"></div>
+    <section class="data-panel">
+        <div class="data-panel-header"><strong>Danh sách yêu cầu</strong><span class="record-count" th:text="|${#lists.size(requests)} bản ghi|">0 bản ghi</span></div>
+        <div class="admin-request-list" th:if="${!#lists.isEmpty(requests)}">
+            <article class="admin-request-row" th:each="request : ${requests}">
+                <div class="request-user"><strong th:text="${request.requester.fullName}">Người dùng</strong><small th:text="${request.requester.email}">Email</small><time th:text="${#temporals.format(request.createdAt, 'dd/MM/yyyy HH:mm')}">Thời gian</time></div>
+                <div class="request-reason"><span class="status-pill" th:classappend="|status-${#strings.toLowerCase(request.status.name())}|" th:text="${request.status.label}">Trạng thái</span><p th:text="${request.reason}">Lý do</p><small th:if="${request.rejectionReason != null}" th:text="|Lý do từ chối: ${request.rejectionReason}|">Lý do từ chối</small></div>
+                <div class="request-actions" th:if="${request.status.name() == 'PENDING'}"><form th:action="@{/admin/submitter-requests/{id}/approve(id=${request.id})}" method="post"><button type="submit" class="button button-sm" data-confirm-label="Cấp quyền nộp" data-confirm-message="Duyệt yêu cầu và cấp vai trò SUBMITTER cho tài khoản này?">Duyệt</button></form><form th:action="@{/admin/submitter-requests/{id}/reject(id=${request.id})}" method="post"><label><span class="field-label">Lý do từ chối</span><input name="rejectionReason" maxlength="1000" required placeholder="Nêu lý do để người dùng có thể hiểu"></label><button type="submit" class="button button-danger button-sm" data-confirm-label="Xác nhận từ chối" data-confirm-message="Từ chối yêu cầu quyền nộp tài liệu này?">Từ chối</button></form></div>
+                <div class="activity-meta" th:if="${request.status.name() != 'PENDING'}"><strong th:text="${request.reviewedBy != null ? request.reviewedBy.fullName : 'Quản trị viên'}">Người xử lý</strong><small th:text="${request.reviewedAt != null ? #temporals.format(request.reviewedAt, 'dd/MM/yyyy HH:mm') : ''}">Thời gian</small></div>
+            </article>
+        </div>
+        <div class="empty-panel" th:if="${#lists.isEmpty(requests)}"><h2>Chưa có yêu cầu nào</h2><p>Các yêu cầu xin quyền nộp tài liệu sẽ xuất hiện tại đây.</p></div>
+    </section>
+</main></div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body></html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,6 +18,14 @@
                 <form th:if="${document.status.name() == 'DRAFT'}" th:action="@{/documents/{id}/delete(id=${document.id})}" method="post">
                     <button class="button button-danger" type="submit" data-confirm-label="Xóa bản nháp" data-confirm-message="Xóa bản nháp này? Tệp đã tải lên cũng sẽ bị xóa và không thể khôi phục.">Xóa bản nháp</button>
                 </form>
+                <form sec:authorize="hasRole('ADMIN')" th:if="${document.status.name() == 'APPROVED'}"
+                      th:action="@{/documents/{id}/publish(id=${document.id})}" method="post">
+                    <button class="button" type="submit" data-confirm-message="Bạn có chắc muốn công bố tài liệu này?">Công bố</button>
+                </form>
+                <form sec:authorize="hasRole('ADMIN')" th:if="${document.status.name() == 'PUBLISHED'}"
+                      th:action="@{/documents/{id}/archive(id=${document.id})}" method="post">
+                    <button class="button button-secondary" type="submit" data-confirm-message="Bạn có chắc muốn lưu trữ tài liệu này?">Lưu trữ</button>
+                </form>
                 <a class="button button-secondary" th:href="@{/documents}">← Danh sách</a>
             </div>
         </header>
@@ -31,7 +39,7 @@
                 <article class="review-card">
                 <div class="document-title-block">
                     <div><h2 th:text="${document.title}">Tên tài liệu</h2><span class="field-hint" th:text="${document.authorName ?: 'Chưa khai báo tác giả'}">Tác giả</span></div>
-                    <span class="status-pill" th:attr="data-live-document-status=${document.id}" th:classappend="| status-${#strings.toLowerCase(document.status.name())}|" th:text="${document.status}">DRAFT</span>
+                    <span class="status-pill" th:attr="data-live-document-status=${document.id}" th:classappend="| status-${#strings.toLowerCase(document.status.name())}|" th:text="${document.status.label}">Bản nháp</span>
                 </div>
                 <p class="document-description" th:text="${document.description ?: 'Tài liệu này chưa có mô tả.'}">Mô tả</p>
                 <p class="document-description" th:if="${!#strings.isEmpty(document.summary)}" th:text="${document.summary}">Tóm tắt</p>
@@ -55,27 +63,35 @@
                 </div>
                 </article>
                 <article class="review-card review-card-spaced">
-                    <div class="panel-heading"><div><h2>Phản hồi kiểm duyệt</h2><p>Các quyết định và góp ý đã được ghi nhận cho tài liệu này.</p></div></div>
+                    <div class="panel-heading"><div><h2>Lịch sử xét duyệt</h2><p>Các quyết định và góp ý đã được ghi nhận cho tài liệu này.</p></div></div>
                     <ol class="review-history" th:if="${!#lists.isEmpty(history)}">
                         <li th:each="item : ${history}">
                             <strong th:switch="${item.action.name()}">
+                                <span th:case="'SUBMITTED'">Đã gửi kiểm duyệt</span>
+                                <span th:case="'START_REVIEW'">Bắt đầu kiểm duyệt</span>
+                                <span th:case="'RESUBMITTED'">Đã gửi lại</span>
                                 <span th:case="'APPROVED'">Đã phê duyệt</span>
                                 <span th:case="'REVISION_REQUESTED'">Yêu cầu chỉnh sửa</span>
                                 <span th:case="'REJECTED'">Đã từ chối</span>
                                 <span th:case="'PUBLISHED'">Đã công bố</span>
+                                <span th:case="'ARCHIVED'">Đã lưu trữ</span>
                                 <span th:case="*" th:text="${item.action}">Quyết định</span>
                             </strong>
                             <br>
+                            <span class="field-hint" th:if="${item.oldStatus != null and item.newStatus != null}"
+                                  th:text="|${item.oldStatus.label} → ${item.newStatus.label}|">Bản nháp → Đã gửi duyệt</span>
                             <span th:text="${item.comment ?: 'Reviewer không để lại ghi chú.'}">Nội dung phản hồi</span>
                             <span class="rubric-summary" th:if="${item.hasRubricScores()}" th:text="|Nội dung ${item.contentQualityScore}/5 · Hiệu quả ${item.teachingEffectivenessScore}/5 · Dễ sử dụng ${item.easeOfUseScore}/5|">Rubric</span>
-                            <small class="field-hint" th:text="|${item.reviewer.fullName} · ${item.createdAt}|">Reviewer · thời gian</small>
+                            <small class="field-hint" th:text="|${#temporals.format(item.createdAt, 'dd/MM/yyyy HH:mm')} · ${item.reviewer.fullName}|">Reviewer · thời gian</small>
                         </li>
                     </ol>
+                    <nav class="pagination" th:if="${historyPage.totalPages > 1}" aria-label="Phân trang lịch sử xét duyệt"><a th:if="${historyPage.hasPrevious()}" th:href="@{/documents/{id}(id=${document.id},historyPage=${historyPage.number - 1},versionPage=${versionPage.number})}">← Trước</a><span th:text="|Trang ${historyPage.number + 1}/${historyPage.totalPages}|">Trang</span><a th:if="${historyPage.hasNext()}" th:href="@{/documents/{id}(id=${document.id},historyPage=${historyPage.number + 1},versionPage=${versionPage.number})}">Sau →</a></nav>
                     <div class="empty-panel compact-empty" th:if="${#lists.isEmpty(history)}"><h2>Chưa có phản hồi</h2><p>Nhận xét của reviewer sẽ xuất hiện tại đây sau khi tài liệu được xử lý.</p></div>
                 </article>
                 <article class="review-card review-card-spaced">
                     <div class="panel-heading"><div><h2>Lịch sử phiên bản</h2><p>Mỗi lần thay tệp được lưu thành một phiên bản riêng.</p></div></div>
-                    <ol class="version-list" th:if="${!#lists.isEmpty(versions)}"><li th:each="version : ${versions}"><div><strong th:text="|Phiên bản ${version.versionNumber}|">Phiên bản</strong><span th:text="${version.changeNote}">Thay đổi</span><small th:text="|${version.fileName} · ${version.createdAt}|">Tệp</small></div><a class="button button-secondary" th:href="@{/documents/{id}/versions/{versionId}/download(id=${document.id},versionId=${version.id})}">Tải bản này</a></li></ol>
+                    <ol class="version-list" th:if="${!#lists.isEmpty(versions)}"><li th:each="version : ${versions}"><div><strong th:text="|v${version.versionNumber}${version.currentVersion ? ' · Hiện tại' : ''}|">Phiên bản</strong><span th:text="${version.changeNote ?: 'Không có ghi chú thay đổi'}">Thay đổi</span><small th:text="|${version.fileName} · ${#temporals.format(version.createdAt, 'dd/MM/yyyy HH:mm')} · ${version.createdBy != null ? version.createdBy.fullName : 'Không xác định'}|">Tệp</small></div><a class="button button-secondary" th:href="@{/documents/{id}/versions/{versionId}/download(id=${document.id},versionId=${version.id})}">Tải bản này</a></li></ol>
+                    <nav class="pagination" th:if="${versionPage.totalPages > 1}" aria-label="Phân trang phiên bản"><a th:if="${versionPage.hasPrevious()}" th:href="@{/documents/{id}(id=${document.id},historyPage=${historyPage.number},versionPage=${versionPage.number - 1})}">← Trước</a><span th:text="|Trang ${versionPage.number + 1}/${versionPage.totalPages}|">Trang</span><a th:if="${versionPage.hasNext()}" th:href="@{/documents/{id}(id=${document.id},historyPage=${historyPage.number},versionPage=${versionPage.number + 1})}">Sau →</a></nav>
                     <div class="empty-panel compact-empty" th:if="${#lists.isEmpty(versions)}"><h2>Chưa có phiên bản</h2><p>Phiên bản đầu tiên sẽ xuất hiện khi tài liệu có tệp đính kèm.</p></div>
                 </article>
             </div>

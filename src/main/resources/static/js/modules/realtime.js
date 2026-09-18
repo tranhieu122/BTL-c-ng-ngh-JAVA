@@ -22,7 +22,7 @@ export function connectRealtime({url, snapshotUrl, onSnapshot, onStatus, onExpir
             if (stopped || ticket !== generation) return;
             disconnect();
             const failedGeneration = generation;
-            onStatus("Mất kết nối");
+            onStatus("Đang kết nối lại");
             // Also distinguishes an expired cookie from a temporary SSE/proxy interruption.
             try {
                 const response = await fetchSnapshot(snapshotUrl, {credentials: "same-origin", cache: "no-store", headers: {Accept: "application/json"}, signal: AbortSignal.timeout(8000)});
@@ -30,7 +30,10 @@ export function connectRealtime({url, snapshotUrl, onSnapshot, onStatus, onExpir
                 if (response.status === 401 || response.status === 403) { expired(); return; }
                 if (response.ok) {
                     const snapshot = await response.json();
-                    if (!stopped && failedGeneration === generation) onSnapshot(snapshot);
+                    if (!stopped && failedGeneration === generation) {
+                        onSnapshot(snapshot);
+                        onStatus("Đã đồng bộ");
+                    }
                 }
             } catch { /* Ordinary form/navigation actions remain independent of realtime. */ }
             if (!stopped && failedGeneration === generation) {
@@ -50,13 +53,38 @@ export function initRealtime() {
     root.dataset.initialized = "true";
     const status = root.querySelector("[data-live-status]");
     const message = root.querySelector("[data-live-message]");
+    const summary = root.querySelector("summary");
+    const panel = root.querySelector(".live-panel");
     const setStatus = value => {
         status.textContent = value;
-        root.dataset.connection = value === "Trực tuyến" ? "online" : value === "Đang kết nối" ? "connecting" : "offline";
+        root.dataset.connection = value === "Trực tuyến" ? "online"
+            : value === "Ngoại tuyến" || value === "Chưa hỗ trợ" ? "offline" : "connecting";
     };
-    document.addEventListener("click", event => { if (!root.contains(event.target)) root.open = false; });
+    let closeTimer;
+    const closePanel = (restoreFocus = false) => {
+        if (!root.open || root.dataset.closing === "true") return;
+        root.dataset.closing = "true";
+        closeTimer = window.setTimeout(() => {
+            root.open = false;
+            delete root.dataset.closing;
+            if (restoreFocus) summary.focus({preventScroll: true});
+        }, window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? 0 : 150);
+    };
+    summary.addEventListener("click", event => {
+        event.preventDefault();
+        if (root.dataset.closing === "true") {
+            window.clearTimeout(closeTimer);
+            delete root.dataset.closing;
+        } else if (root.open) closePanel();
+        else {
+            window.clearTimeout(closeTimer);
+            delete root.dataset.closing;
+            root.open = true;
+        }
+    });
+    document.addEventListener("click", event => { if (!root.contains(event.target)) closePanel(); });
     root.addEventListener("keydown", event => {
-        if (event.key === "Escape" && root.open) { root.open = false; root.querySelector("summary").focus(); }
+        if (event.key === "Escape" && root.open) { event.preventDefault(); closePanel(true); }
     });
     if (!window.EventSource) { status.textContent = "Chưa hỗ trợ"; message.textContent = "Tải lại trang để xem cập nhật. Các chức năng vẫn dùng bình thường."; return; }
     let previous;
@@ -81,9 +109,19 @@ export function initRealtime() {
         list.replaceChildren();
         for (const item of snapshot.documents.slice(0, 20)) {
             const li = document.createElement("li");
-            li.textContent = `${item.title} — ${labels[item.status] || item.status}`;
+            const link = document.createElement("a");
+            const title = document.createElement("span");
+            const state = document.createElement("em");
+            link.className = "live-document-link";
+            link.href = `${root.dataset.documentsUrl}/${item.id}`;
+            title.textContent = item.title;
+            state.className = `live-document-status status-${String(item.status).toLowerCase()}`;
+            state.textContent = labels[item.status] || item.status;
+            link.append(title, state);
+            li.append(link);
             list.append(li);
         }
+        root.querySelector("[data-live-document-count]").textContent = String(Math.min(snapshot.documents.length, 20));
         const queue = root.querySelector("[data-live-queue]");
         queue.hidden = !snapshot.canReview;
         queue.textContent = `Hàng chờ: ${snapshot.reviewQueue.filter(item => item.status === "SUBMITTED").length} cần duyệt · ${snapshot.reviewQueue.filter(item => item.status === "APPROVED").length} cần xuất bản`;
@@ -97,14 +135,15 @@ export function initRealtime() {
             const item = [...snapshot.documents, ...snapshot.reviewQueue].find(doc => String(doc.id) === element.dataset.liveDocumentStatus);
             if (item) { element.textContent = labels[item.status] || item.status; element.className = `status-pill status-${item.status.toLowerCase()}`; }
         });
-        message.textContent = changed ? "Có cập nhật mới. Trạng thái dưới đây đã được đồng bộ; tải lại trang để cập nhật các thao tác." : "Đã đồng bộ trạng thái mới nhất. Các chức năng vẫn dùng được khi mất kết nối.";
+        const syncedAt = new Intl.DateTimeFormat("vi-VN", {hour: "2-digit", minute: "2-digit"}).format(new Date());
+        message.textContent = changed ? `Vừa nhận cập nhật mới lúc ${syncedAt}.` : `Đã đồng bộ lúc ${syncedAt}. Mọi thao tác vẫn sẵn sàng.`;
         if (changed) root.querySelector("[data-live-refresh]").hidden = false;
         previous = snapshot;
         document.dispatchEvent(new CustomEvent("realtime:snapshot", {detail: snapshot}));
         if (changed) document.dispatchEvent(new CustomEvent("realtime:changed", {detail: snapshot}));
     };
     const client = connectRealtime({url: root.dataset.streamUrl, snapshotUrl: root.dataset.snapshotUrl, onSnapshot,
-        onStatus: value => { setStatus(value); if (value === "Mất kết nối") message.textContent = "Đang thử kết nối lại. Bạn vẫn có thể thao tác hoặc tải lại trang để cập nhật."; },
+        onStatus: value => { setStatus(value); if (value === "Đang kết nối lại") message.textContent = "Kết nối đang được khôi phục. Bạn vẫn có thể thao tác bình thường."; },
         onExpired: () => { window.location.assign(root.dataset.loginUrl); }});
     window.addEventListener("pagehide", () => client.stop());
     window.addEventListener("offline", () => { client.stop(); setStatus("Ngoại tuyến"); });

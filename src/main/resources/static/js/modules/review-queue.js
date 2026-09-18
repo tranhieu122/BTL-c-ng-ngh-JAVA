@@ -3,6 +3,8 @@ export const initReviewQueue = () => {
     if (!list || list.dataset.initialized) return;
     list.dataset.initialized = "true";
 
+    // Danh sách lớn được lọc và phân trang ở database; không lọc lại riêng 10 bản ghi đang hiển thị.
+    if (document.querySelector("[data-review-server-filter]")) return;
 
     const search = document.querySelector("[data-review-search]");
     const status = document.querySelector("[data-review-status]");

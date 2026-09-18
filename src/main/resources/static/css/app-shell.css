@@ -331,6 +331,18 @@ td:last-child {
     border-color: #b2ddff;
 }
 
+.status-resubmitted {
+    color: #175cd3;
+    background: #eff8ff;
+    border-color: #b2ddff;
+}
+
+.status-under_review {
+    color: #93370d;
+    background: #fffaeb;
+    border-color: #fedf89;
+}
+
 .status-revision_required {
     color: var(--warning);
     background: var(--warning-soft);
@@ -353,6 +365,12 @@ td:last-child {
     color: var(--danger);
     background: var(--danger-soft);
     border-color: #fecdca;
+}
+
+.status-archived {
+    color: #344054;
+    background: #eaecf0;
+    border-color: #98a2b3;
 }
 
 .stats {

@@ -2,6 +2,7 @@ package com.hieu.edurepo.service;
 
 import com.hieu.edurepo.entity.AuthOtpToken;
 import com.hieu.edurepo.enums.OtpPurpose;
+import com.hieu.edurepo.observability.OperationalMetrics;
 import com.hieu.edurepo.repository.AuthOtpTokenRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -29,19 +30,22 @@ public class OtpService {
     private final int ttlMinutes;
     private final int resendCooldownSeconds;
     private final int maxAttempts;
+    private final OperationalMetrics metrics;
 
     public OtpService(AuthOtpTokenRepository tokens,
                       Clock clock,
-                      @Value("${app.auth.otp.pepper:${spring.application.name:EduRepo}}") String pepper,
+                      @Value("${app.auth.otp.pepper:dev-only-not-for-production}") String pepper,
                       @Value("${app.auth.otp.ttl-minutes:10}") int ttlMinutes,
                       @Value("${app.auth.otp.resend-cooldown-seconds:60}") int resendCooldownSeconds,
-                      @Value("${app.auth.otp.max-attempts:5}") int maxAttempts) {
+                      @Value("${app.auth.otp.max-attempts:5}") int maxAttempts,
+                      OperationalMetrics metrics) {
         this.tokens = tokens;
         this.clock = clock;
         this.pepper = pepper;
         this.ttlMinutes = ttlMinutes;
         this.resendCooldownSeconds = resendCooldownSeconds;
         this.maxAttempts = maxAttempts;
+        this.metrics = metrics;
     }
 
     public OtpIssue issue(String email, OtpPurpose purpose) {
@@ -73,9 +77,20 @@ public class OtpService {
         token.setCreatedAt(now);
         token.setUpdatedAt(now);
         tokens.save(token);
+        metrics.otpIssued(purpose);
 
         // Trả mã gốc cho tầng controller/service gửi mail; database chỉ giữ codeHash.
-        return new OtpIssue(code, token.getExpiresAt(), token.getResendAvailableAt());
+        return new OtpIssue(token.getId(), code, token.getExpiresAt(), token.getResendAvailableAt());
+    }
+
+    /** Revoke only the OTP created by the failed delivery attempt. */
+    public void revoke(OtpIssue issue) {
+        if (issue == null || issue.tokenId() == null) return;
+        LocalDateTime revokedAt = now();
+        tokens.findById(issue.tokenId()).filter(token -> token.getConsumedAt() == null).ifPresent(token -> {
+            token.setConsumedAt(revokedAt);
+            token.setUpdatedAt(revokedAt);
+        });
     }
 
     public OtpVerification verify(String email, OtpPurpose purpose, String code) {
@@ -145,7 +160,8 @@ public class OtpService {
     }
 
     // Kết quả sau khi tạo OTP: mã gốc để gửi mail, thời hạn mã và thời điểm được phép gửi lại.
-    public record OtpIssue(String code, LocalDateTime expiresAt, LocalDateTime resendAvailableAt) { }
+    public record OtpIssue(Long tokenId, String code, LocalDateTime expiresAt,
+                           LocalDateTime resendAvailableAt) { }
 
     public enum OtpVerification {
         VALID,

@@ -9,12 +9,12 @@
 <main class="auth-shell auth-shell-compact">
     <section class="auth-showcase">
         <a class="brand brand-inverse auth-brand" th:href="@{/repository}"><span class="brand-mark" aria-hidden="true"><span class="brand-mark-book"></span></span><span class="brand-copy"><strong>EduRepo</strong><small>Digital Learning Library</small></span></a>
-        <div class="auth-message"><div class="hero-badge auth-badge">✦ Tham gia cộng đồng</div><h1>Chia sẻ tri thức<br><span>cùng EduRepo.</span></h1><p>Tài khoản mới mặc định có quyền USER để tìm kiếm, xem và tải học liệu đã công bố.</p></div>
+        <div class="auth-message"><div class="hero-badge auth-badge">✦ Tham gia cộng đồng</div><h2>Chia sẻ tri thức<br><span>cùng EduRepo.</span></h2><p>Tài khoản mới mặc định có quyền USER để tìm kiếm, xem và tải học liệu đã công bố.</p></div>
         <div class="auth-trust-row"><span>✓ Đăng ký miễn phí</span><span>✓ Mật khẩu được mã hóa</span></div>
     </section>
     <section class="auth-card" aria-labelledby="register-title">
         <div class="auth-card-content">
-            <div class="auth-card-heading"><p class="eyebrow">Tạo tài khoản</p><h2 id="register-title">Đăng ký EduRepo</h2><p>Điền thông tin để bắt đầu sử dụng kho học liệu.</p></div>
+            <div class="auth-card-heading"><p class="eyebrow">Tạo tài khoản</p><h1 id="register-title">Đăng ký EduRepo</h1><p>Điền thông tin để bắt đầu sử dụng kho học liệu.</p></div>
             <div class="alert error auth-alert" th:if="${errorMessage}" role="alert"><span class="alert-icon">!</span><div th:text="${errorMessage}">Không thể đăng ký.</div></div>
             <form class="login-form" th:action="@{/register}" th:object="${registerForm}" method="post">
                 <div class="form-field">
@@ -40,13 +40,14 @@
                     <div class="input-shell">
                         <input id="register-password" type="password" th:field="*{password}" placeholder="Ít nhất 8 ký tự"
                                required autocomplete="new-password" data-password-input
-                               th:attr="aria-invalid=${#fields.hasErrors('password')},aria-describedby=${#fields.hasErrors('password') ? 'register-password-error' : null}">
+                               th:attr="aria-invalid=${#fields.hasErrors('password')},aria-describedby=${#fields.hasErrors('password') ? 'register-password-help register-password-error' : 'register-password-help'}">
                         <button class="password-toggle" type="button" data-password-toggle
                                 aria-controls="register-password" aria-pressed="false">
                             <span aria-hidden="true" data-password-icon>◉</span>
                             <span class="sr-only" data-password-label>Hiện mật khẩu</span>
                         </button>
                     </div>
+                    <small id="register-password-help" class="field-hint">Ít nhất 8 ký tự; nên kết hợp chữ hoa, chữ thường, số và ký tự đặc biệt.</small>
                     <small id="register-password-error" class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
                 </div>
                 <div class="form-field">

@@ -7,8 +7,9 @@
 .submission-form { padding:0; overflow:hidden; }
 .submission-progress { display:grid; grid-template-columns:repeat(3,1fr); margin:0; padding:1rem 1.4rem; border-bottom:1px solid var(--line); background:linear-gradient(100deg,#fbfffe,#f3faf8); }
 .submission-step { position:relative; display:flex; gap:.6rem; align-items:center; color:var(--ink-400); font-size:.74rem; font-weight:800; }
-.submission-step:not(:last-child)::after { position:absolute; top:15px; left:30px; right:0; height:2px; content:""; background:#dcebe8; }
-.submission-step-number { z-index:1; width:30px; height:30px; display:grid; place-items:center; border:2px solid #c5dbd6; border-radius:50%; color:#66908a; background:#fff; }
+.submission-step:not(:last-child)::after { position:absolute; z-index:0; top:15px; left:30px; right:0; height:2px; content:""; background:#dcebe8; }
+.submission-step-number,.submission-step-label { position:relative; z-index:1; }
+.submission-step-number { width:30px; height:30px; display:grid; place-items:center; border:2px solid #c5dbd6; border-radius:50%; color:#66908a; background:#fff; }
 .submission-step.is-active,.submission-step.is-complete { color:#176f63; }
 .submission-step.is-active .submission-step-number,.submission-step.is-complete .submission-step-number { color:#fff; border-color:#168b78; background:#168b78; }
 .submission-step.is-complete::after { background:#168b78; }
