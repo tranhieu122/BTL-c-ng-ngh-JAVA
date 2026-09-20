@@ -22,6 +22,26 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Objects;
 
+/**
+ * Controller xử lý toàn bộ luồng xác thực người dùng: đăng nhập, đăng ký,
+ * quên mật khẩu và đặt lại mật khẩu qua OTP.
+ *
+ * <h3>Luồng đăng ký:</h3>
+ * <ol>
+ *   <li>Người dùng điền form đăng ký → validate → mã hóa mật khẩu → lưu vào session.</li>
+ *   <li>Gửi OTP đến email → người dùng nhập mã.</li>
+ *   <li>Nếu OTP hợp lệ → tạo tài khoản thật trong CSDL → chuyển đến trang đăng nhập.</li>
+ * </ol>
+ *
+ * <h3>Luồng quên mật khẩu:</h3>
+ * <ol>
+ *   <li>Nhập email → gửi OTP (không tiết lộ email có tồn tại hay không).</li>
+ *   <li>Nhập OTP → lưu trạng thái "đã xác thực" vào session.</li>
+ *   <li>Đặt mật khẩu mới → xóa session → chuyển đến trang đăng nhập.</li>
+ * </ol>
+ *
+ * <p>Mọi hành động thành công đều được ghi vào audit log thông qua {@code AuditLogService}.</p>
+ */
 @Controller
 public class AuthController {
     // Các khóa session này lưu trạng thái tạm của luồng OTP.

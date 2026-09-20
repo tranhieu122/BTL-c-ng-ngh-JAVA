@@ -1,91 +1,728 @@
-/* Shared polish for the admin, organisation and review workspaces. */
-.workspace-content { padding-top: clamp(2rem, 4vw, 3.5rem); }
-.workspace-content::before { width: 220px; height: 4px; right: 6%; }
-.workspace-heading { padding-bottom: 1.2rem; border-bottom: 1px solid #dce9e5; }
-.workspace-heading .subtitle { max-width: 680px; color: #607b80; }
-.workspace-content .data-panel,
-.workspace-content .workspace-panel { border: 1px solid #dcebe7; box-shadow: 0 12px 28px rgba(15, 72, 64, .055); }
-.workspace-content .data-panel { overflow: hidden; border-radius: 18px; background: rgba(255,255,255,.92); }
-.workspace-content .data-panel-header { min-height: 64px; padding: 1rem 1.25rem; background: #fbfefd; border-bottom: 1px solid #e4efec; }
-.workspace-content .data-panel-header > strong { color: #183d40; font-size: .95rem; }
-.workspace-content .record-count { border-color: #bfe0d8; color: #087b6a; background: #edf9f5; }
-.workspace-content .data-table thead th { padding-top: .92rem; padding-bottom: .92rem; color: #527077; background: #f3faf8; font-size: .69rem; letter-spacing: .08em; }
-.workspace-content .data-table tbody td { padding-top: 1rem; padding-bottom: 1rem; vertical-align: middle; }
-.workspace-content .data-table tbody tr { transition: background .16s ease; }
-.workspace-content .data-table tbody tr:hover { background: #f4fbf9; }
-.workspace-content .entity-cell { gap: .75rem; }
-.workspace-content .entity-avatar { width: 38px; height: 38px; color: #087b6b; background: #dff3ed; border: 1px solid #c6e7df; }
-.workspace-content .entity-copy strong { color: #193c40; font-size: .86rem; }
-.workspace-content .entity-copy small { margin-top: .14rem; }
-.workspace-content .status-pill { padding: .34rem .6rem; border: 1px solid #d6e9e4; color: #4f7072; background: #f4faf8; font-size: .66rem; letter-spacing: .02em; }
-.workspace-content .status-pill.is-active,
-.workspace-content .status-published,
-.workspace-content .status-approved { border-color: #bde5d5; color: #087353; background: #e9f8f0; }
-.workspace-content .status-submitted { border-color: #f2d89a; color: #94630d; background: #fff7df; }
-.workspace-content .status-revision_required,
-.workspace-content .status-rejected { border-color: #f1c6bf; color: #ad392d; background: #fff0ed; }
-.workspace-content .role-badges { display: flex; flex-wrap: wrap; gap: .32rem; }
-.workspace-content .role-badges .status-pill { color: #245d81; border-color: #c9e1f1; background: #edf7fd; }
-.workspace-content .table-action { display: inline-flex; align-items: center; gap: .35rem; min-height: 34px; padding: .34rem .55rem; border-radius: 8px; color: #087b6b; background: transparent; font-size: .72rem; font-weight: 800; }
-.workspace-content .table-action:hover { color: #066759; background: #e9f7f3; }
-.workspace-content .empty-panel { padding: 3.5rem 1.5rem; border: 1px dashed #b8dad1; border-radius: 16px; background: #fbfefd; }
-.workspace-content .empty-panel h2 { margin-top: 1rem; }
+/* ==========================================================================
+   EDUREPO ADMIN & WORKSPACE STYLES (Modern Academic SaaS 2026)
+   ========================================================================== */
 
-/* Forms become a clear two-column administration surface on larger screens. */
-.workspace-content .form-card { border: 1px solid #dcebe7; border-radius: 18px; box-shadow: 0 12px 28px rgba(15,72,64,.055); }
-.workspace-content .form-card-header { padding: 1.2rem 1.4rem; background: #f7fcfa; border-bottom: 1px solid #e1eeeb; }
-.workspace-content .field-grid { gap: 1.1rem; }
-.workspace-content .form-section { padding: 1.35rem 1.4rem; }
-.workspace-content .form-section + .form-section { border-top: 1px solid #e1eeeb; }
-.workspace-content .form-section-heading h2 { color: #1b4144; }
-.workspace-content .form-section label { color: #214449; font-size: .77rem; font-weight: 800; }
-.workspace-content input:not([type="checkbox"]),
+.workspace-content {
+    padding-top: clamp(1.5rem, 3vw, 2.5rem);
+    padding-bottom: 3rem;
+}
+
+.workspace-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.75rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.workspace-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #6366f1;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+}
+
+.workspace-heading h1 {
+    margin: 0 0 0.4rem;
+    font-size: clamp(1.75rem, 3.5vw, 2.35rem);
+    font-weight: 850;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+}
+
+.workspace-heading .subtitle {
+    max-width: 700px;
+    margin: 0;
+    color: #64748b;
+    font-size: 0.95rem;
+    line-height: 1.55;
+}
+
+.workspace-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* --------------------------------------------------------------------------
+   Data Panels & Tables
+   -------------------------------------------------------------------------- */
+.data-panel {
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 10px 30px -8px rgba(15, 23, 42, 0.05);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.data-panel-header {
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.15rem 1.5rem;
+    background: #ffffff;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.data-panel-header > strong {
+    color: #0f172a;
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+.record-count {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    color: #4f46e5;
+    background: #eef2ff;
+    font-size: 0.8rem;
+    font-weight: 750;
+}
+
+.table-scroll {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table thead th {
+    padding: 1rem 1.25rem;
+    color: #64748b;
+    background: #f8fafc;
+    border-bottom: 1.5px solid #e2e8f0;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.data-table tbody td {
+    padding: 1.15rem 1.25rem;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.92rem;
+    vertical-align: middle;
+}
+
+.data-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.data-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* User Entity Cell */
+.entity-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.entity-avatar {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    color: #ffffff;
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    font-size: 1.05rem;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+.entity-copy strong {
+    display: block;
+    color: #0f172a;
+    font-size: 0.95rem;
+    font-weight: 750;
+}
+
+.entity-copy small {
+    display: block;
+    margin-top: 0.15rem;
+    color: #64748b;
+    font-size: 0.82rem;
+}
+
+/* --------------------------------------------------------------------------
+   Role Badges & Status Pills
+   -------------------------------------------------------------------------- */
+.role-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 750;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+
+.status-pill.is-active,
+.status-published,
+.status-approved {
+    border-color: #a7f3d0;
+    color: #065f46;
+    background: #ecfdf5;
+}
+
+.status-pill:not(.is-active):not(.status-published):not(.status-approved):not(.status-submitted):not(.status-revision_required):not(.status-rejected) {
+    border-color: #e2e8f0;
+    color: #64748b;
+    background: #f1f5f9;
+}
+
+.status-submitted {
+    border-color: #fde68a;
+    color: #92400e;
+    background: #fffbeb;
+}
+
+.status-revision_required,
+.status-rejected {
+    border-color: #fecaca;
+    color: #991b1b;
+    background: #fef2f2;
+}
+
+/* Custom Role Colors */
+.role-badges .status-pill {
+    font-size: 0.76rem;
+    letter-spacing: 0.03em;
+}
+
+[data-role="ADMIN"] {
+    background: #f3e8ff;
+    color: #6b21a8;
+    border-color: #d8b4fe;
+}
+
+[data-role="REVIEWER"] {
+    background: #e0e7ff;
+    color: #3730a3;
+    border-color: #c7d2fe;
+}
+
+[data-role="SUBMITTER"] {
+    background: #cffafe;
+    color: #155e75;
+    border-color: #a5f3fc;
+}
+
+[data-role="USER"] {
+    background: #f1f5f9;
+    color: #475569;
+    border-color: #e2e8f0;
+}
+
+/* Action Buttons in Tables */
+.table-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 36px;
+    padding: 0.4rem 0.85rem;
+    border-radius: 10px;
+    color: #4f46e5;
+    background: #eef2ff;
+    font-size: 0.84rem;
+    font-weight: 750;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.table-action:hover {
+    color: #3730a3;
+    background: #e0e7ff;
+    transform: translateY(-1px);
+}
+
+.button-sm {
+    min-height: 36px;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.84rem;
+    border-radius: 10px;
+}
+
+.button-danger {
+    background: #ef4444;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.button-danger:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+.button-warning {
+    background: #f59e0b;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.button-warning:hover {
+    background: #d97706;
+}
+
+/* --------------------------------------------------------------------------
+   Forms & Form Layouts
+   -------------------------------------------------------------------------- */
+.form-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.6fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.form-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 10px 30px -8px rgba(15, 23, 42, 0.05);
+    overflow: hidden;
+}
+
+.form-card-header {
+    padding: 1.4rem 1.75rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.form-card-header h2 {
+    margin: 0.2rem 0 0;
+    color: #0f172a;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.form-section {
+    padding: 1.75rem;
+}
+
+.form-section + .form-section {
+    border-top: 1px solid #f1f5f9;
+}
+
+.form-section-heading {
+    margin-bottom: 1.35rem;
+}
+
+.form-section-heading h2 {
+    margin: 0 0 0.35rem;
+    color: #0f172a;
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.form-section-heading p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.88rem;
+    line-height: 1.45;
+}
+
+.field-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+}
+
+.field-grid.two-columns {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.field-wide,
+.full-field {
+    grid-column: 1 / -1;
+}
+
+.form-section label,
+.form-grid label {
+    display: grid;
+    gap: 0.45rem;
+    color: #334155;
+    font-size: 0.88rem;
+    font-weight: 650;
+}
+
+.workspace-content input:not([type="checkbox"]):not([type="radio"]),
 .workspace-content select,
-.workspace-content textarea { border-color: #cfe2dd; background: #fff; }
-.workspace-content input:not([type="checkbox"]):focus,
+.workspace-content textarea {
+    width: 100%;
+    min-height: 48px;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 12px;
+    outline: none;
+    color: #0f172a;
+    background: #ffffff;
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.workspace-content textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+.workspace-content input:focus,
 .workspace-content select:focus,
-.workspace-content textarea:focus { border-color: #15927d; box-shadow: 0 0 0 4px rgba(21,146,125,.12); }
-.workspace-content .form-submit-row { margin: 0; padding: 1.1rem 1.4rem; border-top: 1px solid #e1eeeb; background: #fbfefd; }
+.workspace-content textarea:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+}
 
-/* Review queue benefits from a visible status rail and high-contrast decision zone. */
-.workspace-content .review-layout { gap: 1.25rem; }
-.workspace-content .review-summary { border-top: 4px solid #d5a43f; }
-.workspace-content .review-actions { position: sticky; top: calc(var(--header-height) + 1rem); border-top: 4px solid #0f766e; }
-.workspace-content .review-actions .button { width: 100%; justify-content: center; }
-.workspace-content .review-actions .button + .button { margin-top: .65rem; }
-.workspace-content .review-history-item { padding: 1rem; border-left: 3px solid #b6ded4; background: #fbfefd; }
+.role-choice-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.85rem;
+    margin: 0.5rem 0 1rem;
+    padding: 0;
+    border: 0;
+}
 
-/* Dashboard stays denser than the management tables. */
-.admin-dashboard { max-width: none; }
-.admin-dashboard .workspace-hero { border-radius: 20px; }
-.admin-dashboard .metric-card { border: 1px solid #dcebe7; box-shadow: 0 9px 20px rgba(15,72,64,.05); }
-.admin-dashboard .dashboard-command-bar { border-radius: 14px; }
-.admin-dashboard .dashboard-analysis-grid { gap: 1.25rem; }
+.role-choice {
+    display: flex !important;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.88rem;
+    transition: all 0.15s ease;
+}
 
-/* Organization tables need the full content width for readable department/faculty names. */
-.organization-page .organization-tables { grid-template-columns: minmax(0, 1fr); gap: 20px; }
-.organization-page .data-panel { min-width: 0; border: 1px solid #e2eae4; border-radius: 12px; box-shadow: none; }
-.organization-page .data-panel-header { padding: 15px 20px; background: #fff; }
-.organization-page .table-scroll { overflow-x: auto; }
-.organization-page .data-table { width: 100%; table-layout: fixed; min-width: 640px; }
-.organization-page .data-table th, .organization-page .data-table td { padding: 13px 20px; }
-.organization-page .data-table thead th { color: #7b8c80; background: #f8faf7; font-size: .7rem; font-weight: 600; letter-spacing: .025em; }
-.organization-page .data-table tbody td { color: #46604e; font-size: .84rem; line-height: 1.55; vertical-align: middle; overflow-wrap: break-word; }
-.organization-page .department-table th:nth-child(1) { width: 30%; }
-.organization-page .department-table th:nth-child(2) { width: 30%; }
-.organization-page .department-table th:nth-child(3) { width: 16%; }
-.organization-page .department-table th:nth-child(4) { width: 24%; }
-.organization-page .faculty-table th:nth-child(1) { width: 60%; }
-.organization-page .faculty-table th:nth-child(2) { width: 16%; }
-.organization-page .faculty-table th:nth-child(3) { width: 24%; }
-.organization-page .organization-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.organization-page .organization-actions form { margin: 0; }
-.organization-page .organization-actions .button,
-.organization-page .organization-actions .table-action { min-height: 30px; padding: 5px 9px; border: 1px solid #dce7df; border-radius: 6px; background: #fff; color: #587160; box-shadow: none; font-size: .74rem; font-weight: 500; line-height: 1.3; white-space: nowrap; }
-.organization-page .organization-actions .button:hover,
-.organization-page .organization-actions .table-action:hover { border-color: #abc8b5; background: #f1f6f1; color: #256d47; box-shadow: none; transform: none; }
-.organization-page .status-pill { padding: 4px 9px; border: 0; border-radius: 6px; font-size: .7rem; font-weight: 500; white-space: nowrap; box-shadow: none; }
-.organization-page .status-pill.is-active { color: #36734e; background: #eef6ef; }
-.organization-page .record-count { padding: 4px 8px; border-radius: 6px; background: #f1f6f0; color: #6c8371; font-size: .72rem; }
+.role-choice:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
 
-@media (max-width: 760px) { .workspace-content { padding-top: 1.5rem; }.workspace-heading { align-items: flex-start; flex-direction: column; }.workspace-actions { width: 100%; }.workspace-actions .button { flex: 1; justify-content: center; }.workspace-content .data-panel { border-radius: 14px; }.workspace-content .data-table tbody td { padding-top: .8rem; padding-bottom: .8rem; } }
+.role-choice input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #4f46e5;
+}
+
+.switch-field-spaced {
+    display: flex !important;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    font-size: 0.92rem;
+    font-weight: 650;
+    color: #1e293b;
+    cursor: pointer;
+}
+
+.switch-field-spaced input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #10b981;
+}
+
+.form-submit-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1.25rem 1.75rem;
+    border-top: 1px solid #f1f5f9;
+    background: #f8fafc;
+}
+
+.form-submit-row button:not(.button-secondary) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 750;
+    color: #ffffff;
+    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+    box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.35);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-submit-row button:not(.button-secondary):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 25px -4px rgba(79, 70, 229, 0.4);
+}
+
+/* Guidance list aside */
+.guidance-list {
+    display: grid;
+    gap: 1rem;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.guidance-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    color: #475569;
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.guidance-number {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    color: #4f46e5;
+    background: #eef2ff;
+    font-weight: 800;
+    font-size: 0.82rem;
+}
+
+/* --------------------------------------------------------------------------
+   Categories Layout
+   -------------------------------------------------------------------------- */
+.category-layout {
+    display: grid;
+    grid-template-columns: minmax(320px, 0.75fr) minmax(0, 1.25fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.category-layout .form-card {
+    padding: 1.5rem;
+}
+
+.form-grid {
+    display: grid;
+    gap: 1.15rem;
+}
+
+.form-grid button[type="submit"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.4rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 750;
+    color: #ffffff;
+    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+    box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.35);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.form-grid button[type="submit"]:hover {
+    transform: translateY(-1px);
+}
+
+/* --------------------------------------------------------------------------
+   Organization Page Layout (Faculties & Departments)
+   -------------------------------------------------------------------------- */
+.organization-page .organization-forms {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.organization-page .form-card {
+    padding: 1.5rem;
+}
+
+.organization-page .organization-tables {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+    gap: 1.5rem;
+}
+
+.organization-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   Submitter Requests & Notifications
+   -------------------------------------------------------------------------- */
+.admin-request-list {
+    display: grid;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+}
+
+.admin-request-row {
+    display: grid;
+    grid-template-columns: 240px 1fr auto;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #ffffff;
+    transition: all 0.15s ease;
+}
+
+.admin-request-row:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.06);
+}
+
+.request-user strong {
+    display: block;
+    color: #0f172a;
+    font-size: 0.95rem;
+    font-weight: 750;
+}
+
+.request-user small {
+    display: block;
+    color: #64748b;
+    font-size: 0.82rem;
+}
+
+.request-user time {
+    display: block;
+    margin-top: 0.35rem;
+    color: #94a3b8;
+    font-size: 0.78rem;
+}
+
+.request-reason p {
+    margin: 0.35rem 0 0;
+    color: #334155;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.request-reason small {
+    display: block;
+    margin-top: 0.35rem;
+    color: #ef4444;
+    font-size: 0.82rem;
+}
+
+.request-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.target-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.85rem;
+    margin: 0.5rem 0 1.25rem;
+}
+
+.target-option {
+    display: flex !important;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.85rem 1rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.target-option:hover {
+    background: #f1f5f9;
+}
+
+.target-option input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #4f46e5;
+}
+
+/* --------------------------------------------------------------------------
+   Empty States
+   -------------------------------------------------------------------------- */
+.empty-panel {
+    padding: 4rem 1.5rem;
+    text-align: center;
+    color: #64748b;
+}
+
+.empty-panel h2 {
+    margin: 0.85rem 0 0.35rem;
+    color: #0f172a;
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.empty-panel p {
+    margin: 0;
+    font-size: 0.92rem;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Layout
+   -------------------------------------------------------------------------- */
+@media (max-width: 960px) {
+    .form-layout,
+    .category-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-request-row {
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+    }
+
+    .field-grid.two-columns {
+        grid-template-columns: 1fr;
+    }
+}

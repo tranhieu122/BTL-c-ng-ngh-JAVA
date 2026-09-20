@@ -5,84 +5,133 @@
      th:attr="data-assistant-url=@{/api/document-assistant}">
     <section class="document-assistant-panel" id="document-assistant-panel" role="dialog" data-assistant-panel
              aria-labelledby="document-assistant-title" aria-describedby="document-assistant-intro" hidden>
+        <!-- Header với hiệu ứng Glassmorphism & Badge AI thời gian thực -->
         <header class="document-assistant-header">
             <div class="document-assistant-identity">
                 <span class="document-assistant-avatar" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M8 9h8M8 13h5m-7 6-3 2v-4.5A8 8 0 0 1 4 5.7 8 8 0 0 1 17.8 7a8 8 0 0 1 .4 8.5A8 8 0 0 1 11 20H6Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <i></i>
+                    <!-- Icon Sparkle AI đa sắc đại diện cho trí tuệ nhân tạo -->
+                    <svg viewBox="0 0 24 24" fill="none" class="ai-sparkle-icon">
+                        <path d="M12 2L14.4 7.6L20 10L14.4 12.4L12 18L9.6 12.4L4 10L9.6 7.6L12 2Z" fill="currentColor"/>
+                        <path d="M19 15L20.2 17.8L23 19L20.2 20.2L19 23L17.8 20.2L15 19L17.8 17.8L19 15Z" fill="currentColor" opacity="0.85"/>
+                    </svg>
+                    <i class="avatar-live-indicator" title="Đang hoạt động"></i>
                 </span>
-                <div>
-                    <span class="document-assistant-kicker">Trợ lý học liệu</span>
-                    <h2 id="document-assistant-title">EduBot</h2>
-                    <p><span aria-hidden="true"></span> Sẵn sàng hỗ trợ</p>
+                <div class="document-assistant-info">
+                    <div class="document-assistant-header-top">
+                        <h2 id="document-assistant-title">EduBot AI</h2>
+                        <span class="document-assistant-badge" title="Mô hình ngôn ngữ GPT-5.6 kết hợp kiến trúc RAG trích xuất ngữ cảnh">
+                            <span class="badge-pulse" aria-hidden="true"></span>
+                            GPT-5.6 &amp; RAG
+                        </span>
+                    </div>
+                    <p class="document-assistant-status">
+                        Trợ lý học thuật kho học liệu số EduRepo
+                    </p>
                 </div>
             </div>
             <div class="document-assistant-header-actions">
                 <button class="document-assistant-icon-button" type="button" aria-label="Xóa nội dung hội thoại"
-                        title="Xóa hội thoại" data-assistant-clear>
+                        title="Làm mới hội thoại" data-assistant-clear>
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M9 11v6m6-6v6M9 7l1-2h4l1 2m3 0-1 13H7L6 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
                 <button class="document-assistant-icon-button document-assistant-close" type="button"
-                        aria-label="Đóng trợ lý tra cứu tài liệu" data-assistant-close>
+                        aria-label="Đóng trợ lý tra cứu tài liệu" title="Thu nhỏ" data-assistant-close>
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                 </button>
             </div>
         </header>
 
+        <!-- Khung hiển thị cuộc trò chuyện (Conversation Container) -->
         <div class="document-assistant-conversation" data-assistant-messages role="log"
              aria-live="polite" aria-relevant="additions">
             <div class="assistant-message-row assistant-message-row-system" id="document-assistant-intro"
                  data-assistant-welcome>
-                <span class="assistant-message-avatar" aria-hidden="true">E</span>
-                <div>
+                <span class="assistant-message-avatar" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L14.4 7.6L20 10L14.4 12.4L12 18L9.6 12.4L4 10L9.6 7.6L12 2Z" fill="currentColor"/></svg>
+                </span>
+                <div class="assistant-welcome-card">
                     <div class="assistant-message assistant-message-system">
-                        <strong>Xin chào! Mình là EduBot 👋</strong>
-                        <span>Mình có thể giúp bạn tìm nhanh tài liệu theo tên, chủ đề hoặc lĩnh vực.</span>
+                        <div class="assistant-welcome-header">
+                            <strong>Xin chào! Mình là EduBot 👋</strong>
+                            <span class="assistant-welcome-subtitle">Trợ lý học thuật AI của <b>EduRepo</b></span>
+                        </div>
+                        <p class="assistant-welcome-desc">
+                            Mình được huấn luyện để đọc hiểu, trích dẫn chuẩn xác và giải đáp thắc mắc từ <b>80 tài liệu, giáo trình chính thức</b> trong kho học liệu.
+                        </p>
                     </div>
                     <time>Vừa xong</time>
                 </div>
             </div>
-            <div class="assistant-suggestions" data-assistant-suggestions aria-label="Câu hỏi gợi ý">
-                <p>Bạn có thể thử</p>
-                <div>
-                    <button type="button" data-assistant-suggestion="Hiện có những tài liệu nào?">Tài liệu mới nhất</button>
-                    <button type="button" data-assistant-suggestion="Tìm tài liệu về Spring Boot">Spring Boot</button>
-                    <button type="button" data-assistant-suggestion="Tìm tài liệu về cơ sở dữ liệu">Cơ sở dữ liệu</button>
+            
+            <!-- Danh sách gợi ý câu hỏi nhanh ban đầu -->
+            <div class="assistant-suggestions" data-assistant-suggestions aria-label="Gợi ý câu hỏi bắt đầu">
+                <p class="assistant-suggestions-title">💡 Gợi ý câu hỏi phổ biến:</p>
+                <div class="assistant-suggestions-grid">
+                    <button type="button" data-assistant-suggestion="Tìm tài liệu về Spring Boot">
+                        <span class="suggestion-icon">⚡</span> Spring Boot &amp; Java
+                    </button>
+                    <button type="button" data-assistant-suggestion="Quy trình kiểm thử bảo mật web OWASP gồm những bước nào?">
+                        <span class="suggestion-icon">🛡️</span> Bảo mật web OWASP
+                    </button>
+                    <button type="button" data-assistant-suggestion="Trí tuệ nhân tạo là gì và có những tài liệu nào?">
+                        <span class="suggestion-icon">🤖</span> Trí tuệ nhân tạo
+                    </button>
+                    <button type="button" data-assistant-suggestion="Tìm tài liệu về thiết kế cơ sở dữ liệu">
+                        <span class="suggestion-icon">📊</span> Cơ sở dữ liệu
+                    </button>
                 </div>
             </div>
         </div>
 
+        <!-- Trạng thái AI đang suy nghĩ / tìm kiếm tài liệu (Loading Indicator) -->
         <div class="document-assistant-loading" data-assistant-loading role="status" hidden>
-            <span class="assistant-message-avatar" aria-hidden="true">E</span>
-            <span class="assistant-typing" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span class="assistant-sr-only">EduBot đang tìm tài liệu…</span>
+            <span class="assistant-message-avatar" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L14.4 7.6L20 10L14.4 12.4L12 18L9.6 12.4L4 10L9.6 7.6L12 2Z" fill="currentColor"/></svg>
+            </span>
+            <div class="assistant-typing-container">
+                <div class="assistant-typing" aria-hidden="true">
+                    <i></i><i></i><i></i>
+                </div>
+                <span class="assistant-loading-label">EduBot đang tra cứu &amp; tổng hợp tài liệu…</span>
+            </div>
+            <span class="assistant-sr-only">EduBot đang đọc và trích dẫn tài liệu…</span>
         </div>
 
+        <!-- Khung soạn thảo tin nhắn (Composer Island) -->
         <div class="document-assistant-composer">
             <form class="document-assistant-form" data-assistant-form>
-                <label class="assistant-sr-only" for="document-assistant-input">Tên hoặc chủ đề tài liệu cần tìm</label>
-                <textarea id="document-assistant-input" name="message" rows="1" maxlength="200"
-                          autocomplete="off" placeholder="Hỏi EduBot về tài liệu bạn cần…"
+                <label class="assistant-sr-only" for="document-assistant-input">Hỏi EduBot về tài liệu cần tìm</label>
+                <textarea id="document-assistant-input" name="message" rows="1" maxlength="250"
+                          autocomplete="off" placeholder="Hỏi EduBot về Spring Boot, Java, OWASP, AI…"
                           data-assistant-input></textarea>
-                <button type="submit" data-assistant-submit aria-label="Gửi yêu cầu tìm tài liệu" disabled>
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 14-7-4 14-3.5-5.5L5 12Zm6.5 1.5L19 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <button type="submit" data-assistant-submit aria-label="Gửi câu hỏi tới EduBot" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
+                    </svg>
                 </button>
             </form>
             <div class="document-assistant-composer-meta">
-                <span>Enter để gửi · Shift + Enter để xuống dòng</span>
-                <span><b data-assistant-count>0</b>/200</span>
+                <span class="composer-hint">Nhấn <b>Enter</b> để gửi · <b>Shift + Enter</b> xuống dòng</span>
+                <span class="composer-counter"><b data-assistant-count>0</b>/250</span>
             </div>
         </div>
     </section>
 
+    <!-- Nút kích hoạt mở Chatbot nổi ở góc màn hình (Floating Action Button) -->
     <button class="document-assistant-trigger" type="button" aria-expanded="false"
-            aria-controls="document-assistant-panel" aria-label="Mở trợ lý tra cứu tài liệu"
+            aria-controls="document-assistant-panel" aria-label="Mở trợ lý học thuật EduBot"
             data-assistant-open>
         <span class="document-assistant-trigger-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M8 9h8M8 13h5m-7 6-3 2v-4.5A8 8 0 0 1 4 5.7 8 8 0 0 1 17.8 7a8 8 0 0 1 .4 8.5A8 8 0 0 1 11 20H6Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" class="ai-fab-sparkle">
+                <path d="M12 2L14.4 7.6L20 10L14.4 12.4L12 18L9.6 12.4L4 10L9.6 7.6L12 2Z" fill="currentColor"/>
+                <path d="M19 15L20.2 17.8L23 19L20.2 20.2L19 23L17.8 20.2L15 19L17.8 17.8L19 15Z" fill="currentColor" opacity="0.85"/>
+            </svg>
         </span>
-        <span class="document-assistant-trigger-copy"><strong>Hỏi EduBot</strong><small>Tìm học liệu nhanh</small></span>
-        <i class="document-assistant-trigger-status" aria-hidden="true"></i>
+        <span class="document-assistant-trigger-copy">
+            <strong>Hỏi EduBot AI</strong>
+            <small>Trợ lý học liệu số</small>
+        </span>
+        <span class="document-assistant-trigger-beacon" aria-hidden="true"></span>
     </button>
 </div>
 </body>

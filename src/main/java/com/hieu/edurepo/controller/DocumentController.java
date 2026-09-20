@@ -330,8 +330,10 @@ public class DocumentController {
         CustomUserPrincipal currentPrincipal = requirePrincipal(principal);
         Document document = documentService.findById(id);
         verifyOwner(document, currentPrincipal);
-        var storedNames = documentService.versionFilePaths(id);
-        if (storedNames.isEmpty() && document.getFilePath() != null) storedNames = java.util.List.of(document.getFilePath());
+        var storedNames = new java.util.ArrayList<>(documentService.versionFilePaths(id));
+        if (document.getFilePath() != null && !storedNames.contains(document.getFilePath())) {
+            storedNames.add(document.getFilePath());
+        }
         documentService.deleteDraft(id, userService.findById(currentPrincipal.getId()));
         audit(AuditAction.DOCUMENT_DRAFT_DELETED, id, "Xóa bản nháp tài liệu: " + document.getTitle());
         storedNames.forEach(storedName -> deleteQuietly(storedName, "tệp của bản nháp đã xóa"));

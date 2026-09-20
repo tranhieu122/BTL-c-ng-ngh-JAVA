@@ -278,10 +278,48 @@ public class DocumentServiceImpl implements DocumentService {
         if (document.getStatus() != DocumentStatus.DRAFT) {
             throw new InvalidStatusException("Chỉ được xóa tài liệu đang ở trạng thái nháp");
         }
+        List<String> filePaths = new java.util.ArrayList<>();
         if (versionRepository != null) {
+            versionRepository.findByDocumentIdOrderByVersionNumberDesc(documentId).forEach(version -> {
+                if (version.getFilePath() != null && !version.getFilePath().isBlank()
+                        && !filePaths.contains(version.getFilePath())) {
+                    filePaths.add(version.getFilePath());
+                }
+            });
             versionRepository.deleteByDocumentId(documentId);
         }
+        if (document.getFilePath() != null && !document.getFilePath().isBlank()
+                && !filePaths.contains(document.getFilePath())) {
+            filePaths.add(document.getFilePath());
+        }
+
         documentRepository.delete(document);
+
+        // Xóa sạch file vật lý trên đĩa sau khi xóa bản nháp để tránh rò rỉ dung lượng ổ cứng.
+        if (fileStorageService != null && !filePaths.isEmpty()) {
+            if (org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive()) {
+                org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                        new org.springframework.transaction.support.TransactionSynchronization() {
+                            @Override
+                            public void afterCommit() {
+                                filePaths.forEach(path -> {
+                                    try {
+                                        fileStorageService.delete(path);
+                                    } catch (Exception ignored) {
+                                    }
+                                });
+                            }
+                        }
+                );
+            } else {
+                filePaths.forEach(path -> {
+                    try {
+                        fileStorageService.delete(path);
+                    } catch (Exception ignored) {
+                    }
+                });
+            }
+        }
         realtimeChanged(owner.getId());
     }
 

@@ -44,5 +44,8 @@ class ContextBuilderTest {
         assertEquals(1, built.sources().size());
         assertEquals(10L, built.sources().get(0).documentId());
         assertEquals("Lập trình Java căn bản", built.sources().get(0).title());
+        assertEquals(0, built.sources().get(0).chunkIndex());
+        assertTrue(built.sources().get(0).excerpt().contains("Java là ngôn ngữ"));
+        assertEquals(0.88, built.sources().get(0).relevance());
     }
 }

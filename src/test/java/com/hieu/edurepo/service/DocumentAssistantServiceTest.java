@@ -4,7 +4,12 @@ import com.hieu.edurepo.dto.DocumentAssistantContext;
 import com.hieu.edurepo.dto.DocumentAssistantResponse;
 import com.hieu.edurepo.entity.Category;
 import com.hieu.edurepo.entity.Document;
+import com.hieu.edurepo.dto.DocumentRatingSummary;
+import com.hieu.edurepo.config.RagProperties;
+import com.hieu.edurepo.dto.RagSearchResult;
+import com.hieu.edurepo.entity.DocumentChunk;
 import com.hieu.edurepo.repository.DocumentAssistantRepository;
+import com.hieu.edurepo.repository.DocumentReviewRepository;
 import com.hieu.edurepo.service.impl.DocumentAssistantServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -250,8 +255,96 @@ class DocumentAssistantServiceTest {
         assertEquals("NO_RESULTS", response.type());
         assertTrue(response.documents().isEmpty());
         assertFalse(response.hasMore());
-        assertTrue(response.message().contains("lượng tử nâng cao"));
+        assertEquals("Mình chưa tìm thấy tài liệu phù hợp trong EduRepo.", response.message());
         assertTrue(response.suggestions().contains("Tìm tài liệu về Vật lý"));
+    }
+
+    @Test
+    void ranksTopRatedDocumentsUsingVisibleReviewAverage() {
+        DocumentAssistantRepository repository = mock(DocumentAssistantRepository.class);
+        DocumentReviewRepository reviews = mock(DocumentReviewRepository.class);
+        Document low = publishedDocument(40L, "Tài liệu ít sao");
+        Document high = publishedDocument(41L, "Tài liệu nhiều sao");
+        when(repository.findPublishedForRanking(any(), any(), any(), any(), any()))
+                .thenReturn(List.of(low, high));
+        when(reviews.findVisibleRatingSummaries(any())).thenReturn(List.of(
+                new DocumentRatingSummary(low.getId(), 3.5, 4),
+                new DocumentRatingSummary(high.getId(), 4.8, 6)));
+        when(reviews.averageVisibleRating(high.getId())).thenReturn(4.8);
+        when(reviews.countByDocumentIdAndHiddenFalse(high.getId())).thenReturn(6L);
+
+        DocumentAssistantService service = new DocumentAssistantServiceImpl(repository, null, null, null, null, reviews);
+        DocumentAssistantResponse response = service.respond("Tài liệu nào đánh giá cao nhất?");
+
+        assertEquals("TOP_RATED", response.filters().get("intent"));
+        assertEquals("Tài liệu nhiều sao", response.documents().getFirst().title());
+        assertEquals(4.8, response.documents().getFirst().averageRating());
+    }
+
+    @Test
+    void academicQuestionWithSearchPrefixTriggersRagPipeline() {
+        DocumentAssistantRepository repository = mock(DocumentAssistantRepository.class);
+        RetrievalService retrievalService = mock(RetrievalService.class);
+        ContextBuilder contextBuilder = mock(ContextBuilder.class);
+        OpenAIService openAiService = mock(OpenAIService.class);
+        RagProperties ragProperties = new RagProperties();
+        ragProperties.setEnabled(true);
+
+        Document doc = publishedDocument(6L, "Tài liệu hướng dẫn và tham khảo chính thức Spring Security");
+        DocumentChunk chunk = new DocumentChunk(doc, 0, "Spring Security bảo vệ ứng dụng chống tấn công CSRF, quản lý xác thực và phân quyền.", null, 25);
+        List<RagSearchResult> ragResults = List.of(new RagSearchResult(doc, chunk, 0.88));
+
+        when(retrievalService.retrieve(anyString())).thenReturn(ragResults);
+        when(contextBuilder.buildContext(anyString(), any())).thenReturn(
+                new ContextBuilder.BuiltContext("System prompt", "User prompt", List.of()));
+        when(openAiService.isAvailable()).thenReturn(true);
+        when(openAiService.generateChatCompletion(anyString(), anyString()))
+                .thenReturn("STATUS: ANSWERED\n\nSpring Security giúp ích rất lớn trong việc bảo vệ phần mềm bằng cách quản lý xác thực (Authentication), phân quyền (Authorization) và chống tấn công CSRF.");
+
+        DocumentAssistantService service = new DocumentAssistantServiceImpl(
+                repository, retrievalService, contextBuilder, openAiService, ragProperties, null, null);
+
+        // Câu hỏi chính xác của người dùng: bắt đầu bằng "Tìm tài liệu về..." nhưng chứa câu hỏi học thuật "giúp ích gì trong việc bảo vệ phần"
+        DocumentAssistantResponse response = service.respond("Tìm tài liệu về spring security giúp ích gì trong việc bảo vệ phần");
+
+        assertEquals("RAG_ANSWER", response.type());
+        assertTrue(response.message().contains("Spring Security giúp ích rất lớn"));
+        assertFalse(response.message().startsWith("STATUS:"));
+        assertEquals(1, response.documents().size());
+        assertEquals("Tài liệu hướng dẫn và tham khảo chính thức Spring Security", response.documents().getFirst().title());
+    }
+
+    @Test
+    void semanticFallbackWhenStructuredSearchReturnsEmpty() {
+        DocumentAssistantRepository repository = mock(DocumentAssistantRepository.class);
+        RetrievalService retrievalService = mock(RetrievalService.class);
+        ContextBuilder contextBuilder = mock(ContextBuilder.class);
+        OpenAIService openAiService = mock(OpenAIService.class);
+
+        // Giả lập tìm kiếm SQL theo metadata trả về rỗng (0 kết quả)
+        when(repository.searchPublishedRelevant(anyString(), anyString(), anyString(), anyString(), any(), any(Pageable.class)))
+                .thenAnswer(invocation -> new PageImpl<>(List.of(), invocation.getArgument(5), 0));
+        when(repository.findPublishedCandidates(any(Pageable.class))).thenReturn(List.of());
+
+        // Giả lập Semantic Retrieval tìm thấy tài liệu phù hợp từ vector chunks
+        Document doc = publishedDocument(6L, "Spring Security Reference");
+        DocumentChunk chunk = new DocumentChunk(doc, 0, "Nội dung bảo mật", null, 10);
+        when(retrievalService.retrieve(anyString())).thenReturn(List.of(new RagSearchResult(doc, chunk, 0.75)));
+        when(contextBuilder.buildContext(anyString(), any())).thenReturn(
+                new ContextBuilder.BuiltContext("Prompt", "User", List.of()));
+        when(openAiService.isAvailable()).thenReturn(true);
+        when(openAiService.generateChatCompletion(anyString(), anyString()))
+                .thenReturn("STATUS: ANSWERED\n\nĐây là câu trả lời qua Semantic Fallback.");
+
+        DocumentAssistantService service = new DocumentAssistantServiceImpl(
+                repository, retrievalService, contextBuilder, openAiService, null, null, null);
+
+        // Câu hỏi không khớp SQL nhưng tìm thấy qua Semantic Vector Fallback
+        DocumentAssistantResponse response = service.respond("spring security cơ chế bảo vệ");
+
+        assertEquals("RAG_ANSWER", response.type());
+        assertTrue(response.message().contains("Semantic Fallback"));
+        assertEquals(1, response.documents().size());
     }
 
     private void stubRelevant(DocumentAssistantRepository repository, List<Document> documents) {

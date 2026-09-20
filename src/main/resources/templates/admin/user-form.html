@@ -3,53 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${userForm.id == null ? 'Thêm người dùng | EduRepo' : 'Sửa người dùng | EduRepo'}">Người dùng | EduRepo</title>
+    <title th:text="${userForm.id == null ? 'Thêm người dùng mới | EduRepo' : 'Sửa người dùng | EduRepo'}">Người dùng | EduRepo</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 <div th:replace="~{fragments/header :: header}"></div>
+
 <div class="page-shell">
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
     <main id="main-content" class="content workspace-content">
         <header class="workspace-heading">
-            <div><span class="workspace-kicker">Quản trị truy cập</span><h1 th:text="${userForm.id == null ? 'Thêm người dùng' : 'Chỉnh sửa người dùng'}">Người dùng</h1><p class="subtitle">Cập nhật danh tính, trạng thái và phạm vi quyền trên EduRepo.</p></div>
-            <div class="workspace-actions"><a class="button button-secondary" th:href="@{/admin/users}">← Danh sách</a></div>
+            <div>
+                <span class="workspace-kicker">Quản trị truy cập</span>
+                <h1 th:text="${userForm.id == null ? 'Thêm người dùng mới' : 'Chỉnh sửa tài khoản'}">Người dùng</h1>
+                <p class="subtitle">Cập nhật danh tính, trạng thái hoạt động và phạm vi phân quyền trên hệ thống EduRepo.</p>
+            </div>
+            <div class="workspace-actions">
+                <a class="button button-secondary" th:href="@{/admin/users}">Quay lại danh sách</a>
+            </div>
         </header>
+
         <div class="form-layout">
             <form class="form-card" th:action="@{/admin/users/save}" th:object="${userForm}" method="post">
                 <input type="hidden" th:field="*{id}">
-                <div class="alert alert-danger" th:if="${#fields.hasGlobalErrors()}" role="alert"><p th:each="error : ${#fields.globalErrors()}" th:text="${error}">Không thể lưu người dùng</p></div>
+
+                <div class="alert error auth-alert" th:if="${#fields.hasGlobalErrors()}" role="alert">
+                    <div>
+                        <strong>Không thể lưu thông tin</strong>
+                        <p th:each="error : ${#fields.globalErrors()}" th:text="${error}">Lỗi hệ thống</p>
+                    </div>
+                </div>
+
                 <section class="form-section">
-                    <div class="form-section-heading"><h2>Thông tin tài khoản</h2><p>Các thông tin dùng để nhận diện và đăng nhập.</p></div>
+                    <div class="form-section-heading">
+                        <h2>Thông tin tài khoản</h2>
+                        <p>Thông tin cơ bản dùng để nhận diện và đăng nhập hệ thống.</p>
+                    </div>
                     <div class="field-grid">
-                        <label><span class="field-label">Họ và tên</span><input th:field="*{fullName}" placeholder="Nguyễn Văn A" required th:attr="aria-invalid=${#fields.hasErrors('fullName')}"><small class="field-error" th:errors="*{fullName}"></small></label>
-                        <label><span class="field-label">Email</span><input type="email" th:field="*{email}" placeholder="name@example.com" required th:attr="aria-invalid=${#fields.hasErrors('email')}"><small class="field-error" th:errors="*{email}"></small></label>
-                        <label class="field-wide"><span class="field-label" th:text="${userForm.id == null ? 'Mật khẩu khởi tạo' : 'Mật khẩu mới'}">Mật khẩu</span><input type="password" th:field="*{password}" th:required="${userForm.id == null}" autocomplete="new-password" th:attr="aria-invalid=${#fields.hasErrors('password')}"><small class="field-hint" th:if="${userForm.id != null}">Để trống nếu không muốn thay đổi mật khẩu.</small><small class="field-error" th:errors="*{password}"></small></label>
+                        <label>
+                            <span class="field-label">Họ và tên</span>
+                            <input th:field="*{fullName}" placeholder="Nguyễn Văn A" required
+                                   th:attr="aria-invalid=${#fields.hasErrors('fullName')}">
+                            <small class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></small>
+                        </label>
+                        <label>
+                            <span class="field-label">Địa chỉ email</span>
+                            <input type="email" th:field="*{email}" placeholder="name@example.com" required
+                                   th:attr="aria-invalid=${#fields.hasErrors('email')}">
+                            <small class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
+                        </label>
+                        <label class="field-wide">
+                            <span class="field-label" th:text="${userForm.id == null ? 'Mật khẩu khởi tạo' : 'Mật khẩu mới'}">Mật khẩu</span>
+                            <input type="password" th:field="*{password}" th:required="${userForm.id == null}"
+                                   autocomplete="new-password" placeholder="Mật khẩu"
+                                   th:attr="aria-invalid=${#fields.hasErrors('password')}">
+                            <small class="field-hint" th:if="${userForm.id != null}">Để trống ô này nếu không muốn thay đổi mật khẩu hiện tại.</small>
+                            <small class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
+                        </label>
                     </div>
                 </section>
+
                 <section class="form-section">
-                    <div class="form-section-heading"><h2>Vai trò và trạng thái</h2><p>Mỗi vai trò mở một nhóm chức năng khác nhau.</p></div>
+                    <div class="form-section-heading">
+                        <h2>Vai trò và trạng thái</h2>
+                        <p>Mỗi vai trò sẽ mở khóa các nhóm chức năng tương ứng trên hệ thống.</p>
+                    </div>
+
                     <fieldset class="role-choice-grid">
-                        <legend>Vai trò được cấp</legend>
-                        <label class="role-choice" th:each="role : ${roleNames}"><input type="checkbox" th:field="*{roles}" th:value="${role}"><span th:text="${role}">ROLE</span></label>
+                        <legend style="font-size: 0.88rem; font-weight: 750; color: #334155; margin-bottom: 0.75rem;">Vai trò được cấp</legend>
+                        <label class="role-choice" th:each="role : ${roleNames}">
+                            <input type="checkbox" th:field="*{roles}" th:value="${role}">
+                            <span th:text="${role}">ROLE</span>
+                        </label>
                     </fieldset>
-                    <small class="field-error" th:errors="*{roles}"></small>
-                    <label class="switch-field switch-field-spaced"><input type="checkbox" th:field="*{enabled}"><span>Cho phép tài khoản hoạt động</span></label>
+                    <small class="field-error" th:if="${#fields.hasErrors('roles')}" th:errors="*{roles}"></small>
+
+                    <label class="switch-field switch-field-spaced">
+                        <input type="checkbox" th:field="*{enabled}">
+                        <span>Kích hoạt tài khoản (cho phép đăng nhập vào hệ thống)</span>
+                    </label>
                 </section>
-                <div class="form-submit-row"><a class="button button-secondary" th:href="@{/admin/users}">Hủy</a><button type="submit">Lưu người dùng <span aria-hidden="true">→</span></button></div>
+
+                <div class="form-submit-row">
+                    <a class="button button-secondary" th:href="@{/admin/users}">Hủy</a>
+                    <button type="submit">
+                        <span th:text="${userForm.id == null ? 'Tạo người dùng mới' : 'Lưu thay đổi'}">Lưu người dùng</span>
+                    </button>
+                </div>
             </form>
-            <aside class="form-card">
-                <div class="form-section-heading"><h2>Gợi ý phân quyền</h2><p>Chỉ cấp quyền cần thiết cho công việc.</p></div>
+
+            <aside class="form-card" style="padding: 1.75rem;">
+                <div class="form-section-heading">
+                    <h2>Gợi ý phân quyền vai trò</h2>
+                    <p>Nguyên tắc phân quyền tối thiểu đảm bảo an toàn vận hành:</p>
+                </div>
                 <ol class="guidance-list">
-                    <li><span class="guidance-number">1</span><span><strong>USER</strong>: đọc và tải tài liệu công khai.</span></li>
-                    <li><span class="guidance-number">2</span><span><strong>SUBMITTER</strong>: tạo và gửi tài liệu.</span></li>
-                    <li><span class="guidance-number">3</span><span><strong>REVIEWER</strong>: đánh giá, phản hồi và công bố.</span></li>
-                    <li><span class="guidance-number">4</span><span><strong>ADMIN</strong>: quản trị toàn bộ hệ thống.</span></li>
+                    <li>
+                        <span class="guidance-number">1</span>
+                        <span><strong>USER</strong>: Tìm kiếm thông minh, tra cứu AI và tải học liệu đã công bố.</span>
+                    </li>
+                    <li>
+                        <span class="guidance-number">2</span>
+                        <span><strong>SUBMITTER</strong>: Nộp và quản lý bản nháp tài liệu của chính mình.</span>
+                    </li>
+                    <li>
+                        <span class="guidance-number">3</span>
+                        <span><strong>REVIEWER</strong>: Đánh giá chuyên môn, yêu cầu sửa đổi hoặc phê duyệt công bố.</span>
+                    </li>
+                    <li>
+                        <span class="guidance-number">4</span>
+                        <span><strong>ADMIN</strong>: Quản trị toàn diện hệ thống, phân quyền, danh mục và audit logs.</span>
+                    </li>
                 </ol>
             </aside>
         </div>
     </main>
 </div>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
+<script type="module" th:src="@{/js/main.js}"></script>
 </body>
 </html>

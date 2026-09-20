@@ -203,7 +203,14 @@ public class FileStorageServiceImpl implements FileStorageService {
     @Override
     public Resource load(String storedFileName) {
         try {
-            Resource resource = new UrlResource(safeResolve(storedFileName).toUri());
+            Path file = safeResolve(storedFileName);
+            if (!Files.exists(file)) {
+                Path localUploads = Paths.get("uploads").toAbsolutePath().resolve(storedFileName).normalize();
+                if (Files.exists(localUploads)) {
+                    file = localUploads;
+                }
+            }
+            Resource resource = new UrlResource(file.toUri());
             if (!resource.exists() || !resource.isReadable()) {
                 throw new ResourceNotFoundException("Không tìm thấy tệp được yêu cầu");
             }

@@ -3,6 +3,9 @@ setlocal
 title EduRepo - Khoi dong website
 
 cd /d "%~dp0"
+if exist "%~dp0.env" (
+    for /f "usebackq eol=# tokens=1* delims==" %%A in ("%~dp0.env") do if not "%%A"=="" set "%%A=%%B"
+)
 if not defined SPRING_PROFILES_ACTIVE set "SPRING_PROFILES_ACTIVE=dev"
 if not defined UPLOAD_DIR set "UPLOAD_DIR=%~dp0uploads"
 if not defined MAIL_USERNAME set "MAIL_USERNAME=theshup990@gmail.com"

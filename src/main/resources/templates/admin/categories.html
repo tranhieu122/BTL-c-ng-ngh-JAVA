@@ -3,45 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Quản lý danh mục học liệu số EduRepo.">
     <title>Danh mục học liệu | EduRepo</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 <div th:replace="~{fragments/header :: header}"></div>
+
 <div class="page-shell">
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
     <main id="main-content" class="content workspace-content">
-        <header class="workspace-heading"><div><span class="workspace-kicker">Tổ chức nội dung</span><h1>Danh mục học liệu</h1><p class="subtitle">Xây dựng hệ phân loại nhất quán để tài liệu dễ tìm và dễ quản lý.</p></div></header>
+        <header class="workspace-heading">
+            <div>
+                <span class="workspace-kicker">Tổ chức nội dung</span>
+                <h1>Danh mục học liệu</h1>
+                <p class="subtitle">Xây dựng cây phân loại chủ đề nhất quán giúp người học dễ dàng tìm kiếm và tra cứu tài liệu liên quan.</p>
+            </div>
+        </header>
+
         <div th:replace="~{fragments/ui :: flashMessages}"></div>
+
         <div class="category-layout">
+            <!-- Add / Edit Form Aside -->
             <aside class="form-card">
-                <div class="form-section-heading"><h2 th:text="${category.id == null ? 'Thêm danh mục' : 'Sửa danh mục'}">Thêm danh mục</h2><p>Tạo một nhóm chủ đề mới cho kho học liệu.</p></div>
-                <form th:action="${category.id == null} ? @{/admin/categories} : @{/admin/categories/{id}(id=${category.id})}" th:object="${category}" method="post" class="form-grid">
-                    <label><span class="field-label">Tên danh mục</span><input th:field="*{name}" placeholder="Ví dụ: Công nghệ thông tin" required th:attr="aria-invalid=${#fields.hasErrors('name')}"><small class="field-error" th:errors="*{name}"></small></label>
-                    <label><span class="field-label">Mô tả ngắn</span><textarea th:field="*{description}" rows="4" placeholder="Phạm vi nội dung của danh mục" th:attr="aria-invalid=${#fields.hasErrors('description')}"></textarea><small class="field-error" th:errors="*{description}"></small></label>
-                    <button type="submit" th:text="${category.id == null ? 'Thêm danh mục' : 'Lưu thay đổi'}">Lưu</button><a th:if="${category.id != null}" th:href="@{/admin/categories}">Hủy sửa</a>
+                <div class="form-section-heading">
+                    <h2 th:text="${category.id == null ? 'Thêm danh mục mới' : 'Chỉnh sửa danh mục'}">Thêm danh mục</h2>
+                    <p>Thiết lập một nhóm chủ đề học liệu mới cho hệ thống.</p>
+                </div>
+
+                <form th:action="${category.id == null} ? @{/admin/categories} : @{/admin/categories/{id}(id=${category.id})}"
+                      th:object="${category}" method="post" class="form-grid">
+                    <label>
+                        <span class="field-label">Tên danh mục</span>
+                        <input th:field="*{name}" placeholder="Ví dụ: Công nghệ thông tin" required
+                               th:attr="aria-invalid=${#fields.hasErrors('name')}">
+                        <small class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></small>
+                    </label>
+
+                    <label>
+                        <span class="field-label">Mô tả chủ đề</span>
+                        <textarea th:field="*{description}" rows="4" placeholder="Mô tả phạm vi nội dung và chuyên ngành của danh mục"
+                                  th:attr="aria-invalid=${#fields.hasErrors('description')}"></textarea>
+                        <small class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></small>
+                    </label>
+
+                    <button type="submit" th:text="${category.id == null ? 'Tạo danh mục mới' : 'Lưu thay đổi'}">Lưu danh mục</button>
+                    <a class="button button-secondary" th:if="${category.id != null}" th:href="@{/admin/categories}" style="text-align: center;">Hủy chỉnh sửa</a>
                 </form>
             </aside>
+
+            <!-- Categories Data Table -->
             <section class="data-panel" aria-labelledby="category-table-title">
-                <div class="data-panel-header"><strong id="category-table-title">Danh mục hiện có</strong><span class="record-count" th:text="|${#lists.size(categories)} danh mục|">0 danh mục</span></div>
+                <div class="data-panel-header">
+                    <strong id="category-table-title">Danh mục hiện có</strong>
+                    <span class="record-count" th:text="|${#lists.size(categories)} danh mục|">0 danh mục</span>
+                </div>
+
                 <div class="table-scroll" th:if="${!#lists.isEmpty(categories)}">
                     <table class="data-table">
                         <caption class="sr-only">Danh sách danh mục học liệu</caption>
-                        <thead><tr><th>Danh mục</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                        <thead>
+                        <tr>
+                            <th>Danh mục</th>
+                            <th>Trạng thái</th>
+                            <th style="text-align: right;">Thao tác</th>
+                        </tr>
+                        </thead>
                         <tbody>
                         <tr th:each="item : ${categories}">
-                            <td><div class="entity-cell"><span class="workspace-icon" aria-hidden="true">◇</span><span class="entity-copy"><strong th:text="${item.name}">Tên</strong><small th:text="${item.description ?: 'Chưa có mô tả'}">Mô tả</small></span></div></td>
-                            <td><span class="status-pill" th:classappend="${item.active} ? ' is-active' : ''" th:text="${item.active ? 'Đang sử dụng' : 'Đã ngừng'}">Trạng thái</span></td>
-                            <td><a class="table-action" th:href="@{/admin/categories/{id}/edit(id=${item.id})}">Sửa</a><form th:if="${item.active}" th:action="@{/admin/categories/{id}/delete(id=${item.id})}" method="post"><button class="button button-warning button-sm" type="submit" data-confirm-label="Ngừng sử dụng" data-confirm-message="Ngừng sử dụng danh mục này? Danh mục sẽ không còn xuất hiện trong lựa chọn cho tài liệu mới.">Ngừng dùng</button></form><form th:unless="${item.active}" th:action="@{/admin/categories/{id}/activate(id=${item.id})}" method="post"><button type="submit" class="button button-secondary button-sm">Kích hoạt lại</button></form></td>
+                            <td>
+                                <div>
+                                    <strong th:text="${item.name}">Tên danh mục</strong>
+                                    <small class="field-hint" style="display:block; margin-top: 0.2rem;" th:text="${item.description ?: 'Chưa có mô tả'}">Mô tả chủ đề</small>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="status-pill" th:classappend="${item.active} ? ' is-active' : ''"
+                                      th:text="${item.active ? 'Đang sử dụng' : 'Đã tạm ngừng'}">Trạng thái</span>
+                            </td>
+                            <td style="text-align: right;">
+                                <div style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                                    <a class="table-action" th:href="@{/admin/categories/{id}/edit(id=${item.id})}">Sửa</a>
+                                    <form th:if="${item.active}" th:action="@{/admin/categories/{id}/delete(id=${item.id})}" method="post" style="display:inline; margin: 0;">
+                                        <button class="button button-warning button-sm" type="submit"
+                                                data-confirm-label="Ngừng sử dụng"
+                                                data-confirm-message="Ngừng sử dụng danh mục này? Danh mục sẽ không còn xuất hiện trong lựa chọn cho các tài liệu mới.">
+                                            Ngừng dùng
+                                        </button>
+                                    </form>
+                                    <form th:unless="${item.active}" th:action="@{/admin/categories/{id}/activate(id=${item.id})}" method="post" style="display:inline; margin: 0;">
+                                        <button type="submit" class="button button-secondary button-sm">
+                                            Kích hoạt lại
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
-                <div class="empty-panel" th:if="${#lists.isEmpty(categories)}"><span class="workspace-icon" aria-hidden="true">◇</span><h2>Chưa có danh mục</h2><p>Thêm danh mục đầu tiên để bắt đầu tổ chức kho học liệu.</p></div>
+
+                <div class="empty-panel" th:if="${#lists.isEmpty(categories)}">
+                    <h2>Chưa có danh mục nào</h2>
+                    <p>Tạo danh mục đầu tiên để bắt đầu phân loại kho học liệu theo chủ đề.</p>
+                </div>
             </section>
         </div>
     </main>
 </div>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
+<script type="module" th:src="@{/js/main.js}"></script>
 </body>
 </html>

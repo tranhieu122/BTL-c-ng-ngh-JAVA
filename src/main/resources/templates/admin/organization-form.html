@@ -1,9 +1,122 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Cập nhật cơ cấu | EduRepo</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
-<body><div th:replace="~{fragments/header :: header}"></div><div class="page-shell"><div th:replace="~{fragments/sidebar :: sidebar}"></div>
-<main id="main-content" class="content workspace-content">
-    <header class="workspace-heading"><div><span class="workspace-kicker">Cấu trúc đào tạo</span><h1 th:text="${editingFaculty} ? 'Cập nhật khoa' : 'Cập nhật bộ môn'">Cập nhật</h1><p class="subtitle">Thay đổi này được áp dụng cho các lựa chọn nộp tài liệu trong tương lai.</p></div><div class="workspace-actions"><a class="button button-secondary" th:href="@{/admin/organization}">Quay lại</a></div></header>
-    <section class="form-layout" th:if="${editingFaculty}"><form class="form-card" th:action="@{/admin/organization/faculties/{id}(id=${faculty.id})}" th:object="${faculty}" method="post"><div class="form-section-heading"><h2>Thông tin khoa</h2></div><label><span class="field-label">Tên khoa</span><input th:field="*{name}" required><small class="field-error" th:errors="*{name}"></small></label><label><span class="field-label">Mô tả</span><textarea th:field="*{description}" rows="5"></textarea><small class="field-error" th:errors="*{description}"></small></label><div class="form-submit-row"><button type="submit">Lưu thay đổi</button></div></form><aside class="form-card"><div class="form-section-heading"><h2>Tác động dữ liệu</h2></div><dl class="metadata-grid"><div><dt>Bộ môn trực thuộc</dt><dd th:text="${departmentCount}">0</dd></div><div><dt>Tài liệu liên quan</dt><dd th:text="${documentCount}">0</dd></div></dl></aside></section>
-    <section class="form-layout" th:if="${editingDepartment}"><form class="form-card" th:action="@{/admin/organization/departments/{id}(id=${department.id})}" th:object="${department}" method="post"><div class="form-section-heading"><h2>Thông tin bộ môn</h2></div><label><span class="field-label">Khoa trực thuộc</span><select th:field="*{faculty.id}" required><option value="">Chọn khoa</option><option th:each="item : ${activeFaculties}" th:value="${item.id}" th:text="${item.name}"></option></select><small class="field-error" th:errors="*{faculty}"></small></label><label><span class="field-label">Tên bộ môn</span><input th:field="*{name}" required><small class="field-error" th:errors="*{name}"></small></label><label><span class="field-label">Mô tả</span><textarea th:field="*{description}" rows="5"></textarea><small class="field-error" th:errors="*{description}"></small></label><div class="form-submit-row"><button type="submit">Lưu thay đổi</button></div></form><aside class="form-card"><div class="form-section-heading"><h2>Tác động dữ liệu</h2></div><dl class="metadata-grid"><div><dt>Tài liệu thuộc bộ môn</dt><dd th:text="${documentCount}">0</dd></div></dl></aside></section>
-</main></div><div th:replace="~{fragments/footer :: footer}"></div></body></html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${editingFaculty} ? 'Cập nhật khoa | EduRepo' : 'Cập nhật bộ môn | EduRepo'">Cập nhật cơ cấu | EduRepo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="page-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+    <main id="main-content" class="content workspace-content">
+        <header class="workspace-heading">
+            <div>
+                <span class="workspace-kicker">Cấu trúc đào tạo</span>
+                <h1 th:text="${editingFaculty} ? 'Cập nhật thông tin Khoa' : 'Cập nhật thông tin Bộ môn'">Cập nhật cơ cấu</h1>
+                <p class="subtitle">Những thay đổi này sẽ được áp dụng cho toàn bộ danh mục tài liệu và bộ lọc tra cứu trong tương lai.</p>
+            </div>
+            <div class="workspace-actions">
+                <a class="button button-secondary" th:href="@{/admin/organization}">Quay lại</a>
+            </div>
+        </header>
+
+        <!-- Edit Faculty Form -->
+        <section class="form-layout" th:if="${editingFaculty}">
+            <form class="form-card" th:action="@{/admin/organization/faculties/{id}(id=${faculty.id})}" th:object="${faculty}" method="post">
+                <div class="form-section-heading" style="padding: 1.5rem 1.75rem 0;">
+                    <h2>Thông tin Khoa</h2>
+                    <p>Chỉnh sửa tên và thông tin giới thiệu của khoa.</p>
+                </div>
+                <div class="form-section">
+                    <label style="margin-bottom: 1.25rem;">
+                        <span class="field-label">Tên khoa</span>
+                        <input th:field="*{name}" required>
+                        <small class="field-error" th:errors="*{name}"></small>
+                    </label>
+                    <label>
+                        <span class="field-label">Mô tả</span>
+                        <textarea th:field="*{description}" rows="5" placeholder="Mô tả phạm vi đào tạo của khoa"></textarea>
+                        <small class="field-error" th:errors="*{description}"></small>
+                    </label>
+                </div>
+                <div class="form-submit-row">
+                    <a class="button button-secondary" th:href="@{/admin/organization}">Hủy</a>
+                    <button type="submit">Lưu thay đổi Khoa</button>
+                </div>
+            </form>
+
+            <aside class="form-card" style="padding: 1.75rem;">
+                <div class="form-section-heading">
+                    <h2>Tác động dữ liệu</h2>
+                    <p>Số lượng bản ghi trực thuộc hiện có:</p>
+                </div>
+                <div style="display: grid; gap: 1rem; margin-top: 1rem;">
+                    <div style="padding: 1rem; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0;">
+                        <span style="font-size: 0.78rem; color: #64748b; font-weight: 750; text-transform: uppercase;">Bộ môn trực thuộc</span>
+                        <strong style="display: block; font-size: 1.75rem; color: #0f172a; margin-top: 0.25rem;" th:text="${departmentCount}">0</strong>
+                    </div>
+                    <div style="padding: 1rem; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0;">
+                        <span style="font-size: 0.78rem; color: #64748b; font-weight: 750; text-transform: uppercase;">Tài liệu liên quan</span>
+                        <strong style="display: block; font-size: 1.75rem; color: #4f46e5; margin-top: 0.25rem;" th:text="${documentCount}">0</strong>
+                    </div>
+                </div>
+            </aside>
+        </section>
+
+        <!-- Edit Department Form -->
+        <section class="form-layout" th:if="${editingDepartment}">
+            <form class="form-card" th:action="@{/admin/organization/departments/{id}(id=${department.id})}" th:object="${department}" method="post">
+                <div class="form-section-heading" style="padding: 1.5rem 1.75rem 0;">
+                    <h2>Thông tin Bộ môn</h2>
+                    <p>Chỉnh sửa khoa trực thuộc và tên bộ môn.</p>
+                </div>
+                <div class="form-section">
+                    <label style="margin-bottom: 1.25rem;">
+                        <span class="field-label">Khoa trực thuộc</span>
+                        <select th:field="*{faculty.id}" required>
+                            <option value="">Chọn khoa chủ quản</option>
+                            <option th:each="item : ${activeFaculties}" th:value="${item.id}" th:text="${item.name}"></option>
+                        </select>
+                        <small class="field-error" th:errors="*{faculty}"></small>
+                    </label>
+                    <label style="margin-bottom: 1.25rem;">
+                        <span class="field-label">Tên bộ môn</span>
+                        <input th:field="*{name}" required>
+                        <small class="field-error" th:errors="*{name}"></small>
+                    </label>
+                    <label>
+                        <span class="field-label">Mô tả</span>
+                        <textarea th:field="*{description}" rows="5" placeholder="Mô tả phạm vi chuyên môn của bộ môn"></textarea>
+                        <small class="field-error" th:errors="*{description}"></small>
+                    </label>
+                </div>
+                <div class="form-submit-row">
+                    <a class="button button-secondary" th:href="@{/admin/organization}">Hủy</a>
+                    <button type="submit">Lưu thay đổi Bộ môn</button>
+                </div>
+            </form>
+
+            <aside class="form-card" style="padding: 1.75rem;">
+                <div class="form-section-heading">
+                    <h2>Tác động dữ liệu</h2>
+                    <p>Số lượng bản ghi trực thuộc hiện có:</p>
+                </div>
+                <div style="display: grid; gap: 1rem; margin-top: 1rem;">
+                    <div style="padding: 1rem; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0;">
+                        <span style="font-size: 0.78rem; color: #64748b; font-weight: 750; text-transform: uppercase;">Tài liệu thuộc bộ môn</span>
+                        <strong style="display: block; font-size: 1.75rem; color: #4f46e5; margin-top: 0.25rem;" th:text="${documentCount}">0</strong>
+                    </div>
+                </div>
+            </aside>
+        </section>
+    </main>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script type="module" th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -24,6 +24,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Service quản lý thông báo trong hệ thống EduRepo.
+ *
+ * <p>Cung cấp các tính năng thông báo:</p>
+ * <ul>
+ *   <li>Thông báo tự động về trạng thái tài liệu (nộp, duyệt, từ chối, yêu cầu chỉnh sửa).</li>
+ *   <li>Thông báo từ admin gửi đến người dùng/vai trò cụ thể hoặc tất cả.</li>
+ *   <li>Đánh dấu đã đọc (đơn lẻ hoặc toàn bộ).</li>
+ *   <li>Tích hợp SSE (Server-Sent Events) qua {@code RealtimeChangeTracker} để
+ *       cập nhật số lượng thông báo chưa đọc trên UI theo thời gian thực.</li>
+ * </ul>
+ *
+ * <p>Mỗi thông báo có {@code eventKey} duy nhất để tránh gửi thông báo trùng lặp
+ * trong trường hợp retry hoặc xử lý bất đồng bộ.</p>
+ */
 @Service
 @Transactional
 public class NotificationService {

@@ -30,6 +30,19 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Controller xử lý các trang công khai và trang tra cứu tài liệu của người dùng.
+ *
+ * <p>Các trang được phục vụ bởi controller này:</p>
+ * <ul>
+ *   <li>{@code /} – Trang chủ: hiển thị tài liệu nổi bật, danh mục, thống kê.</li>
+ *   <li>{@code /dashboard} – Chuyển hướng người dùng đến trang phù hợp theo vai trò.</li>
+ *   <li>{@code /repository} – Kho tài liệu công khai: tìm kiếm, lọc theo danh mục/loại/cấp học.</li>
+ *   <li>{@code /repository/{id}} – Trang chi tiết tài liệu: thông tin, đánh giá, đề xuất liên quan.</li>
+ * </ul>
+ *
+ * <p>Tất cả lượt xem đều được ghi nhận vào audit log và thống kê hoạt động người dùng.</p>
+ */
 @Controller
 public class HomeController {
 
@@ -55,6 +68,15 @@ public class HomeController {
         this.userActivityService = userActivityService;
     }
 
+    /**
+     * Trang chủ EduRepo.
+     *
+     * <p>Hiển thị tài liệu mới nhất (featured), danh mục nổi bật, và các số liệu thống kê
+     * (tổng số tài liệu đã công bố, số danh mục đang hoạt động).</p>
+     *
+     * @param model Model để truyền dữ liệu sang template Thymeleaf.
+     * @return Tên view template {@code public/home}.
+     */
     @GetMapping("/")
     public String home(Model model) {
         List<Category> activeCategories = categoryService.findActive();
@@ -72,6 +94,19 @@ public class HomeController {
         return "public/home";
     }
 
+    /**
+     * Trang dashboard: chuyển hướng người dùng đến giao diện phù hợp theo vai trò.
+     *
+     * <ul>
+     *   <li>ADMIN → {@code /admin/dashboard}</li>
+     *   <li>REVIEWER → {@code /reviews/pending}</li>
+     *   <li>SUBMITTER → {@code /documents}</li>
+     *   <li>Còn lại → trang chủ {@code /}</li>
+     * </ul>
+     *
+     * @param authentication Thông tin xác thực của người dùng hiện tại.
+     * @return URL chuyển hướng.
+     */
     @GetMapping("/dashboard")
     public String dashboard(Authentication authentication) {
         if (hasRole(authentication, "ROLE_ADMIN")) return "redirect:/admin/dashboard";
@@ -80,6 +115,18 @@ public class HomeController {
         return "redirect:/";
     }
 
+    /**
+     * Kho tài liệu công khai – hỗ trợ tìm kiếm và lọc đa tiêu chí.
+     *
+     * @param keyword       Từ khóa tìm kiếm (tiêu đề, mô tả, từ khóa tài liệu).
+     * @param categoryId    ID danh mục cần lọc (null = tất cả).
+     * @param resourceType  Loại tài nguyên (giáo trình, bài giảng, luận văn, v.v.).
+     * @param educationLevel Cấp học (đại học, cao học, v.v.).
+     * @param languageCode  Mã ngôn ngữ ("vi", "en", hoặc rỗng = tất cả).
+     * @param page          Số trang (bắt đầu từ 0).
+     * @param model         Model Thymeleaf.
+     * @return View template {@code public/repository}.
+     */
     @GetMapping("/repository")
     public String repository(@RequestParam(defaultValue = "") String keyword,
                              @RequestParam(required = false) Long categoryId,
@@ -109,6 +156,18 @@ public class HomeController {
         return "public/repository";
     }
 
+    /**
+     * Trang chi tiết tài liệu công khai.
+     *
+     * <p>Chỉ hiển thị tài liệu ở trạng thái PUBLISHED. Tự động ghi nhận lượt xem
+     * và hoạt động người dùng. Hiển thị form đánh giá nếu người dùng đã đăng nhập.</p>
+     *
+     * @param id        ID tài liệu.
+     * @param principal Người dùng hiện tại (null nếu chưa đăng nhập).
+     * @param model     Model Thymeleaf.
+     * @return View template {@code public/document-detail}.
+     * @throws ResourceNotFoundException Nếu tài liệu chưa được công bố.
+     */
     @GetMapping("/repository/{id}")
     public String publicDetail(@PathVariable Long id,
                                @AuthenticationPrincipal CustomUserPrincipal principal,

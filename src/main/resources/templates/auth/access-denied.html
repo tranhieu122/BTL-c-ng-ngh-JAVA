@@ -4,26 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Bạn không có quyền truy cập chức năng này trên EduRepo.">
-    <title>Không có quyền truy cập | EduRepo</title>
+    <title>Truy cập bị từ chối (403) | EduRepo</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body class="error-page">
 <div th:replace="~{fragments/header :: header}"></div>
+
 <main id="main-content" class="error-main page-container">
     <section class="error-shell" aria-labelledby="access-denied-title">
-        <div class="error-visual" aria-hidden="true"><span class="error-code">403</span></div>
+        <div class="error-visual" aria-hidden="true">
+            <span class="error-code">403</span>
+        </div>
         <div class="error-copy">
-            <span class="workspace-kicker">Quyền truy cập</span>
-            <h1 id="access-denied-title">Chức năng này chưa dành cho tài khoản của bạn.</h1>
-            <p>EduRepo đã nhận diện tài khoản, nhưng vai trò hiện tại không có quyền mở khu vực bạn vừa yêu cầu.</p>
+            <span class="error-kicker">Khu vực hạn chế</span>
+            <h1 id="access-denied-title">Chức năng chưa dành cho tài khoản của bạn</h1>
+            <p>EduRepo đã xác thực phiên đăng nhập, tuy nhiên vai trò tài khoản hiện tại chưa được cấp quyền hạn để truy cập vào khu vực này.</p>
             <div class="error-actions">
                 <a class="button" th:href="@{/dashboard}">Về bảng điều khiển</a>
                 <a class="button button-secondary" th:href="@{/repository}">Mở kho học liệu</a>
+                <a class="button button-secondary" th:href="@{/login}">Đổi tài khoản</a>
             </div>
-            <div class="error-help"><span class="error-help-mark">i</span><span>Nếu bạn cần thêm quyền SUBMITTER, REVIEWER hoặc ADMIN, hãy liên hệ quản trị viên hệ thống.</span></div>
+            <div class="error-help">
+                <span class="error-help-mark">i</span>
+                <span>Nếu bạn cần quyền SUBMITTER (nộp tài liệu), REVIEWER (kiểm duyệt) hoặc ADMIN (quản trị), vui lòng liên hệ ban quản trị hệ thống để được cấp quyền.</span>
+            </div>
         </div>
     </section>
 </main>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
 </html>

@@ -76,6 +76,35 @@ public interface DocumentAssistantRepository extends Repository<Document, Long> 
                                              @Param("year") Integer year,
                                              Pageable pageable);
 
+    @Query("select distinct d from Document d left join fetch d.category c left join fetch d.createdBy creator "
+            + "left join fetch d.department dep left join fetch dep.faculty faculty "
+            + "where d.status = com.hieu.edurepo.enums.DocumentStatus.PUBLISHED "
+            + "and (:keyword = '' or lower(d.title) like lower(concat('%', :keyword, '%')) "
+            + "or lower(coalesce(d.description, '')) like lower(concat('%', :keyword, '%')) "
+            + "or lower(coalesce(d.summary, '')) like lower(concat('%', :keyword, '%')) "
+            + "or lower(coalesce(d.keywords, '')) like lower(concat('%', :keyword, '%')) "
+            + "or lower(coalesce(d.authorName, '')) like lower(concat('%', :keyword, '%')) "
+            + "or lower(coalesce(creator.fullName, '')) like lower(concat('%', :keyword, '%')) "
+            + "or lower(coalesce(c.name, '')) like lower(concat('%', :keyword, '%')) "
+            + "or lower(coalesce(dep.name, '')) like lower(concat('%', :keyword, '%')) "
+            + "or lower(coalesce(faculty.name, '')) like lower(concat('%', :keyword, '%'))) "
+            + "and (:topic = '' or lower(coalesce(c.name, '')) like lower(concat('%', :topic, '%')) "
+            + "or lower(coalesce(d.keywords, '')) like lower(concat('%', :topic, '%')) "
+            + "or lower(d.title) like lower(concat('%', :topic, '%')) "
+            + "or lower(coalesce(d.summary, '')) like lower(concat('%', :topic, '%')) "
+            + "or lower(coalesce(d.description, '')) like lower(concat('%', :topic, '%')) "
+            + "or lower(coalesce(dep.name, '')) like lower(concat('%', :topic, '%')) "
+            + "or lower(coalesce(faculty.name, '')) like lower(concat('%', :topic, '%'))) "
+            + "and (:author = '' or lower(coalesce(d.authorName, '')) like lower(concat('%', :author, '%')) "
+            + "or lower(coalesce(creator.fullName, '')) like lower(concat('%', :author, '%'))) "
+            + "and (:languageCode = '' or lower(coalesce(d.languageCode, '')) = lower(:languageCode)) "
+            + "and (:year is null or year(d.publishedAt) = :year)")
+    List<Document> findPublishedForRanking(@Param("keyword") String keyword,
+                                           @Param("topic") String topic,
+                                           @Param("author") String author,
+                                           @Param("languageCode") String languageCode,
+                                           @Param("year") Integer year);
+
     @Query(value = "select d from Document d left join fetch d.category c left join fetch d.createdBy creator "
             + "where d.status = com.hieu.edurepo.enums.DocumentStatus.PUBLISHED "
             + "and (:keyword = '' or lower(d.title) like lower(concat('%', :keyword, '%')) "

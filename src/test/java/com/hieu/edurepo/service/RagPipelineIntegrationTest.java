@@ -19,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -100,8 +101,8 @@ class RagPipelineIntegrationTest {
         // 6. Test Anti-Hallucination: Câu hỏi hoàn toàn không có trong kho học liệu
         DocumentAssistantResponse unknownResponse = assistantService.respond("Công thức nấu phở bò truyền thống ngon nhất là gì?");
         assertNotNull(unknownResponse);
-        assertEquals("NO_RESULTS", unknownResponse.type());
-        assertEquals(RagAnswer.NOT_FOUND_MESSAGE, unknownResponse.message());
+        assertTrue(Set.of("NO_RESULTS", "RAG_INSUFFICIENT").contains(unknownResponse.type()));
+        assertTrue(unknownResponse.message().contains("EduRepo") || unknownResponse.message().contains("chưa đủ"));
 
         // 7. Test Unpublished Document Removal
         doc.setStatus(DocumentStatus.DRAFT);

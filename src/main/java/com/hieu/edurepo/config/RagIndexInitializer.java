@@ -10,6 +10,19 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Khởi động chỉ mục RAG (Retrieval-Augmented Generation) ngay sau khi ứng dụng chạy.
+ *
+ * <p>Thực hiện sau khi Spring Boot khởi động xong (ý nghĩa {@link ApplicationRunner}):
+ * nếu bảng {@code document_chunks} trong CSDL đang trống, sẽ tự động chạy reindex
+ * toàn bộ tài liệu đã công bố trong background thread.</p>
+ *
+ * <p>Mục đích: đảm bảo chatbot có dữ liệu để tìm kiếm ngay cả khi deploy lần đầu
+ * hoặc sau khi xóa sạch database. Chạy phi đồng bộ (ánh xạ background thread) để
+ * không ảnh hưởng tới thời gian khởi động ứng dụng.</p>
+ *
+ * <p>Bị bỏ qua hoàn toàn nếu RAG được tắt ({@code rag.enabled=false}).</p>
+ */
 @Component
 public class RagIndexInitializer implements ApplicationRunner {
 
@@ -27,6 +40,17 @@ public class RagIndexInitializer implements ApplicationRunner {
         this.ragProperties = ragProperties;
     }
 
+    /**
+     * Callback chạy sau khi Spring Boot context khởi động xong.
+     *
+     * <p>Logic:
+     * - Nếu RAG bị tắt: ghi log và thoát sớm.
+     * - Nếu chưa có chunk nào trong CSDL: khởi chạy reindex background.
+     * - Nếu đã có chunk: ghi log số lượng và tiếp tục bình thường.
+     * </p>
+     *
+     * @param args Tham số khởi động (không sử dụng).
+     */
     @Override
     public void run(ApplicationArguments args) {
         if (!ragProperties.isEnabled()) {

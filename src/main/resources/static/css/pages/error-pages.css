@@ -1,38 +1,54 @@
+/* ==========================================================================
+   EDUREPO ERROR PAGES (403, 404, 500)
+   ========================================================================== */
+
 .error-page {
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     background:
-        radial-gradient(circle at 15% 20%, rgba(15, 118, 110, 0.1), transparent 24rem),
-        radial-gradient(circle at 85% 12%, rgba(217, 154, 43, 0.1), transparent 20rem),
-        #f6f8f7;
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99, 102, 241, 0.15), transparent 70%),
+        radial-gradient(circle at 10% 25%, rgba(239, 68, 68, 0.08), transparent 400px),
+        radial-gradient(circle at 90% 75%, rgba(14, 165, 233, 0.08), transparent 400px),
+        #f8fafc;
 }
 
 .error-main {
-    min-height: min(720px, calc(100vh - var(--header-height)));
+    flex: 1;
     display: grid;
     place-items: center;
-    padding-block: clamp(3rem, 9vw, 7rem);
+    padding-block: clamp(2.5rem, 6vw, 5rem);
 }
 
 .error-shell {
-    width: min(100%, 900px);
+    width: min(100%, 940px);
     display: grid;
-    grid-template-columns: minmax(230px, 0.75fr) minmax(0, 1.25fr);
+    grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.15fr);
     overflow: hidden;
-    border: 1px solid var(--line);
+    border: 1px solid rgba(226, 232, 240, 0.8);
     border-radius: 28px;
-    background: var(--white);
-    box-shadow: 0 28px 70px rgba(16, 45, 45, 0.14);
+    background: #ffffff;
+    box-shadow:
+        0 25px 60px -15px rgba(15, 23, 42, 0.1),
+        0 0 35px -10px rgba(99, 102, 241, 0.12);
 }
 
 .error-visual {
     position: relative;
     isolation: isolate;
-    min-height: 360px;
-    display: grid;
-    place-items: center;
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
-    color: #d8efeb;
-    background: linear-gradient(145deg, #153f3d, #09252c);
+    color: #ffffff;
+    background:
+        radial-gradient(circle at 75% 25%, rgba(239, 68, 68, 0.25), transparent 240px),
+        radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.3), transparent 260px),
+        linear-gradient(150deg, #0f172a 0%, #1e1b4b 60%, #111827 100%);
+    padding: 2rem;
+    text-align: center;
 }
 
 .error-visual::before,
@@ -40,115 +56,207 @@
     position: absolute;
     z-index: -1;
     content: "";
-    border: 1px solid rgba(255, 255, 255, 0.11);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 50%;
 }
 
 .error-visual::before {
-    width: 260px;
-    height: 260px;
+    width: 280px;
+    height: 280px;
 }
 
 .error-visual::after {
-    width: 180px;
-    height: 180px;
-    border-width: 28px;
-    border-color: rgba(217, 154, 43, 0.12);
+    width: 190px;
+    height: 190px;
+    border-width: 24px;
+    border-color: rgba(99, 102, 241, 0.15);
+}
+
+.error-shield-icon {
+    width: 72px;
+    height: 72px;
+    margin-bottom: 1.25rem;
+    display: grid;
+    place-items: center;
+    border-radius: 20px;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #f87171;
+    font-size: 2rem;
+    box-shadow: 0 10px 25px rgba(239, 68, 68, 0.2);
 }
 
 .error-code {
-    color: var(--white);
-    font-family: var(--font-display);
-    font-size: clamp(4.5rem, 11vw, 8rem);
-    font-weight: 700;
-    letter-spacing: -0.08em;
+    color: #ffffff;
+    font-family: var(--font-sans, system-ui, sans-serif);
+    font-size: clamp(4.5rem, 10vw, 7.5rem);
+    font-weight: 850;
+    letter-spacing: -0.06em;
     line-height: 1;
-    text-shadow: 0 16px 35px rgba(0, 0, 0, 0.2);
+    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(180deg, #ffffff 40%, rgba(255, 255, 255, 0.6) 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .error-copy {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: clamp(2rem, 5vw, 4rem);
+    padding: clamp(2rem, 5vw, 3.75rem);
+}
+
+.error-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.8rem;
+    font-weight: 750;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #dc2626;
+    margin-bottom: 0.75rem;
+}
+
+.error-kicker::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
 }
 
 .error-copy h1 {
-    margin-bottom: 0.7rem;
-    font-family: var(--font-display);
-    font-size: clamp(2rem, 4vw, 3.2rem);
-    font-weight: 700;
+    margin-bottom: 0.85rem;
+    font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+    font-weight: 800;
+    line-height: 1.2;
+    color: #0f172a;
+    letter-spacing: -0.03em;
 }
 
 .error-copy > p {
     max-width: 520px;
-    margin-bottom: 1.5rem;
-    color: var(--ink-500);
+    margin-bottom: 1.75rem;
+    color: #475569;
+    font-size: 1rem;
+    line-height: 1.6;
 }
 
 .error-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.7rem;
+    gap: 0.85rem;
+}
+
+.error-actions .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.4rem;
+    border-radius: 12px;
+    font-size: 0.92rem;
+    font-weight: 650;
+    text-decoration: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .error-actions .button:not(.button-secondary) {
-    background: #0f766e;
-    box-shadow: 0 8px 20px rgba(15, 118, 110, 0.2);
+    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+    color: #ffffff;
+    box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.4);
+    border: none;
 }
 
 .error-actions .button:not(.button-secondary):hover {
-    background: #0b625b;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px -4px rgba(79, 70, 229, 0.45);
+}
+
+.error-actions .button-secondary {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+}
+
+.error-actions .button-secondary:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+    transform: translateY(-2px);
 }
 
 .error-help {
     display: flex;
     align-items: flex-start;
-    gap: 0.65rem;
-    margin-top: 1.5rem;
-    padding-top: 1rem;
-    color: var(--ink-400);
-    border-top: 1px solid var(--line);
-    font-size: 0.72rem;
+    gap: 0.75rem;
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+    color: #64748b;
+    border-top: 1px solid #f1f5f9;
+    font-size: 0.85rem;
+    line-height: 1.5;
 }
 
 .error-help-mark {
-    width: 24px;
-    height: 24px;
-    flex: 0 0 24px;
+    width: 26px;
+    height: 26px;
+    flex: 0 0 26px;
     display: grid;
     place-items: center;
-    color: #0f766e;
-    background: #e7f6f2;
+    color: #4f46e5;
+    background: #eef2ff;
     border-radius: 50%;
     font-weight: 850;
+    font-size: 0.8rem;
 }
 
 @media (prefers-reduced-motion: no-preference) {
     .error-shell {
-        animation: error-arrive 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        animation: error-arrive 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
     .error-code {
-        animation: error-code-arrive 700ms 100ms both;
+        animation: error-code-arrive 700ms 100ms cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 }
 
 @keyframes error-arrive {
-    from { opacity: 0; transform: translateY(18px) scale(0.985); }
+    from { opacity: 0; transform: translateY(20px) scale(0.98); }
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes error-code-arrive {
-    from { opacity: 0; transform: translateY(12px); }
+    from { opacity: 0; transform: translateY(14px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-@media (max-width: 720px) {
-    .error-main { align-items: start; padding-block: 1rem 3rem; }
-    .error-shell { grid-template-columns: 1fr; border-radius: 20px; }
-    .error-visual { min-height: 180px; }
-    .error-copy { padding: 1.6rem; }
-    .error-actions { align-items: stretch; flex-direction: column; }
-    .error-actions .button { width: 100%; }
+@media (max-width: 768px) {
+    .error-shell {
+        grid-template-columns: 1fr;
+        border-radius: 20px;
+    }
+
+    .error-visual {
+        min-height: 200px;
+        padding: 2.5rem 1.5rem;
+    }
+
+    .error-code {
+        font-size: 4.5rem;
+    }
+
+    .error-copy {
+        padding: 2rem 1.5rem;
+    }
+
+    .error-actions {
+        flex-direction: column;
+    }
+
+    .error-actions .button {
+        width: 100%;
+    }
 }

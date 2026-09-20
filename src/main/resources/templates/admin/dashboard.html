@@ -3,28 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Trung tâm điều hành hệ thống EduRepo.">
-    <title>Bảng điều khiển | EduRepo</title>
+    <meta name="description" content="Trung tâm điều hành hệ thống học liệu số EduRepo.">
+    <title>Bảng điều khiển quản trị | EduRepo</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body class="admin-dashboard-page">
 <div th:replace="~{fragments/header :: header}"></div>
+
 <div class="page-shell">
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
     <main id="main-content" class="content workspace-content admin-dashboard dashboard-v2"
           data-admin-dashboard>
+        <!-- Hero Operational Banner -->
         <section class="dashboard-v2-hero" aria-labelledby="dashboard-title">
             <div class="dashboard-v2-copy">
-                <span class="dashboard-v2-kicker"><i></i> Trung tâm điều hành</span>
-                <h1 id="dashboard-title">Chào mừng trở lại,<br><em>Quản trị viên.</em></h1>
-                <p>Nắm bắt toàn bộ nhịp vận hành của kho học liệu và xử lý những việc quan trọng nhất.</p>
+                <span class="dashboard-v2-kicker">Trung tâm điều hành</span>
+                <h1 id="dashboard-title">Chào mừng trở lại,<br><em>Quản trị viên</em></h1>
+                <p>Nắm bắt toàn diện các luồng học liệu, tài khoản thành viên và hiệu suất kiểm duyệt của EduRepo trong thời gian thực.</p>
                 <div class="dashboard-v2-date">
-                    <span aria-hidden="true">◷</span>
                     <time data-dashboard-date th:attr="datetime=${currentDateTime}"
                           th:text="${currentDateTimeText}">01/01/2026 00:00</time>
                     <b>·</b>
-                    <span class="dashboard-online"><i></i> Hệ thống ổn định</span>
+                    <span class="dashboard-online"><i></i> Hệ thống sẵn sàng</span>
+                    <b>·</b>
+                    <form th:action="@{/admin/sample-data/seed}" method="post" style="display: inline-block; vertical-align: middle;">
+                        <button type="submit" class="btn-clean" style="font-size: 0.85rem; font-weight: 700; color: #38bdf8; cursor: pointer; text-decoration: underline; background: none; border: none; padding: 0 4px;"
+                                onclick="return confirm('Bạn có muốn tạo dữ liệu ảo (Lượt xem, lượt tải và bình luận đánh giá) cho toàn bộ tài liệu hiện có không?')">
+                            Tạo dữ liệu mẫu (Lượt xem, tải &amp; bình luận)
+                        </button>
+                    </form>
                 </div>
             </div>
             <div class="dashboard-hero-score">
@@ -38,70 +46,151 @@
 
         <div th:replace="~{fragments/ui :: flashMessages}"></div>
 
+        <!-- 6 Core KPI Metrics (Clean, Minimalist, No Emojis) -->
         <section class="dashboard-v2-metrics" aria-label="Chỉ số chính">
             <article class="dashboard-kpi kpi-users">
-                <div class="dashboard-kpi-top"><span class="dashboard-kpi-icon">◎</span><span class="dashboard-kpi-label">Người dùng</span></div>
+                <div class="dashboard-kpi-top">
+                    <span class="dashboard-kpi-dot"></span>
+                    <span class="dashboard-kpi-label">Người dùng</span>
+                </div>
                 <strong data-count-up th:attr="data-count-up=${userCount}" th:text="${userCount}">0</strong>
                 <p>Tài khoản đang được quản lý</p>
                 <a th:href="@{/admin/users}">Quản lý tài khoản <span>→</span></a>
             </article>
+
             <article class="dashboard-kpi kpi-documents">
-                <div class="dashboard-kpi-top"><span class="dashboard-kpi-icon">▤</span><span class="dashboard-kpi-label">Kho tài liệu</span></div>
+                <div class="dashboard-kpi-top">
+                    <span class="dashboard-kpi-dot"></span>
+                    <span class="dashboard-kpi-label">Kho tài liệu</span>
+                </div>
                 <strong data-count-up th:attr="data-count-up=${documentCount}" th:text="${documentCount}">0</strong>
                 <p th:text="|${draftCount} bản nháp trong hệ thống|">Tổng quy mô kho</p>
-                <a th:href="@{/repository}">Xem kho công khai <span>↗</span></a>
+                <a th:href="@{/repository}">Xem kho công khai <span>→</span></a>
             </article>
+
             <article class="dashboard-kpi kpi-pending">
-                <div class="dashboard-kpi-top"><span class="dashboard-kpi-icon">◷</span><span class="dashboard-kpi-label">Chờ kiểm duyệt</span></div>
+                <div class="dashboard-kpi-top">
+                    <span class="dashboard-kpi-dot"></span>
+                    <span class="dashboard-kpi-label">Chờ kiểm duyệt</span>
+                </div>
                 <strong data-count-up th:attr="data-count-up=${pendingCount}" th:text="${pendingCount}">0</strong>
                 <p th:text="|Chiếm ${pendingRate}% tổng tài liệu|">Cần xử lý ưu tiên</p>
                 <a th:href="@{/reviews/pending}">Xử lý hàng chờ <span>→</span></a>
             </article>
+
             <article class="dashboard-kpi kpi-published">
-                <div class="dashboard-kpi-top"><span class="dashboard-kpi-icon">✓</span><span class="dashboard-kpi-label">Đã công bố</span></div>
+                <div class="dashboard-kpi-top">
+                    <span class="dashboard-kpi-dot"></span>
+                    <span class="dashboard-kpi-label">Đã công bố</span>
+                </div>
                 <strong data-count-up th:attr="data-count-up=${publishedCount}" th:text="${publishedCount}">0</strong>
                 <p th:text="|${publicationRate}% kho đã sẵn sàng|">Sẵn sàng cho cộng đồng</p>
                 <a th:href="@{/repository}">Kiểm tra nội dung <span>→</span></a>
             </article>
-            <article class="dashboard-kpi"><div class="dashboard-kpi-top"><span class="dashboard-kpi-icon">◉</span><span class="dashboard-kpi-label">Lượt xem</span></div><strong data-count-up th:attr="data-count-up=${totalViews}" th:text="${totalViews}">0</strong><p>Tổng lượt mở tài liệu công khai</p><a th:href="@{/repository}">Xem kho <span>→</span></a></article>
-            <article class="dashboard-kpi"><div class="dashboard-kpi-top"><span class="dashboard-kpi-icon">↓</span><span class="dashboard-kpi-label">Lượt tải</span></div><strong data-count-up th:attr="data-count-up=${totalDownloads}" th:text="${totalDownloads}">0</strong><p>Tổng lượt tải học liệu</p><a th:href="@{/repository}">Xem kho <span>→</span></a></article>
+
+            <article class="dashboard-kpi">
+                <div class="dashboard-kpi-top">
+                    <span class="dashboard-kpi-dot" style="background: #3b82f6;"></span>
+                    <span class="dashboard-kpi-label">Lượt xem</span>
+                </div>
+                <strong data-count-up th:attr="data-count-up=${totalViews}" th:text="${totalViews}">0</strong>
+                <p>Tổng lượt mở tài liệu</p>
+                <a th:href="@{/repository}">Chi tiết kho <span>→</span></a>
+            </article>
+
+            <article class="dashboard-kpi">
+                <div class="dashboard-kpi-top">
+                    <span class="dashboard-kpi-dot" style="background: #0284c7;"></span>
+                    <span class="dashboard-kpi-label">Lượt tải</span>
+                </div>
+                <strong data-count-up th:attr="data-count-up=${totalDownloads}" th:text="${totalDownloads}">0</strong>
+                <p>Tổng lượt tải học liệu</p>
+                <a th:href="@{/repository}">Chi tiết kho <span>→</span></a>
+            </article>
         </section>
 
+        <!-- Popular Documents Table -->
         <section class="dashboard-v2-panel dashboard-activity" aria-labelledby="popular-title">
-            <header class="dashboard-panel-heading"><div><span class="dashboard-section-label">Mức độ sử dụng</span><h2 id="popular-title">Tài liệu nổi bật</h2></div></header>
-            <div class="table-scroll"><table class="dashboard-activity-table"><thead><tr><th>Tài liệu</th><th>Danh mục</th><th>Lượt xem</th><th>Lượt tải</th></tr></thead><tbody><tr th:each="doc : ${popularDocuments}"><td><a th:href="@{/repository/{id}(id=${doc.id})}" th:text="${doc.title}">Tài liệu</a></td><td th:text="${doc.category != null ? doc.category.name : 'Chưa phân loại'}">Danh mục</td><td th:text="${doc.viewCount}">0</td><td th:text="${doc.downloadCount}">0</td></tr><tr th:if="${#lists.isEmpty(popularDocuments)}"><td colspan="4" class="empty-cell">Chưa có dữ liệu sử dụng.</td></tr></tbody></table></div>
+            <header class="dashboard-panel-heading">
+                <div>
+                    <span class="dashboard-section-label">Mức độ tương tác</span>
+                    <h2 id="popular-title">Tài liệu nổi bật nhất</h2>
+                </div>
+                <a class="dashboard-heading-link" th:href="@{/repository}">Khám phá tất cả →</a>
+            </header>
+            <div class="table-scroll">
+                <table class="dashboard-activity-table">
+                    <thead>
+                    <tr>
+                        <th>Tên tài liệu</th>
+                        <th>Danh mục</th>
+                        <th>Lượt xem</th>
+                        <th>Lượt tải</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="doc : ${popularDocuments}">
+                        <td>
+                            <a th:href="@{/repository/{id}(id=${doc.id})}" th:text="${doc.title}">Tài liệu</a>
+                        </td>
+                        <td th:text="${doc.category != null ? doc.category.name : 'Chưa phân loại'}">Danh mục</td>
+                        <td><strong th:text="${doc.viewCount}">0</strong></td>
+                        <td><strong th:text="${doc.downloadCount}">0</strong></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(popularDocuments)}">
+                        <td colspan="4" class="empty-cell">Chưa có dữ liệu tương tác.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
 
+        <!-- Operational Pipeline & Priority Card -->
         <section class="dashboard-v2-main-grid" aria-label="Tình hình vận hành">
             <article class="dashboard-v2-panel dashboard-pipeline-panel">
                 <header class="dashboard-panel-heading">
-                    <div><span class="dashboard-section-label">Luồng nội dung</span><h2>Pipeline kiểm duyệt</h2></div>
+                    <div>
+                        <span class="dashboard-section-label">Luồng nội dung</span>
+                        <h2>Pipeline kiểm duyệt</h2>
+                    </div>
                     <span class="dashboard-panel-badge" th:text="|${documentCount} hồ sơ|">0 hồ sơ</span>
                 </header>
 
                 <div class="dashboard-pipeline">
                     <div class="pipeline-stage stage-draft">
-                        <div class="pipeline-stage-head"><span>01</span><i>▤</i></div>
-                        <strong th:text="${draftCount}">0</strong><h3>Bản nháp</h3>
-                        <p>Đang được tác giả hoàn thiện</p>
+                        <div class="pipeline-stage-head">
+                            <span class="stage-step-tag">Giai đoạn 01</span>
+                        </div>
+                        <strong th:text="${draftCount}">0</strong>
+                        <h3>Bản nháp</h3>
+                        <p>Đang hoàn thiện</p>
                     </div>
-                    <span class="pipeline-arrow">→</span>
+                    <span class="pipeline-arrow" aria-hidden="true">→</span>
                     <div class="pipeline-stage stage-review">
-                        <div class="pipeline-stage-head"><span>02</span><i>◷</i></div>
-                        <strong th:text="${pendingCount}">0</strong><h3>Đang duyệt</h3>
-                        <p>Chờ reviewer phản hồi</p>
+                        <div class="pipeline-stage-head">
+                            <span class="stage-step-tag">Giai đoạn 02</span>
+                        </div>
+                        <strong th:text="${pendingCount}">0</strong>
+                        <h3>Đang duyệt</h3>
+                        <p>Chờ phản hồi</p>
                     </div>
-                    <span class="pipeline-arrow">→</span>
+                    <span class="pipeline-arrow" aria-hidden="true">→</span>
                     <div class="pipeline-stage stage-approved">
-                        <div class="pipeline-stage-head"><span>03</span><i>✓</i></div>
-                        <strong th:text="${approvedCount}">0</strong><h3>Đã duyệt</h3>
-                        <p>Sẵn sàng để công bố</p>
+                        <div class="pipeline-stage-head">
+                            <span class="stage-step-tag">Giai đoạn 03</span>
+                        </div>
+                        <strong th:text="${approvedCount}">0</strong>
+                        <h3>Đã duyệt</h3>
+                        <p>Sẵn sàng công bố</p>
                     </div>
-                    <span class="pipeline-arrow">→</span>
+                    <span class="pipeline-arrow" aria-hidden="true">→</span>
                     <div class="pipeline-stage stage-published">
-                        <div class="pipeline-stage-head"><span>04</span><i>↗</i></div>
-                        <strong th:text="${publishedCount}">0</strong><h3>Công khai</h3>
-                        <p>Đã có trong kho cộng đồng</p>
+                        <div class="pipeline-stage-head">
+                            <span class="stage-step-tag">Giai đoạn 04</span>
+                        </div>
+                        <strong th:text="${publishedCount}">0</strong>
+                        <h3>Công khai</h3>
+                        <p>Đang phục vụ</p>
                     </div>
                 </div>
 
@@ -113,29 +202,44 @@
             </article>
 
             <aside class="dashboard-priority-card">
-                <header><span class="dashboard-section-label">Ưu tiên hôm nay</span><span class="priority-pulse"></span></header>
+                <header>
+                    <span class="dashboard-section-label">Ưu tiên hôm nay</span>
+                    <span class="priority-pulse"></span>
+                </header>
                 <h2 th:text="${pendingCount > 0 ? 'Hàng chờ cần được xử lý' : 'Mọi thứ đang đúng tiến độ'}">Ưu tiên vận hành</h2>
-                <p th:text="${pendingCount > 0 ? pendingCount + ' tài liệu đang chờ phản hồi để tiếp tục quy trình.' : 'Không còn tài liệu chờ duyệt. Hãy kiểm tra chất lượng kho công khai.'}">Mô tả</p>
-                <div class="priority-number"><strong th:text="${pendingCount}">0</strong><span>hồ sơ<br>chờ duyệt</span></div>
-                <div class="priority-progress"><span th:style="|--priority:${pendingRate}%;|"></span></div>
-                <a class="button" th:href="@{/reviews/pending}">Mở hàng chờ <span>→</span></a>
+                <p th:text="${pendingCount > 0 ? pendingCount + ' tài liệu đang chờ duyệt để kịp thời công bố tới giảng viên và sinh viên.' : 'Không còn tài liệu chờ duyệt. Tất cả học liệu đã được xử lý hoàn tất.'}">Mô tả</p>
+                <div class="priority-number">
+                    <strong th:text="${pendingCount}">0</strong>
+                    <span>hồ sơ<br>chờ duyệt</span>
+                </div>
+                <div class="priority-progress">
+                    <span th:style="|--priority:${pendingRate}%;|"></span>
+                </div>
+                <a class="button" th:href="@{/reviews/pending}">Mở hàng chờ kiểm duyệt →</a>
             </aside>
         </section>
 
+        <!-- Analysis Charts & Quick Tools -->
         <section class="dashboard-v2-lower-grid">
             <article class="dashboard-v2-panel dashboard-insights">
                 <header class="dashboard-panel-heading dashboard-insight-heading">
-                    <div><span class="dashboard-section-label">Phân tích kho</span><h2>Cơ cấu học liệu</h2></div>
+                    <div>
+                        <span class="dashboard-section-label">Phân tích kho</span>
+                        <h2>Cơ cấu học liệu</h2>
+                    </div>
                     <div class="dashboard-tabs" role="tablist" aria-label="Chọn loại phân tích">
-                        <button class="is-active" type="button" role="tab" aria-selected="true" data-dashboard-tab="category">Danh mục</button>
-                        <button type="button" role="tab" aria-selected="false" data-dashboard-tab="faculty">Khoa</button>
+                        <button class="is-active" type="button" role="tab" aria-selected="true" data-dashboard-tab="category">Theo danh mục</button>
+                        <button type="button" role="tab" aria-selected="false" data-dashboard-tab="faculty">Theo khoa</button>
                     </div>
                 </header>
 
                 <div class="dashboard-chart" data-dashboard-panel="category">
                     <div class="dashboard-chart-row" th:each="item, loop : ${categoryCounts}">
                         <span class="chart-rank" th:text="${#numbers.formatInteger(loop.index + 1, 2)}">01</span>
-                        <div><span th:text="${item.name}">Danh mục</span><div class="chart-track"><i th:style="|--width:${documentCount == 0 ? 0 : item.count * 100 / documentCount}%;|"></i></div></div>
+                        <div>
+                            <span th:text="${item.name}">Danh mục</span>
+                            <div class="chart-track"><i th:style="|--width:${documentCount == 0 ? 0 : item.count * 100 / documentCount}%;|"></i></div>
+                        </div>
                         <strong th:text="${item.count}">0</strong>
                     </div>
                     <p class="dashboard-no-data" th:if="${#lists.isEmpty(categoryCounts)}">Chưa có dữ liệu danh mục.</p>
@@ -143,7 +247,10 @@
                 <div class="dashboard-chart" data-dashboard-panel="faculty" hidden>
                     <div class="dashboard-chart-row" th:each="item, loop : ${facultyCounts}">
                         <span class="chart-rank" th:text="${#numbers.formatInteger(loop.index + 1, 2)}">01</span>
-                        <div><span th:text="${item.name}">Khoa</span><div class="chart-track"><i th:style="|--width:${documentCount == 0 ? 0 : item.count * 100 / documentCount}%;|"></i></div></div>
+                        <div>
+                            <span th:text="${item.name}">Khoa</span>
+                            <div class="chart-track"><i th:style="|--width:${documentCount == 0 ? 0 : item.count * 100 / documentCount}%;|"></i></div>
+                        </div>
                         <strong th:text="${item.count}">0</strong>
                     </div>
                     <p class="dashboard-no-data" th:if="${#lists.isEmpty(facultyCounts)}">Chưa có dữ liệu khoa.</p>
@@ -151,41 +258,103 @@
             </article>
 
             <aside class="dashboard-v2-panel dashboard-quick-panel">
-                <header class="dashboard-panel-heading"><div><span class="dashboard-section-label">Truy cập nhanh</span><h2>Công cụ quản trị</h2></div></header>
+                <header class="dashboard-panel-heading">
+                    <div>
+                        <span class="dashboard-section-label">Truy cập nhanh</span>
+                        <h2>Công cụ quản trị</h2>
+                    </div>
+                </header>
                 <nav class="dashboard-quick-links" aria-label="Công cụ quản trị">
-                    <a th:href="@{/admin/users}"><span class="quick-admin-icon">◎</span><span><strong>Người dùng</strong><small>Tài khoản và phân quyền</small></span><b>→</b></a>
-                    <a th:href="@{/admin/categories}"><span class="quick-admin-icon">◇</span><span><strong>Danh mục</strong><small>Tổ chức chủ đề học liệu</small></span><b>→</b></a>
-                    <a th:href="@{/admin/organization}"><span class="quick-admin-icon">⌘</span><span><strong>Khoa &amp; bộ môn</strong><small>Cấu trúc đơn vị đào tạo</small></span><b>→</b></a>
-                    <a th:href="@{/admin/notifications}"><span class="quick-admin-icon">◉</span><span><strong>Thông báo</strong><small>Gửi cập nhật cho người dùng</small></span><b>→</b></a>
-                    <a th:href="@{/admin/audit-logs}"><span class="quick-admin-icon">◷</span><span><strong>Nhật kí hệ thống</strong><small>Truy vết hoạt động quan trọng</small></span><b>→</b></a>
-                    <a th:href="@{/reviews/pending}"><span class="quick-admin-icon">✓</span><span><strong>Kiểm duyệt</strong><small>Xử lý nội dung chờ</small></span><b>→</b></a>
+                    <a th:href="@{/admin/users}">
+                        <div>
+                            <strong>Người dùng</strong>
+                            <small>Tài khoản &amp; phân quyền vai trò</small>
+                        </div>
+                        <b>→</b>
+                    </a>
+                    <a th:href="@{/admin/categories}">
+                        <div>
+                            <strong>Danh mục</strong>
+                            <small>Tổ chức cây chủ đề học liệu</small>
+                        </div>
+                        <b>→</b>
+                    </a>
+                    <a th:href="@{/admin/organization}">
+                        <div>
+                            <strong>Khoa &amp; bộ môn</strong>
+                            <small>Cơ cấu tổ chức đơn vị đào tạo</small>
+                        </div>
+                        <b>→</b>
+                    </a>
+                    <a th:href="@{/admin/notifications}">
+                        <div>
+                            <strong>Thông báo</strong>
+                            <small>Gửi tin cập nhật tới người dùng</small>
+                        </div>
+                        <b>→</b>
+                    </a>
+                    <a th:href="@{/admin/audit-logs}">
+                        <div>
+                            <strong>Nhật ký hệ thống</strong>
+                            <small>Truy vết các thao tác quan trọng</small>
+                        </div>
+                        <b>→</b>
+                    </a>
+                    <a th:href="@{/reviews/pending}">
+                        <div>
+                            <strong>Hàng chờ duyệt</strong>
+                            <small>Đánh giá &amp; phê duyệt tài liệu</small>
+                        </div>
+                        <b>→</b>
+                    </a>
                 </nav>
             </aside>
         </section>
 
+        <!-- Recent Documents Feed -->
         <section class="dashboard-v2-panel dashboard-activity" aria-labelledby="activity-title">
             <header class="dashboard-panel-heading">
-                <div><span class="dashboard-section-label">Hoạt động mới nhất</span><h2 id="activity-title">Tài liệu vừa cập nhật</h2></div>
-                <a class="dashboard-heading-link" th:href="@{/reviews/pending}">Xem hàng chờ →</a>
+                <div>
+                    <span class="dashboard-section-label">Hoạt động mới</span>
+                    <h2 id="activity-title">Tài liệu vừa cập nhật gần đây</h2>
+                </div>
+                <a class="dashboard-heading-link" th:href="@{/reviews/pending}">Xem hàng chờ duyệt →</a>
             </header>
             <div class="table-scroll">
                 <table class="dashboard-activity-table">
-                    <thead><tr><th>Tài liệu</th><th>Người đóng góp</th><th>Danh mục</th><th>Trạng thái</th><th>Cập nhật</th></tr></thead>
+                    <thead>
+                    <tr>
+                        <th>Tài liệu</th>
+                        <th>Người nộp</th>
+                        <th>Danh mục</th>
+                        <th>Trạng thái</th>
+                        <th>Thời gian</th>
+                    </tr>
+                    </thead>
                     <tbody>
                     <tr th:each="doc : ${recentDocuments}">
-                        <td><div class="activity-document"><span>▤</span><strong th:text="${doc.title}">Tài liệu</strong></div></td>
+                        <td>
+                            <strong th:text="${doc.title}">Tài liệu</strong>
+                        </td>
                         <td th:text="${doc.createdBy != null ? doc.createdBy.fullName : 'Chưa xác định'}">Người nộp</td>
                         <td th:text="${doc.category != null ? doc.category.name : 'Chưa phân loại'}">Danh mục</td>
-                        <td><span class="status-pill" th:classappend="| status-${#strings.toLowerCase(doc.status.name())}|" th:text="${doc.status}">DRAFT</span></td>
-                        <td th:text="${doc.updatedAt != null ? #temporals.format(doc.updatedAt, 'dd/MM/yyyy HH:mm') : '—'}">—</td>
+                        <td>
+                            <span class="status-pill" th:classappend="| status-${#strings.toLowerCase(doc.status.name())}|" th:text="${doc.status}">DRAFT</span>
+                        </td>
+                        <td>
+                            <time th:text="${doc.updatedAt != null ? #temporals.format(doc.updatedAt, 'dd/MM/yyyy HH:mm') : '—'}">—</time>
+                        </td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(recentDocuments)}"><td colspan="5" class="empty-cell">Chưa có hoạt động tài liệu.</td></tr>
+                    <tr th:if="${#lists.isEmpty(recentDocuments)}">
+                        <td colspan="5" class="empty-cell">Chưa có hoạt động tài liệu nào.</td>
+                    </tr>
                     </tbody>
                 </table>
             </div>
         </section>
     </main>
 </div>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
 <script type="module" th:src="@{/js/main.js}"></script>
 </body>

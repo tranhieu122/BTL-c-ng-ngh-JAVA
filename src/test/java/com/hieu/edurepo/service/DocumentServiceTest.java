@@ -204,4 +204,32 @@ class DocumentServiceTest {
 
         assertEquals(DocumentStatus.RESUBMITTED, result.getStatus());
     }
+
+    @Test
+    void deleteDraftDeletesPhysicalFilesOnDisk() {
+        DocumentRepository repository = mock(DocumentRepository.class);
+        DocumentVersionRepository versionRepository = mock(DocumentVersionRepository.class);
+        FileStorageService storageService = mock(FileStorageService.class);
+        DocumentService service = new DocumentServiceImpl(repository, versionRepository, storageService);
+
+        User owner = new User();
+        owner.setId(1L);
+        Document document = new Document();
+        document.setId(10L);
+        document.setCreatedBy(owner);
+        document.setStatus(DocumentStatus.DRAFT);
+        document.setFilePath("draft-main.pdf");
+
+        DocumentVersion v1 = new DocumentVersion();
+        v1.setFilePath("draft-v1.pdf");
+        when(repository.findByIdForUpdate(10L)).thenReturn(Optional.of(document));
+        when(versionRepository.findByDocumentIdOrderByVersionNumberDesc(10L)).thenReturn(java.util.List.of(v1));
+
+        service.deleteDraft(10L, owner);
+
+        verify(repository).delete(document);
+        verify(versionRepository).deleteByDocumentId(10L);
+        verify(storageService).delete("draft-main.pdf");
+        verify(storageService).delete("draft-v1.pdf");
+    }
 }

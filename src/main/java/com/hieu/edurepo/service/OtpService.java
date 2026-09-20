@@ -16,6 +16,27 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Locale;
 
+/**
+ * Service quản lý vòng đời mã OTP (One-Time Password) dùng trong đăng ký và đặt lại mật khẩu.
+ *
+ * <h3>Bảo mật:</h3>
+ * <ul>
+ *   <li>Mã 6 chữ số được tạo bằng {@code SecureRandom} (khó đoán hơn {@code Random}).</li>
+ *   <li>Chỉ lưu hash(pepper + purpose + email + mã) vào CSDL – không lưu mã gốc.</li>
+ *   <li>So sánh hash bằng {@code MessageDigest.isEqual()} (constant-time) để chống timing attack.</li>
+ *   <li>Pessimistic write lock khi verify để tránh race condition (TOCTOU attack).</li>
+ *   <li>Cooldown giữa các lần gửi lại để chống spam email.</li>
+ *   <li>Giới hạn số lần nhập sai (lockout) để chống brute-force.</li>
+ * </ul>
+ *
+ * <h3>Cấu hình ({@code application.properties}):</h3>
+ * <pre>
+ * app.auth.otp.pepper=&lt;chuỗi bí mật&gt;     # Pepper trộn vào hash
+ * app.auth.otp.ttl-minutes=10              # Thời gian hiệu lực OTP (phút)
+ * app.auth.otp.resend-cooldown-seconds=60  # Thời gian chờ giữa các lần gửi lại
+ * app.auth.otp.max-attempts=5              # Số lần nhập sai tối đa
+ * </pre>
+ */
 @Service
 @Transactional
 public class OtpService {
@@ -52,8 +73,8 @@ public class OtpService {
         String normalizedEmail = normalizeEmail(email);
         LocalDateTime now = now();
 
-        // Tìm OTP mới nhất còn hiệu lực để kiểm tra người dùng có bấm gửi lại quá nhanh không.
-        AuthOtpToken existing = tokens.findTopByEmailIgnoreCaseAndPurposeAndConsumedAtIsNullOrderByCreatedAtDesc(normalizedEmail, purpose)
+        // Tìm OTP mới nhất còn hiệu lực với Row Lock để kiểm tra người dùng có bấm gửi lại quá nhanh không.
+        AuthOtpToken existing = tokens.findFirstByEmailIgnoreCaseAndPurposeAndConsumedAtIsNullOrderByCreatedAtDesc(normalizedEmail, purpose)
                 .orElse(null);
         if (existing != null && existing.getResendAvailableAt().isAfter(now) && existing.getExpiresAt().isAfter(now)) {
             throw new OtpCooldownException(Math.max(1, java.time.Duration.between(now, existing.getResendAvailableAt()).toSeconds()));
@@ -76,7 +97,7 @@ public class OtpService {
         token.setResendAvailableAt(now.plusSeconds(resendCooldownSeconds));
         token.setCreatedAt(now);
         token.setUpdatedAt(now);
-        tokens.save(token);
+        tokens.saveAndFlush(token);
         metrics.otpIssued(purpose);
 
         // Trả mã gốc cho tầng controller/service gửi mail; database chỉ giữ codeHash.
@@ -90,6 +111,7 @@ public class OtpService {
         tokens.findById(issue.tokenId()).filter(token -> token.getConsumedAt() == null).ifPresent(token -> {
             token.setConsumedAt(revokedAt);
             token.setUpdatedAt(revokedAt);
+            tokens.saveAndFlush(token);
         });
     }
 
@@ -97,15 +119,16 @@ public class OtpService {
         String normalizedEmail = normalizeEmail(email);
         LocalDateTime now = now();
 
-        // Chỉ kiểm tra OTP mới nhất chưa bị dùng cho đúng email và đúng mục đích.
-        AuthOtpToken token = tokens.findTopByEmailIgnoreCaseAndPurposeAndConsumedAtIsNullOrderByCreatedAtDesc(normalizedEmail, purpose)
+        // Khóa bi quan (PESSIMISTIC_WRITE) để ngăn chặn tấn công đồng thời (Race Condition TOCTOU & Lost Update).
+        AuthOtpToken token = tokens.findFirstByEmailIgnoreCaseAndPurposeAndConsumedAtIsNullOrderByCreatedAtDesc(normalizedEmail, purpose)
                 .orElse(null);
-        if (token == null) return OtpVerification.MISSING;
+        if (token == null || token.getConsumedAt() != null) return OtpVerification.MISSING;
 
         // Hết hạn thì khóa mã hiện tại, người dùng phải gửi lại mã mới.
         if (!token.getExpiresAt().isAfter(now)) {
             token.setConsumedAt(now);
             token.setUpdatedAt(now);
+            tokens.saveAndFlush(token);
             return OtpVerification.EXPIRED;
         }
 
@@ -113,6 +136,7 @@ public class OtpService {
         if (token.getAttempts() >= maxAttempts) {
             token.setConsumedAt(now);
             token.setUpdatedAt(now);
+            tokens.saveAndFlush(token);
             return OtpVerification.LOCKED;
         }
 
@@ -122,6 +146,7 @@ public class OtpService {
                 hash(normalizedEmail, purpose, code).getBytes(StandardCharsets.UTF_8))) {
             token.setConsumedAt(now);
             token.setUpdatedAt(now);
+            tokens.saveAndFlush(token);
             return OtpVerification.VALID;
         }
 
@@ -130,8 +155,10 @@ public class OtpService {
         token.setUpdatedAt(now);
         if (token.getAttempts() >= maxAttempts) {
             token.setConsumedAt(now);
+            tokens.saveAndFlush(token);
             return OtpVerification.LOCKED;
         }
+        tokens.saveAndFlush(token);
         return OtpVerification.INVALID;
     }
 

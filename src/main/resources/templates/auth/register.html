@@ -1,55 +1,110 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Tạo tài khoản học liệu EduRepo."><title>Đăng ký | EduRepo</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tạo tài khoản học liệu số EduRepo.">
+    <title>Đăng ký tài khoản | EduRepo</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body class="auth-page">
+<a class="skip-link" href="#register-form">Đi tới biểu mẫu đăng ký</a>
+
 <main class="auth-shell auth-shell-compact">
-    <section class="auth-showcase">
-        <a class="brand brand-inverse auth-brand" th:href="@{/repository}"><span class="brand-mark" aria-hidden="true"><span class="brand-mark-book"></span></span><span class="brand-copy"><strong>EduRepo</strong><small>Digital Learning Library</small></span></a>
-        <div class="auth-message"><div class="hero-badge auth-badge">✦ Tham gia cộng đồng</div><h2>Chia sẻ tri thức<br><span>cùng EduRepo.</span></h2><p>Tài khoản mới mặc định có quyền USER để tìm kiếm, xem và tải học liệu đã công bố.</p></div>
-        <div class="auth-trust-row"><span>✓ Đăng ký miễn phí</span><span>✓ Mật khẩu được mã hóa</span></div>
+    <section class="auth-showcase" aria-labelledby="register-showcase-title">
+        <div class="auth-decoration auth-decoration-one" aria-hidden="true"></div>
+        <div class="auth-decoration auth-decoration-two" aria-hidden="true"></div>
+
+        <a class="brand brand-inverse auth-brand" th:href="@{/repository}">
+            <span class="brand-mark" aria-hidden="true"><span class="brand-mark-book"></span></span>
+            <span class="brand-copy"><strong>EduRepo</strong><small>Digital Learning Library</small></span>
+        </a>
+
+        <div class="auth-message">
+            <div class="hero-badge auth-badge">Tham gia cộng đồng</div>
+            <h2 id="register-showcase-title">Chia sẻ tri thức<br><span>cùng EduRepo.</span></h2>
+            <p>Tài khoản mới mặc định sở hữu quyền USER để tra cứu thông minh, tìm kiếm ngữ nghĩa và tải học liệu đã công bố.</p>
+        </div>
+
+        <div class="workflow-card" aria-label="Lợi ích thành viên">
+            <div class="workflow-head">
+                <div><small>Quyền lợi thành viên</small><strong>Trải nghiệm học tập trọn vẹn</strong></div>
+                <span class="workflow-live"><i></i> Miễn phí</span>
+            </div>
+            <ol class="workflow-steps">
+                <li class="complete"><span>1</span><p><strong>Tra cứu thông minh</strong><small>Hỏi đáp cùng trợ lý AI EduRepo</small></p></li>
+                <li class="complete"><span>2</span><p><strong>Truy cập học liệu</strong><small>Kho bài giảng, đề thi và tài liệu</small></p></li>
+                <li class="active"><span>3</span><p><strong>Đóng góp học liệu</strong><small>Đăng ký làm Submitter chia sẻ tài liệu</small></p></li>
+            </ol>
+        </div>
+
+        <div class="auth-trust-row">
+            <span>Đăng ký miễn phí</span>
+            <span>Xác thực OTP bảo mật</span>
+            <span>Mã hóa chuẩn BCrypt</span>
+        </div>
     </section>
+
     <section class="auth-card" aria-labelledby="register-title">
+        <div class="mobile-auth-brand">
+            <a class="brand" th:href="@{/repository}">
+                <span class="brand-mark" aria-hidden="true"><span class="brand-mark-book"></span></span>
+                <span class="brand-copy"><strong>EduRepo</strong><small>Digital Learning Library</small></span>
+            </a>
+        </div>
+
         <div class="auth-card-content">
-            <div class="auth-card-heading"><p class="eyebrow">Tạo tài khoản</p><h1 id="register-title">Đăng ký EduRepo</h1><p>Điền thông tin để bắt đầu sử dụng kho học liệu.</p></div>
-            <div class="alert error auth-alert" th:if="${errorMessage}" role="alert"><span class="alert-icon">!</span><div th:text="${errorMessage}">Không thể đăng ký.</div></div>
-            <form class="login-form" th:action="@{/register}" th:object="${registerForm}" method="post">
+            <div class="auth-card-heading">
+                <p class="eyebrow">Khởi đầu mới</p>
+                <h1 id="register-title">Tạo tài khoản mới</h1>
+                <p>Điền thông tin bên dưới để bắt đầu sử dụng kho học liệu.</p>
+            </div>
+
+            <div class="alert error auth-alert" th:if="${errorMessage}" role="alert" aria-live="assertive">
+                <div>
+                    <strong>Không thể đăng ký</strong>
+                    <p th:text="${errorMessage}">Vui lòng kiểm tra lại thông tin đăng ký.</p>
+                </div>
+                <button type="button" data-dismiss-alert aria-label="Đóng thông báo">×</button>
+            </div>
+
+            <form id="register-form" class="login-form" th:action="@{/register}" th:object="${registerForm}" method="post" data-login-form>
                 <div class="form-field">
                     <label for="fullName">Họ và tên</label>
                     <div class="input-shell">
-                        <input id="fullName" type="text" th:field="*{fullName}" placeholder="Nguyễn Văn A"
+                        <input id="fullName" type="text" th:field="*{fullName}" placeholder="Họ và tên của bạn"
                                required autocomplete="name"
                                th:attr="aria-invalid=${#fields.hasErrors('fullName')},aria-describedby=${#fields.hasErrors('fullName') ? 'full-name-error' : null}">
                     </div>
                     <small id="full-name-error" class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></small>
                 </div>
+
                 <div class="form-field">
-                    <label for="register-email">Email</label>
+                    <label for="register-email">Địa chỉ email</label>
                     <div class="input-shell">
-                        <input id="register-email" type="email" th:field="*{email}" placeholder="name@example.com"
-                               required autocomplete="email"
+                        <input id="register-email" type="email" th:field="*{email}" placeholder="Email của bạn"
+                               required autocomplete="email" inputmode="email"
                                th:attr="aria-invalid=${#fields.hasErrors('email')},aria-describedby=${#fields.hasErrors('email') ? 'register-email-error' : null}">
                     </div>
                     <small id="register-email-error" class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
                 </div>
+
                 <div class="form-field">
-                    <label for="register-password">Mật khẩu</label>
+                    <div class="label-row">
+                        <label for="register-password">Mật khẩu</label>
+                        <span>Tối thiểu 8 ký tự</span>
+                    </div>
                     <div class="input-shell">
-                        <input id="register-password" type="password" th:field="*{password}" placeholder="Ít nhất 8 ký tự"
+                        <input id="register-password" type="password" th:field="*{password}" placeholder="Mật khẩu mới"
                                required autocomplete="new-password" data-password-input
                                th:attr="aria-invalid=${#fields.hasErrors('password')},aria-describedby=${#fields.hasErrors('password') ? 'register-password-help register-password-error' : 'register-password-help'}">
                         <button class="password-toggle" type="button" data-password-toggle
-                                aria-controls="register-password" aria-pressed="false">
-                            <span aria-hidden="true" data-password-icon>◉</span>
-                            <span class="sr-only" data-password-label>Hiện mật khẩu</span>
-                        </button>
+                                aria-controls="register-password" aria-pressed="false" data-password-label>Hiện</button>
                     </div>
-                    <small id="register-password-help" class="field-hint">Ít nhất 8 ký tự; nên kết hợp chữ hoa, chữ thường, số và ký tự đặc biệt.</small>
+                    <small id="register-password-help" class="field-hint">Nên kết hợp chữ hoa, chữ thường, số và ký tự đặc biệt.</small>
                     <small id="register-password-error" class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
                 </div>
+
                 <div class="form-field">
                     <label for="confirm-password">Xác nhận mật khẩu</label>
                     <div class="input-shell">
@@ -57,21 +112,28 @@
                                required autocomplete="new-password"
                                th:attr="aria-invalid=${#fields.hasErrors('confirmPassword')},aria-describedby=${#fields.hasErrors('confirmPassword') ? 'confirm-password-error' : null}">
                         <button class="password-toggle" type="button" data-password-toggle
-                                aria-controls="confirm-password" aria-pressed="false">
-                            <span aria-hidden="true" data-password-icon>◉</span>
-                            <span class="sr-only" data-password-label>Hiện mật khẩu</span>
-                        </button>
+                                aria-controls="confirm-password" aria-pressed="false" data-password-label>Hiện</button>
                     </div>
                     <small id="confirm-password-error" class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></small>
                 </div>
-                <button class="login-submit" type="submit"><span class="button-label">Tạo tài khoản</span><span class="button-arrow" aria-hidden="true">→</span></button>
+
+                <button class="login-submit" type="submit" data-submit-button>
+                    <span class="button-label">Tạo tài khoản</span>
+                    <span class="button-spinner" aria-hidden="true"></span>
+                </button>
             </form>
-            <p class="auth-switch">Đã có tài khoản? <a th:href="@{/login}">Đăng nhập</a></p>
-            <a class="back-link" th:href="@{/repository}">← Quay lại kho học liệu</a>
+
+            <p class="auth-switch">Đã có tài khoản? <a th:href="@{/login}">Đăng nhập ngay</a></p>
+            <a class="back-link" th:href="@{/repository}">Quay lại kho học liệu</a>
         </div>
-        <div class="auth-card-footer"><span>EduRepo Access Portal</span><span>USER mặc định</span></div>
+
+        <div class="auth-card-footer">
+            <span>EduRepo Access Portal</span>
+            <span>Quyền USER mặc định</span>
+        </div>
     </section>
 </main>
+
 <div th:replace="~{fragments/ui :: toastRegion}"></div>
 <script type="module" th:src="@{/js/main.js}"></script>
 </body>

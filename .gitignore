@@ -51,7 +51,21 @@ backups/
 uploads/
 outputs/
 downloaded_*/
-*.env
-*.env.*
-.env
 
+### Environment & Secrets ###
+.env
+.env.*
+*.env
+*.secret
+credentials.json
+secrets.json
+service-account.json
+!.env.example
+
+### Local Configuration Profiles ###
+application-local.properties
+application-local.yml
+application-local.yaml
+application-secret.properties
+application-secret.yml
+application-secret.yaml

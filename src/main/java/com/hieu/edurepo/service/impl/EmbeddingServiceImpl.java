@@ -67,7 +67,25 @@ public class EmbeddingServiceImpl implements EmbeddingService {
         for (int i = 0; i < texts.size(); i += batchSize) {
             List<String> batch = texts.subList(i, Math.min(i + batchSize, texts.size()));
             List<List<Double>> batchResult = callOpenAiEmbeddingApi(batch);
-            allEmbeddings.addAll(batchResult);
+            if (batchResult != null && batchResult.size() == batch.size()) {
+                allEmbeddings.addAll(batchResult);
+            } else {
+                // Thử lại 1 lần nếu gặp lỗi tạm thời
+                try {
+                    Thread.sleep(600);
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
+                }
+                batchResult = callOpenAiEmbeddingApi(batch);
+                if (batchResult != null && batchResult.size() == batch.size()) {
+                    allEmbeddings.addAll(batchResult);
+                } else {
+                    // Giữ đúng vị trí index bằng null để không bị lệch vector giữa các chunk
+                    for (int k = 0; k < batch.size(); k++) {
+                        allEmbeddings.add(null);
+                    }
+                }
+            }
         }
 
         return allEmbeddings;

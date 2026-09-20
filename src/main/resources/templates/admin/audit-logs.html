@@ -3,54 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Nhật kí hệ thống | EduRepo</title>
+    <meta name="description" content="Nhật ký hoạt động và truy vết hệ thống học liệu số EduRepo.">
+    <title>Nhật ký hệ thống | EduRepo</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body class="audit-log-page">
 <div th:replace="~{fragments/header :: header}"></div>
+
 <div class="page-shell">
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
-    <main id="main-content" class="content workspace-content">
-        <header class="workspace-heading"><div><span class="eyebrow">Quản trị &amp; truy vết</span><h1>Nhật kí hệ thống</h1>
-            <p class="subtitle">Theo dõi các thao tác quan trọng của EduRepo theo thời gian mới nhất.</p></div></header>
 
+    <main id="main-content" class="content workspace-content">
+        <header class="workspace-heading">
+            <div>
+                <span class="workspace-kicker">Quản trị &amp; truy vết</span>
+                <h1>Nhật ký hệ thống</h1>
+                <p class="subtitle">Theo dõi lịch sử thao tác, hoạt động bảo mật và các biến động dữ liệu quan trọng trên EduRepo theo thời gian thực.</p>
+            </div>
+        </header>
+
+        <!-- Advanced Filter Panel -->
         <form class="audit-filter-panel" method="get" th:action="@{/admin/audit-logs}" th:object="${filter}">
-            <label>Hành động<select th:field="*{action}"><option value="">Tất cả</option><option th:each="item : ${actions}" th:value="${item}" th:text="${item.label}">Hành động</option></select></label>
-            <label>Người thực hiện<select th:field="*{actorId}"><option value="">Tất cả</option><option th:each="item : ${users}" th:value="${item.id}" th:text="${#strings.isEmpty(item.fullName) ? item.email : item.fullName + ' · ' + item.email}">Người dùng</option></select></label>
-            <label>Vai trò<select th:field="*{actorRole}"><option value="">Tất cả</option><option th:each="item : ${roles}" th:value="${item}" th:text="${item == 'GUEST' ? 'Khách' : item}">Vai trò</option></select></label>
-            <label>Loại đối tượng<select th:field="*{targetType}"><option value="">Tất cả</option><option th:each="item : ${targetTypes}" th:value="${item}" th:text="${item.label}">Đối tượng</option></select></label>
-            <label>Kết quả<select th:field="*{result}"><option value="">Tất cả</option><option th:each="item : ${results}" th:value="${item}" th:text="${item.label}">Kết quả</option></select></label>
-            <label>Từ ngày<input type="date" th:field="*{fromDate}"></label>
-            <label>Đến ngày<input type="date" th:field="*{toDate}"></label>
-            <label class="audit-keyword">Tìm trong mô tả<input type="search" th:field="*{keyword}" maxlength="200" placeholder="Ví dụ: công bố tài liệu"></label>
-            <div class="audit-filter-actions"><button class="button" type="submit">Lọc nhật kí</button><a class="button button-secondary" th:href="@{/admin/audit-logs}">Đặt lại</a></div>
+            <label>
+                <span>Hành động</span>
+                <select th:field="*{action}">
+                    <option value="">Tất cả hành động</option>
+                    <option th:each="item : ${actions}" th:value="${item}" th:text="${item.label}">Hành động</option>
+                </select>
+            </label>
+
+            <label>
+                <span>Người thực hiện</span>
+                <select th:field="*{actorId}">
+                    <option value="">Tất cả người dùng</option>
+                    <option th:each="item : ${users}" th:value="${item.id}"
+                            th:text="${#strings.isEmpty(item.fullName) ? item.email : item.fullName + ' · ' + item.email}">
+                        Người dùng
+                    </option>
+                </select>
+            </label>
+
+            <label>
+                <span>Vai trò</span>
+                <select th:field="*{actorRole}">
+                    <option value="">Tất cả vai trò</option>
+                    <option th:each="item : ${roles}" th:value="${item}" th:text="${item == 'GUEST' ? 'Khách vãng lai' : item}">Vai trò</option>
+                </select>
+            </label>
+
+            <label>
+                <span>Loại đối tượng</span>
+                <select th:field="*{targetType}">
+                    <option value="">Tất cả đối tượng</option>
+                    <option th:each="item : ${targetTypes}" th:value="${item}" th:text="${item.label}">Đối tượng</option>
+                </select>
+            </label>
+
+            <label>
+                <span>Kết quả thực thi</span>
+                <select th:field="*{result}">
+                    <option value="">Tất cả kết quả</option>
+                    <option th:each="item : ${results}" th:value="${item}" th:text="${item.label}">Kết quả</option>
+                </select>
+            </label>
+
+            <label>
+                <span>Từ ngày</span>
+                <input type="date" th:field="*{fromDate}">
+            </label>
+
+            <label>
+                <span>Đến ngày</span>
+                <input type="date" th:field="*{toDate}">
+            </label>
+
+            <label class="audit-keyword">
+                <span>Tìm kiếm nội dung</span>
+                <input type="search" th:field="*{keyword}" maxlength="200" placeholder="Nhập từ khóa mô tả (ví dụ: công bố tài liệu, đổi mật khẩu...)">
+            </label>
+
+            <div class="audit-filter-actions">
+                <button class="button" type="submit">Lọc nhật ký</button>
+                <a class="button button-secondary" th:href="@{/admin/audit-logs}">Đặt lại bộ lọc</a>
+            </div>
         </form>
 
+        <!-- Audit Table Panel -->
         <section class="data-panel audit-table-panel" aria-labelledby="audit-table-title">
-            <header class="data-panel-header"><strong id="audit-table-title">Lịch sử thao tác</strong><span class="record-count" th:text="|${logs.totalElements} bản ghi|">0 bản ghi</span></header>
-            <div class="table-scroll"><table class="data-table audit-table">
-                <thead><tr><th>Thời gian</th><th>Người thực hiện</th><th>Hành động</th><th>Đối tượng</th><th>Mô tả</th><th>Kết quả</th><th></th></tr></thead>
-                <tbody>
-                <tr th:each="log : ${logs.content}">
-                    <td><time th:text="${#temporals.format(log.occurredAt, 'dd/MM/yyyy HH:mm:ss')}">Thời gian</time></td>
-                    <td><strong th:text="${#strings.isEmpty(log.actorName) ? (#strings.isEmpty(log.actorIdentifier) ? 'Hệ thống/Khách' : log.actorIdentifier) : log.actorName}">Người dùng</strong><small th:if="${!#strings.isEmpty(log.actorRoles)}" th:text="${log.actorRoles}">Vai trò</small></td>
-                    <td><span class="audit-action" th:text="${log.action.label}">Hành động</span></td>
-                    <td><span th:text="${log.targetType.label}">Đối tượng</span><small th:if="${!#strings.isEmpty(log.targetName)}" th:text="${log.targetName}">Tên</small><small th:if="${log.targetId != null}" th:text="|ID #${log.targetId}|">ID</small></td>
-                    <td><p class="audit-description" th:text="${log.description}">Mô tả</p></td>
-                    <td><span class="audit-result" th:classappend="${log.result.name() == 'SUCCESS' ? ' is-success' : ' is-failure'}" th:text="${log.result.label}">Kết quả</span></td>
-                    <td><a class="table-action" th:href="@{/admin/audit-logs/{id}(id=${log.id})}">Chi tiết</a></td>
-                </tr>
-                <tr th:if="${logs.empty}"><td colspan="7" class="empty-cell">Không có bản ghi phù hợp với bộ lọc.</td></tr>
-                </tbody>
-            </table></div>
-            <nav class="audit-pagination" th:if="${logs.totalPages > 1}" aria-label="Phân trang nhật kí">
-                <a th:if="${logs.hasPrevious()}" th:href="@{/admin/audit-logs(page=${logs.number - 1},action=${filter.action},actorId=${filter.actorId},actorRole=${filter.actorRole},targetType=${filter.targetType},result=${filter.result},fromDate=${filter.fromDate},toDate=${filter.toDate},keyword=${filter.keyword})}">← Trang trước</a>
-                <span th:text="|Trang ${logs.number + 1} / ${logs.totalPages}|">Trang</span>
-                <a th:if="${logs.hasNext()}" th:href="@{/admin/audit-logs(page=${logs.number + 1},action=${filter.action},actorId=${filter.actorId},actorRole=${filter.actorRole},targetType=${filter.targetType},result=${filter.result},fromDate=${filter.fromDate},toDate=${filter.toDate},keyword=${filter.keyword})}">Trang sau →</a>
+            <header class="data-panel-header">
+                <strong id="audit-table-title">Lịch sử thao tác</strong>
+                <span class="record-count" th:text="|${logs.totalElements} bản ghi|">0 bản ghi</span>
+            </header>
+
+            <div class="table-scroll">
+                <table class="data-table audit-table">
+                    <thead>
+                    <tr>
+                        <th>Thời gian</th>
+                        <th>Người thực hiện</th>
+                        <th>Hành động</th>
+                        <th>Đối tượng</th>
+                        <th>Mô tả chi tiết</th>
+                        <th>Kết quả</th>
+                        <th style="text-align: right;">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="log : ${logs.content}">
+                        <td>
+                            <time th:text="${#temporals.format(log.occurredAt, 'dd/MM/yyyy HH:mm:ss')}">01/01/2026</time>
+                        </td>
+                        <td>
+                            <strong th:text="${#strings.isEmpty(log.actorName) ? (#strings.isEmpty(log.actorIdentifier) ? 'Hệ thống/Khách' : log.actorIdentifier) : log.actorName}">Người dùng</strong>
+                            <small th:if="${!#strings.isEmpty(log.actorRoles)}" th:text="${log.actorRoles}">Vai trò</small>
+                        </td>
+                        <td>
+                            <span class="audit-action" th:text="${log.action.label}">Hành động</span>
+                        </td>
+                        <td>
+                            <span th:text="${log.targetType.label}">Đối tượng</span>
+                            <small th:if="${!#strings.isEmpty(log.targetName)}" th:text="${log.targetName}">Tên</small>
+                            <small th:if="${log.targetId != null}" th:text="|ID #${log.targetId}|">ID</small>
+                        </td>
+                        <td>
+                            <p class="audit-description" th:text="${log.description}">Mô tả thao tác</p>
+                        </td>
+                        <td>
+                            <span class="audit-result"
+                                  th:classappend="${log.result.name() == 'SUCCESS' ? ' is-success' : ' is-failure'}"
+                                  th:text="${log.result.label}">Thành công</span>
+                        </td>
+                        <td style="text-align: right;">
+                            <a class="table-action" th:href="@{/admin/audit-logs/{id}(id=${log.id})}">Chi tiết</a>
+                        </td>
+                    </tr>
+                    <tr th:if="${logs.empty}">
+                        <td colspan="7" class="empty-cell">Không có bản ghi nhật ký nào phù hợp với bộ lọc hiện tại.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav class="audit-pagination" th:if="${logs.totalPages > 1}" aria-label="Phân trang nhật ký">
+                <a th:if="${logs.hasPrevious()}"
+                   th:href="@{/admin/audit-logs(page=${logs.number - 1},action=${filter.action},actorId=${filter.actorId},actorRole=${filter.actorRole},targetType=${filter.targetType},result=${filter.result},fromDate=${filter.fromDate},toDate=${filter.toDate},keyword=${filter.keyword})}">
+                    Trang trước
+                </a>
+                <span th:unless="${logs.hasPrevious()}"></span>
+
+                <span th:text="|Trang ${logs.number + 1} / ${logs.totalPages}|">Trang 1 / 1</span>
+
+                <a th:if="${logs.hasNext()}"
+                   th:href="@{/admin/audit-logs(page=${logs.number + 1},action=${filter.action},actorId=${filter.actorId},actorRole=${filter.actorRole},targetType=${filter.targetType},result=${filter.result},fromDate=${filter.fromDate},toDate=${filter.toDate},keyword=${filter.keyword})}">
+                    Trang sau
+                </a>
+                <span th:unless="${logs.hasNext()}"></span>
             </nav>
         </section>
     </main>
 </div>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
+<script type="module" th:src="@{/js/main.js}"></script>
 </body>
 </html>

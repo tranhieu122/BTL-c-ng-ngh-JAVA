@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hieu.edurepo.config.OpenAiProperties;
 import com.hieu.edurepo.service.OpenAIService;
+import com.hieu.edurepo.service.ToolExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -58,9 +59,9 @@ public class OpenAIServiceImpl implements OpenAIService {
 
             Map<String, Object> body = new HashMap<>();
             // Sử dụng model identifier chính thức được cấu hình (gpt-5.6-luna)
+            // Model GPT-5.6 Luna không hỗ trợ tham số temperature=0.2; sử dụng giá trị mặc định của model
             body.put("model", properties.getModel());
             body.put("messages", messages);
-            body.put("temperature", 0.2);
 
             String requestJson = objectMapper.writeValueAsString(body);
 
@@ -92,5 +93,122 @@ public class OpenAIServiceImpl implements OpenAIService {
         }
 
         return "";
+    }
+
+    @Override
+    public com.hieu.edurepo.dto.ToolChatResponse generateChatWithTools(String systemPrompt, String userPrompt, ToolExecutorService toolExecutor) {
+        if (!properties.isConfigured()) {
+            LOGGER.warn("OpenAI API key is missing or blank. Cannot execute tool-calling chat with model {}.", properties.getModel());
+            return new com.hieu.edurepo.dto.ToolChatResponse("", List.of(), List.of(), List.of());
+        }
+
+        List<com.hieu.edurepo.dto.RagSource> accumulatedSources = new ArrayList<>();
+        List<com.hieu.edurepo.entity.Document> accumulatedDocuments = new ArrayList<>();
+        List<String> toolsUsed = new ArrayList<>();
+
+        try {
+            String endpoint = properties.getBaseUrl().replaceAll("/+$", "") + "/chat/completions";
+
+            List<Object> messages = new ArrayList<>();
+            if (systemPrompt != null && !systemPrompt.isBlank()) {
+                messages.add(Map.of("role", "system", "content", systemPrompt));
+            }
+            messages.add(Map.of("role", "user", "content", userPrompt != null ? userPrompt : ""));
+
+            List<Map<String, Object>> toolDefinitions = (toolExecutor != null) ? toolExecutor.getToolDefinitions() : List.of();
+
+            int maxTurns = 5;
+            for (int turn = 0; turn < maxTurns; turn++) {
+                Map<String, Object> body = new HashMap<>();
+                body.put("model", properties.getModel());
+                body.put("messages", messages);
+
+                if (!toolDefinitions.isEmpty()) {
+                    body.put("tools", toolDefinitions);
+                    body.put("tool_choice", "auto");
+                    if (properties.getModel() != null && (properties.getModel().contains("gpt-5")
+                            || properties.getModel().startsWith("o1")
+                            || properties.getModel().startsWith("o3"))) {
+                        body.put("reasoning_effort", "none");
+                    }
+                }
+
+                String requestJson = objectMapper.writeValueAsString(body);
+
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(endpoint))
+                        .header("Content-Type", "application/json")
+                        .header("Authorization", "Bearer " + properties.getApiKey())
+                        .timeout(Duration.ofSeconds(properties.getTimeoutSeconds()))
+                        .POST(HttpRequest.BodyPublishers.ofString(requestJson))
+                        .build();
+
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                    LOGGER.error("OpenAI Tool Calling API error (Model: {}): HTTP {} - {}",
+                            properties.getModel(), response.statusCode(), response.body());
+                    return new com.hieu.edurepo.dto.ToolChatResponse("", accumulatedSources, toolsUsed, accumulatedDocuments);
+                }
+
+                JsonNode root = objectMapper.readTree(response.body());
+                JsonNode choices = root.path("choices");
+                if (!choices.isArray() || choices.isEmpty()) {
+                    LOGGER.warn("OpenAI response did not contain choices: {}", response.body());
+                    break;
+                }
+
+                JsonNode messageNode = choices.get(0).path("message");
+                JsonNode toolCallsNode = messageNode.path("tool_calls");
+
+                if (toolCallsNode.isArray() && !toolCallsNode.isEmpty()) {
+                    // LLM yêu cầu gọi một hoặc nhiều công cụ
+                    messages.add(messageNode);
+
+                    for (JsonNode toolCall : toolCallsNode) {
+                        String callId = toolCall.path("id").asText();
+                        String toolName = toolCall.path("function").path("name").asText();
+                        String arguments = toolCall.path("function").path("arguments").asText();
+
+                        LOGGER.info("OpenAI yêu cầu thực thi Tool '{}' (Call ID: {}) với tham số: {}", toolName, callId, arguments);
+                        if (!toolsUsed.contains(toolName)) {
+                            toolsUsed.add(toolName);
+                        }
+
+                        com.hieu.edurepo.dto.ToolExecutionResult toolResult = (toolExecutor != null)
+                                ? toolExecutor.executeTool(toolName, arguments)
+                                : new com.hieu.edurepo.dto.ToolExecutionResult("{\"error\": \"No ToolExecutorService configured\"}");
+
+                        if (toolResult.sources() != null && !toolResult.sources().isEmpty()) {
+                            accumulatedSources.addAll(toolResult.sources());
+                        }
+
+                        if (toolResult.documents() != null && !toolResult.documents().isEmpty()) {
+                            for (com.hieu.edurepo.entity.Document doc : toolResult.documents()) {
+                                if (accumulatedDocuments.stream().noneMatch(existing -> existing.getId().equals(doc.getId()))) {
+                                    accumulatedDocuments.add(doc);
+                                }
+                            }
+                        }
+
+                        Map<String, Object> toolMessage = new HashMap<>();
+                        toolMessage.put("role", "tool");
+                        toolMessage.put("tool_call_id", callId);
+                        toolMessage.put("name", toolName);
+                        toolMessage.put("content", toolResult.toolResultJson());
+                        messages.add(toolMessage);
+                    }
+                    // Tiếp tục vòng lặp gửi tool message phản hồi lại cho OpenAI để nhận câu trả lời tổng hợp cuối cùng
+                } else {
+                    // Không còn tool call nào nữa, LLM đã trả về câu trả lời hoàn chỉnh
+                    String finalContent = messageNode.path("content").asText("");
+                    return new com.hieu.edurepo.dto.ToolChatResponse(finalContent.trim(), accumulatedSources, toolsUsed, accumulatedDocuments);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Lỗi ngoại lệ trong luồng OpenAI Tool Calling (Model: {}): {}", properties.getModel(), e.getMessage(), e);
+        }
+
+        return new com.hieu.edurepo.dto.ToolChatResponse("", accumulatedSources, toolsUsed, accumulatedDocuments);
     }
 }

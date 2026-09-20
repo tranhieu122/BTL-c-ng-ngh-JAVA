@@ -3,51 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Quản lý danh sách tài khoản người dùng và phân quyền EduRepo.">
     <title>Quản lý người dùng | EduRepo</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 <div th:replace="~{fragments/header :: header}"></div>
+
 <div class="page-shell">
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
     <main id="main-content" class="content workspace-content">
         <header class="workspace-heading">
-            <div><span class="workspace-kicker">Quản trị truy cập</span><h1>Người dùng</h1><p class="subtitle">Theo dõi tài khoản, vai trò và trạng thái hoạt động trên hệ thống.</p></div>
-            <div class="workspace-actions"><a class="button" th:href="@{/admin/users/new}">Thêm người dùng <span aria-hidden="true">＋</span></a></div>
+            <div>
+                <span class="workspace-kicker">Quản trị truy cập</span>
+                <h1>Quản lý người dùng</h1>
+                <p class="subtitle">Theo dõi tài khoản, phân quyền vai trò và quản lý trạng thái hoạt động trên toàn hệ thống.</p>
+            </div>
+            <div class="workspace-actions">
+                <a class="button" th:href="@{/admin/users/new}">Thêm người dùng mới</a>
+            </div>
         </header>
+
         <div th:replace="~{fragments/ui :: flashMessages}"></div>
+
+        <!-- Reset Password Requests Section -->
         <section class="data-panel" th:if="${!#lists.isEmpty(resetRequests)}" aria-label="Yêu cầu khôi phục mật khẩu">
-            <div class="data-panel-header"><strong>Yêu cầu khôi phục mật khẩu</strong></div>
-            <p class="field-hint">Xác minh danh tính qua kênh đã biết của người dùng trước khi đặt mật khẩu mới. Yêu cầu tự đóng khi mật khẩu được cập nhật.</p>
-            <div class="table-scroll"><table class="data-table"><thead><tr><th>Tài khoản</th><th>Thời gian yêu cầu</th><th>Thao tác</th></tr></thead><tbody>
-                <tr th:each="requester : ${resetRequests}"><td th:text="${requester.email}"></td><td th:text="${#temporals.format(requester.passwordResetRequestedAt, 'dd/MM/yyyy HH:mm')}"></td><td><a th:href="@{/admin/users/{id}/edit(id=${requester.id})}">Đặt mật khẩu mới</a></td></tr>
-            </tbody></table></div>
-        </section>
-        <section class="data-panel" aria-labelledby="users-table-title">
-            <div class="data-panel-header"><strong id="users-table-title">Danh sách tài khoản</strong><span class="record-count" th:text="|${#lists.size(users)} bản ghi|">0 bản ghi</span></div>
-            <div class="table-scroll" th:if="${!#lists.isEmpty(users)}">
+            <div class="data-panel-header">
+                <strong>Yêu cầu khôi phục mật khẩu đang chờ</strong>
+                <span class="record-count" th:text="|${#lists.size(resetRequests)} yêu cầu|">0 yêu cầu</span>
+            </div>
+            <div style="padding: 0 1.5rem 1rem;">
+                <p class="field-hint" style="margin: 0;">Xác minh danh tính qua kênh liên lạc chính thức trước khi cấp lại mật khẩu. Yêu cầu sẽ tự động hoàn tất khi mật khẩu được cập nhật.</p>
+            </div>
+            <div class="table-scroll">
                 <table class="data-table">
-                    <caption class="sr-only">Danh sách tài khoản và quyền truy cập</caption>
-                    <thead><tr><th>Người dùng</th><th>Vai trò</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                    <thead>
+                    <tr>
+                        <th>Tài khoản yêu cầu</th>
+                        <th>Thời gian gửi</th>
+                        <th>Thao tác</th>
+                    </tr>
+                    </thead>
                     <tbody>
-                    <tr th:each="user : ${users}">
-                        <td><div class="entity-cell"><span class="entity-avatar" th:text="${#strings.substring(user.fullName, 0, 1)}">U</span><span class="entity-copy"><strong th:text="${user.fullName}">Họ tên</strong><small th:text="${user.email}">email</small></span></div></td>
+                    <tr th:each="requester : ${resetRequests}">
+                        <td><strong th:text="${requester.email}">email@example.com</strong></td>
+                        <td><time th:text="${#temporals.format(requester.passwordResetRequestedAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</time></td>
                         <td>
-                            <span class="role-badges" th:if="${!#sets.isEmpty(user.roles)}">
-                                <span class="status-pill" th:each="role : ${user.roles}" th:text="${role.name}">USER</span>
-                            </span>
-                            <span class="field-hint" th:if="${#sets.isEmpty(user.roles)}">Chưa cấp vai trò</span>
+                            <a class="table-action" th:href="@{/admin/users/{id}/edit(id=${requester.id})}">
+                                Đặt mật khẩu mới →
+                            </a>
                         </td>
-                        <td><span class="status-pill" th:classappend="${user.enabled} ? ' is-active' : ''" th:text="${user.enabled ? 'Đang hoạt động' : 'Đã khóa'}">Trạng thái</span></td>
-                        <td><a class="table-action" th:href="@{/admin/users/{id}/edit(id=${user.id})}">Chỉnh sửa <span aria-hidden="true">→</span></a><form th:action="@{/admin/users/{id}/delete(id=${user.id})}" method="post"><button type="submit" class="button button-danger button-sm" data-confirm-message="Xóa tài khoản này? Tài khoản có tài liệu hoặc lịch sử duyệt sẽ không được xóa.">Xóa tài khoản</button></form></td>
                     </tr>
                     </tbody>
                 </table>
             </div>
-            <div class="empty-panel" th:if="${#lists.isEmpty(users)}"><span class="workspace-icon" aria-hidden="true">◎</span><h2>Chưa có người dùng</h2><p>Tạo tài khoản đầu tiên để bắt đầu phân quyền cho hệ thống.</p></div>
+        </section>
+
+        <!-- Main Users List -->
+        <section class="data-panel" aria-labelledby="users-table-title">
+            <div class="data-panel-header">
+                <strong id="users-table-title">Danh sách tài khoản</strong>
+                <span class="record-count" th:text="|${#lists.size(users)} thành viên|">0 thành viên</span>
+            </div>
+
+            <div class="table-scroll" th:if="${!#lists.isEmpty(users)}">
+                <table class="data-table">
+                    <caption class="sr-only">Danh sách tài khoản và quyền truy cập</caption>
+                    <thead>
+                    <tr>
+                        <th>Thành viên</th>
+                        <th>Vai trò hệ thống</th>
+                        <th>Trạng thái</th>
+                        <th style="text-align: right;">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="user : ${users}">
+                        <td>
+                            <div class="entity-cell">
+                                <span class="entity-avatar" th:text="${#strings.substring(user.fullName != null && !#strings.isEmpty(user.fullName) ? user.fullName : user.email, 0, 1)}">U</span>
+                                <div class="entity-copy">
+                                    <strong th:text="${user.fullName}">Họ và tên</strong>
+                                    <small th:text="${user.email}">email@example.com</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="role-badges" th:if="${!#sets.isEmpty(user.roles)}">
+                                <span class="status-pill" th:each="role : ${user.roles}"
+                                      th:attr="data-role=${role.name}"
+                                      th:text="${role.name}">USER</span>
+                            </div>
+                            <span class="field-hint" th:if="${#sets.isEmpty(user.roles)}">Chưa cấp vai trò</span>
+                        </td>
+                        <td>
+                            <span class="status-pill" th:classappend="${user.enabled} ? ' is-active' : ''"
+                                  th:text="${user.enabled ? 'Đang hoạt động' : 'Đã khóa'}">Trạng thái</span>
+                        </td>
+                        <td style="text-align: right;">
+                            <div style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                                <a class="table-action" th:href="@{/admin/users/{id}/edit(id=${user.id})}">Sửa</a>
+                                <form th:action="@{/admin/users/{id}/delete(id=${user.id})}" method="post" style="display:inline; margin: 0;">
+                                    <button type="submit" class="button button-danger button-sm"
+                                            data-confirm-message="Bạn có chắc chắn muốn xóa tài khoản này? Tài khoản có tài liệu hoặc lịch sử duyệt sẽ không thể xóa.">
+                                        Xóa
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="empty-panel" th:if="${#lists.isEmpty(users)}">
+                <h2>Chưa có người dùng nào</h2>
+                <p>Tạo tài khoản đầu tiên để bắt đầu phân quyền quản trị và nộp học liệu cho hệ thống.</p>
+            </div>
         </section>
     </main>
 </div>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
+<script type="module" th:src="@{/js/main.js}"></script>
 </body>
 </html>

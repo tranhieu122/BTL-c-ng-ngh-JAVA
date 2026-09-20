@@ -60,4 +60,19 @@ class DocumentAssistantControllerTest {
         verify(service).respond(org.mockito.ArgumentMatchers.eq("mới nhất thôi"),
                 org.mockito.ArgumentMatchers.argThat(context -> context.keyword().equals("Java")));
     }
+
+    @Test
+    void returnsTooManyRequestsWhenRateLimited() throws Exception {
+        DocumentAssistantService service = mock(DocumentAssistantService.class);
+        com.hieu.edurepo.security.DocumentAssistantRateLimiter rateLimiter = mock(com.hieu.edurepo.security.DocumentAssistantRateLimiter.class);
+        when(rateLimiter.tryAcquire(org.mockito.ArgumentMatchers.anyString())).thenReturn(false);
+        when(rateLimiter.getRetryAfterSeconds(org.mockito.ArgumentMatchers.anyString())).thenReturn(45L);
+
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(new DocumentAssistantController(service, rateLimiter)).build();
+
+        mvc.perform(get("/api/document-assistant").param("message", "Spam query"))
+                .andExpect(status().is(429))
+                .andExpect(jsonPath("$.type").value("RATE_LIMITED"))
+                .andExpect(jsonPath("$.answer").value(org.hamcrest.Matchers.containsString("45 giây")));
+    }
 }
