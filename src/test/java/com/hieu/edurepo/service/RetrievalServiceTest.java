@@ -14,6 +14,10 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
+/**
+ * Kiểm thử dịch vụ truy xuất tài liệu (Retrieval Service Test).
+ * Đánh giá cơ chế tìm kiếm lai (Hybrid Search) kết hợp giữa Fulltext Search và Vector Search.
+ */
 class RetrievalServiceTest {
 
     @Test

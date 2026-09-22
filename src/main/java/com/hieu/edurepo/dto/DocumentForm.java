@@ -8,6 +8,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * Biểu mẫu DTO dùng cho tác giả đăng tải hoặc chỉnh sửa thông tin học liệu.
+ */
 public class DocumentForm {
     @NotBlank(message = "Tiêu đề không được để trống")
     @Size(max = 255, message = "Tiêu đề không được vượt quá 255 ký tự")

@@ -12,6 +12,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+/**
+ * Kiểm thử ma trận phân quyền phân hệ người dùng (User Module Authorization Test).
+ * Đảm bảo sinh viên và người dùng thường không thể truy cập trái phép các endpoint quản trị thành viên.
+ */
 class UserModuleAuthorizationTest {
     @Autowired
     private MockMvc mockMvc;

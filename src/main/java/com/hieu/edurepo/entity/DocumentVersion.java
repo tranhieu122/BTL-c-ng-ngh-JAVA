@@ -17,6 +17,9 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "document_versions", uniqueConstraints =
         @UniqueConstraint(name = "uk_document_version_number", columnNames = {"document_id", "version_number"}))
+/**
+ * Thực thể lưu trữ lịch sử các phiên bản tệp tin đính kèm của tài liệu (Document Versioning).
+ */
 public class DocumentVersion {
 
     @Id

@@ -35,6 +35,10 @@ import static org.mockito.Mockito.*;
 /**
  * Bộ kiểm thử toàn diện 10 kịch bản cho Document Ingestion Pipeline nâng cao của EduRepo.
  */
+/**
+ * Kiểm thử luồng nạp và xử lý học liệu (Document Ingestion Pipeline Test).
+ * Kiểm tra quy trình từ bóc tách văn bản, tạo vector nhúng và cập nhật trạng thái INDEXED vào CSDL.
+ */
 class DocumentIngestionPipelineTest {
 
     private RagProperties ragProperties;

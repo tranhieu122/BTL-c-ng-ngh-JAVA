@@ -18,6 +18,10 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+/**
+ * Kiểm thử kho truy vấn học liệu phục vụ Trợ lý AI (Document Assistant Repository Test).
+ * Đánh giá tính chính xác của các câu lệnh tìm kiếm toàn văn, lọc trạng thái PUBLISHED và xếp hạng liên quan.
+ */
 class DocumentAssistantRepositoryTest {
 
     @Autowired

@@ -1,3 +1,8 @@
+/**
+ * Module thanh điều hướng và menu hệ thống (Navigation Script).
+ * Xử lý co giãn menu trên thiết bị di động (Mobile Hamburger Menu), thanh tìm kiếm nhanh và dropdown menu người dùng.
+ */
+
 const markBestRouteMatch = (selector) => {
     const currentPath = window.location.pathname.replace(/\/$/, "") || "/";
     const candidates = Array.from(document.querySelectorAll(selector))

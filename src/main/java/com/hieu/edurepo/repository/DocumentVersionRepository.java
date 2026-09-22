@@ -12,6 +12,9 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Kho lưu trữ và theo dõi các phiên bản cập nhật tệp tin của tài liệu.
+ */
 public interface DocumentVersionRepository extends JpaRepository<DocumentVersion, Long> {
     @EntityGraph(attributePaths = "createdBy")
     List<DocumentVersion> findByDocumentIdOrderByVersionNumberDesc(Long documentId);

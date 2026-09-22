@@ -11,6 +11,9 @@ import java.util.Collection;
 import java.util.List;
 
 @Repository
+/**
+ * Kho lưu trữ các đoạn văn bản phân mảnh (Text Chunks) của tài liệu phục vụ hệ thống tìm kiếm ngữ nghĩa RAG.
+ */
 public interface DocumentChunkRepository extends JpaRepository<DocumentChunk, Long> {
 
     List<DocumentChunk> findByDocumentIdOrderByChunkIndexAsc(Long documentId);

@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Collection;
 
+/**
+ * Kho lưu trữ đánh giá, chấm điểm sao và nhận xét tài liệu của người dùng.
+ */
 public interface DocumentReviewRepository extends JpaRepository<DocumentReview, Long> {
     Optional<DocumentReview> findByDocumentIdAndUserId(Long documentId, Long userId);
     boolean existsByDocumentIdAndUserId(Long documentId, Long userId);

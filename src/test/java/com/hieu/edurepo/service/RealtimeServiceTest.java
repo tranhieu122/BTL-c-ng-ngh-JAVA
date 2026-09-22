@@ -16,6 +16,10 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Kiểm thử dịch vụ truyền phát sự kiện thời gian thực (Realtime Service Test).
+ * Xác minh việc kết nối SSE Emitter, duy trì tín hiệu keep-alive và phát sóng cập nhật tới client.
+ */
 class RealtimeServiceTest {
     @Test
     void unchangedConnectionsDoNotRepeatedlyQueryDatabaseButChangesTriggerRefresh() {

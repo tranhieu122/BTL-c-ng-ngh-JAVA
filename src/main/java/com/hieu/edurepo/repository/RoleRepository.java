@@ -6,6 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
+/**
+ * Kho lưu trữ thông tin các vai trò (Roles) và quyền hạn tài khoản trong hệ thống.
+ */
 public interface RoleRepository extends JpaRepository<Role, Long> {
     @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @org.springframework.data.jpa.repository.Query("select r from Role r where r.name = :name")

@@ -47,9 +47,25 @@ public interface OpenAIService {
     com.hieu.edurepo.dto.ToolChatResponse generateChatWithTools(String systemPrompt, String userPrompt, ToolExecutorService toolExecutor);
 
     /**
+     * Gọi OpenAI Chat Completion API ở chế độ Streaming (Server-Sent Events).
+     * Truyền phát từng token văn bản (delta content) ngay khi nhận được từ OpenAI.
+     *
+     * @param systemPrompt Lệnh hệ thống định nghĩa vai trò AI.
+     * @param userPrompt   Câu hỏi hoặc nội dung người dùng.
+     * @param tokenConsumer Callback nhận từng token văn bản.
+     * @param onComplete   Callback khi kết thúc stream.
+     * @param onError      Callback khi gặp lỗi.
+     */
+    void streamChatCompletion(String systemPrompt, String userPrompt,
+                              java.util.function.Consumer<String> tokenConsumer,
+                              Runnable onComplete,
+                              java.util.function.Consumer<Throwable> onError);
+
+    /**
      * Kiểm tra xem OpenAI API có khả dụng hay không.
      *
      * @return {@code true} nếu API key được cấu hình hợp lệ và service sẵn sàng.
      */
     boolean isAvailable();
 }
+

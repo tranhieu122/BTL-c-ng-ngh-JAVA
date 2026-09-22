@@ -13,6 +13,13 @@ import java.util.List;
 
 @Service
 @Transactional
+/**
+ * Triển khai dịch vụ quản lý danh mục phân loại học liệu (Category Service Implementation).
+ * <p>
+ * Đảm bảo các quy chuẩn nghiệp vụ: Chuẩn hóa tên danh mục, chống trùng lặp tên danh mục,
+ * và hỗ trợ xóa mềm (đặt active = false) để bảo vệ toàn vẹn các tài liệu cũ đã liên kết.
+ * </p>
+ */
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;

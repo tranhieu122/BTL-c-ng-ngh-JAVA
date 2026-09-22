@@ -1,3 +1,8 @@
+/**
+ * Module cập nhật từng phân vùng giao diện thời gian thực (Realtime Regions Script).
+ * Tự động làm mới thẻ tài liệu hoặc hàng đợi kiểm duyệt khi nhận được sự kiện SSE tương ứng.
+ */
+
 // Refresh server-rendered regions using the current URL (including filters and pagination).
 export function regionVersion(region, snapshot) {
     const items = snapshot[region.dataset.liveSource] || [];

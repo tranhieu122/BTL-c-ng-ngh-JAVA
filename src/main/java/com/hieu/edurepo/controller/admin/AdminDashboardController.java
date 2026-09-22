@@ -8,6 +8,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+/**
+ * Bộ điều hướng Bảng điều khiển tổng quan quản trị (Admin Dashboard Controller).
+ * Hiển thị các chỉ số KPI: Tổng tài liệu, lượt tải, số thành viên và biểu đồ hoạt động.
+ */
 @Controller
 @RequestMapping("/admin")
 public class AdminDashboardController {

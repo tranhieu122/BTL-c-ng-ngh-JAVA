@@ -7,6 +7,9 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Kho lưu trữ nhật ký và lịch sử tải xuống tài liệu của người dùng.
+ */
 public interface DocumentDownloadHistoryRepository extends JpaRepository<DocumentDownloadHistory, Long> {
     Optional<DocumentDownloadHistory> findByUserIdAndDocumentId(Long userId, Long documentId);
     @EntityGraph(attributePaths = {"document", "document.category"})

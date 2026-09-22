@@ -52,4 +52,25 @@ public interface DocumentAssistantService {
      * @return Câu trả lời từ AI kèm danh sách tài liệu tham khảo.
      */
     DocumentAssistantResponse respond(String message, DocumentAssistantContext context);
+
+    /**
+     * Xử lý câu hỏi của người dùng với ngữ cảnh hội thoại và phạm vi giới hạn trong tài liệu (Scoped PDF Mode).
+     *
+     * @param message Câu hỏi của người dùng.
+     * @param context Ngữ cảnh hội thoại.
+     * @param scopedDocumentId ID tài liệu cần giới hạn phạm vi (nếu có).
+     * @return Câu trả lời từ AI kèm danh sách tài liệu tham khảo.
+     */
+    DocumentAssistantResponse respond(String message, DocumentAssistantContext context, Long scopedDocumentId);
+
+    /**
+     * Xử lý câu hỏi và truyền phát phản hồi trực tiếp tới người dùng qua Server-Sent Events (SSE).
+     *
+     * @param message Câu hỏi của người dùng.
+     * @param context Ngữ cảnh hội thoại.
+     * @param scopedDocumentId ID tài liệu giới hạn phạm vi (hoặc null nếu tra cứu toàn hệ thống).
+     * @param emitter Đối tượng SseEmitter truyền phát sự kiện xuống trình duyệt.
+     */
+    void streamResponse(String message, DocumentAssistantContext context, Long scopedDocumentId, org.springframework.web.servlet.mvc.method.annotation.SseEmitter emitter);
 }
+

@@ -132,8 +132,56 @@ function appendMessage(container, message, type, timeStr) {
     container.append(row);
 }
 
-function appendUserMessage(container, message, timeStr) {
-    appendMessage(container, message, "user", timeStr);
+function appendUserMessage(container, message, timeStr, imageSrc) {
+    const row = element("div", "assistant-message-row assistant-message-row-user");
+    const content = element("div");
+    const bubble = element("div", "assistant-message assistant-message-user");
+    if (imageSrc) {
+        const img = element("img", "user-message-attachment");
+        img.src = imageSrc;
+        img.alt = "Ảnh câu hỏi";
+        bubble.append(img);
+    }
+    if (message) {
+        const textSpan = element("span", "", message);
+        bubble.append(textSpan);
+    }
+    const time = element("time", "", timeStr || currentTime());
+    content.append(bubble, time);
+    row.append(content);
+    container.append(row);
+}
+
+function createThumbnailDataUrl(file, maxWidth = 120, maxHeight = 120) {
+    return new Promise((resolve) => {
+        if (!file || !file.type || !file.type.startsWith("image/")) {
+            resolve(null);
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement("canvas");
+                    let w = img.width;
+                    let h = img.height;
+                    const ratio = Math.min(maxWidth / w, maxHeight / h, 1);
+                    canvas.width = Math.max(1, Math.round(w * ratio));
+                    canvas.height = Math.max(1, Math.round(h * ratio));
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL("image/jpeg", 0.65));
+                } catch {
+                    resolve(null);
+                }
+            };
+            img.onerror = () => resolve(null);
+            img.src = e.target.result;
+        };
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+    });
 }
 
 function citationUrl(source) {
@@ -336,22 +384,105 @@ function formatInline(text) {
 }
 
 /**
- * Bộ phân tích cú pháp Markdown gọn nhẹ sang HTML cấu trúc chuẩn:
- * - Hỗ trợ tiêu đề (#, ##, ###)
- * - Danh sách có thứ tự (1., 2.) và không có thứ tự (-, *)
- * - Khối mã nguồn (```code```)
- * - Đoạn trích dẫn (> quote)
- * - Tự động bảo toàn các vị trí trích dẫn [1], [2] để gắn sự kiện tương tác
- * @param {string} rawText - Nội dung phản hồi từ AI
- * @returns {string} HTML hoàn chỉnh bọc trong div.assistant-markdown
+ * Render tất cả công thức toán học KaTeX bên trong một container DOM.
+ * An toàn, chống XSS, tự động fallback về text thuần nếu chưa tải xong thư viện.
+ */
+function renderKaTeX(container) {
+    if (!container) return;
+    if (typeof window.katex === "undefined") {
+        container.querySelectorAll("[data-katex-math]").forEach((el) => {
+            el.textContent = el.getAttribute("data-katex-math");
+        });
+        return;
+    }
+
+    container.querySelectorAll("[data-katex-math]").forEach((el) => {
+        if (el.dataset.katexRendered === "true") return;
+        const math = el.getAttribute("data-katex-math") || "";
+        const isDisplay = el.classList.contains("katex-display");
+        try {
+            window.katex.render(math, el, {
+                displayMode: isDisplay,
+                throwOnError: false
+            });
+            el.dataset.katexRendered = "true";
+        } catch (err) {
+            console.warn("KaTeX rendering error:", err);
+            el.textContent = math;
+        }
+    });
+}
+
+/**
+ * Trích xuất an toàn các khối toán học KaTeX ($$...$$ và $...$) và trích dẫn ([1], [2])
+ * trước khi xử lý Markdown để ngăn chặn xung đột ký tự và lỗi XSS.
+ */
+function extractMathAndCitations(rawText) {
+    if (!rawText) return { text: "", mathBlocks: [], mathInlines: [] };
+
+    const mathBlocks = [];
+    const mathInlines = [];
+
+    // 1. Tạm thời bảo vệ các khối mã nguồn ```...``` và inline code `...`
+    const codeBlocks = [];
+    let text = rawText.replace(/```[\s\S]*?```/g, (match) => {
+        codeBlocks.push(match);
+        return `§§CODE_BLOCK:${codeBlocks.length - 1}§§`;
+    });
+
+    const inlineCodes = [];
+    text = text.replace(/`[^`]+`/g, (match) => {
+        inlineCodes.push(match);
+        return `§§INLINE_CODE:${inlineCodes.length - 1}§§`;
+    });
+
+    // 2. Trích xuất Math Block: $$...$$ hoặc \[...\]
+    text = text.replace(/\$\$([\s\S]+?)\$\$/g, (match, formula) => {
+        mathBlocks.push(formula.trim());
+        return `§§MATH_BLOCK:${mathBlocks.length - 1}§§`;
+    });
+    text = text.replace(/\\\[([\s\S]+?)\\\]/g, (match, formula) => {
+        mathBlocks.push(formula.trim());
+        return `§§MATH_BLOCK:${mathBlocks.length - 1}§§`;
+    });
+
+    // 3. Trích xuất Math Inline: $...$ hoặc \(...\)
+    text = text.replace(/(?<!\\)\$([^\$\n\r]+?)(?<!\\)\$/g, (match, formula) => {
+        const trimmed = formula.trim();
+        // Bỏ qua nếu là số tiền thông thường (ví dụ: $100, $50k, $2.5)
+        if (/^\d+(?:[.,]\d+)?\s*(?:k|m|usd|vnđ)?$/i.test(trimmed)) {
+            return match;
+        }
+        mathInlines.push(trimmed);
+        return `§§MATH_INLINE:${mathInlines.length - 1}§§`;
+    });
+    text = text.replace(/\\\(([\s\S]+?)\\\)/g, (match, formula) => {
+        mathInlines.push(formula.trim());
+        return `§§MATH_INLINE:${mathInlines.length - 1}§§`;
+    });
+
+    // 4. Khôi phục lại khối mã nguồn và inline code
+    text = text.replace(/§§INLINE_CODE:(\d+)§§/g, (m, idx) => inlineCodes[idx]);
+    text = text.replace(/§§CODE_BLOCK:(\d+)§§/g, (m, idx) => codeBlocks[idx]);
+
+    // 5. Trích xuất Citations [1], [2]
+    text = text.replace(/\[(\d+)\]/g, "§§CIT:$1§§");
+
+    return { text, mathBlocks, mathInlines };
+}
+
+/**
+ * Phân tích cú pháp Markdown sang HTML cấu trúc chuẩn:
+ * - Tích hợp bảo vệ và render KaTeX math block/inline
+ * - Bảo toàn inline citations
+ * - Hỗ trợ tiêu đề, danh sách, quote, code blocks
  */
 function parseMarkdownToHtml(rawText) {
     if (!rawText) return "";
 
-    // 1. Bảo vệ trích dẫn [1], [2] trước khi parse Markdown
-    const textWithCitations = rawText.replace(/\[(\d+)\]/g, "§§CIT:$1§§");
+    const { text: processedText, mathBlocks, mathInlines } = extractMathAndCitations(rawText);
 
-    const lines = textWithCitations.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+    const lines = processedText.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
     const blocks = [];
     let currentList = null;
     let currentQuote = [];
@@ -407,6 +538,36 @@ function parseMarkdownToHtml(rawText) {
             flushQuote();
         }
 
+        // Bảng dữ liệu Markdown | Cột 1 | Cột 2 |
+        const isTableRow = (str) => {
+            const t = str.trim();
+            return t.includes("|") && (t.startsWith("|") || /\|.*\|/.test(t));
+        };
+        const isTableSeparator = (str) => {
+            const t = str.trim();
+            return /^\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?$/.test(t);
+        };
+
+        if (isTableRow(line) && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
+            flushList();
+            flushQuote();
+            const parseRow = (rowLine) => {
+                let clean = rowLine.trim();
+                if (clean.startsWith("|")) clean = clean.slice(1);
+                if (clean.endsWith("|")) clean = clean.slice(0, -1);
+                return clean.split("|").map(cell => cell.trim());
+            };
+            const headers = parseRow(line);
+            i++; // Bỏ qua dòng separator |---|---|
+            const rows = [];
+            while (i + 1 < lines.length && isTableRow(lines[i + 1]) && !isTableSeparator(lines[i + 1])) {
+                i++;
+                rows.push(parseRow(lines[i]));
+            }
+            blocks.push({ type: "table", headers, rows });
+            continue;
+        }
+
         // Tiêu đề ### hoặc ##
         const headingMatch = line.match(/^(#{1,4})\s+(.+)$/);
         if (headingMatch) {
@@ -415,7 +576,7 @@ function parseMarkdownToHtml(rawText) {
             continue;
         }
 
-        // Danh sách không thứ tự: - item hoặc * item (hỗ trợ thụt lề)
+        // Danh sách không thứ tự: - item hoặc * item
         const ulMatch = line.match(/^\s*[\*\-]\s+(.+)$/);
         if (ulMatch) {
             if (!currentList || currentList.type !== "ul") {
@@ -426,7 +587,7 @@ function parseMarkdownToHtml(rawText) {
             continue;
         }
 
-        // Danh sách có thứ tự: 1. item (hỗ trợ thụt lề)
+        // Danh sách có thứ tự: 1. item
         const olMatch = line.match(/^\s*(\d+)\.\s+(.+)$/);
         if (olMatch) {
             if (!currentList || currentList.type !== "ol") {
@@ -494,6 +655,14 @@ function parseMarkdownToHtml(rawText) {
             case "code": {
                 return `<pre class="assistant-code-block"><code>${escapeHtml(b.content)}</code></pre>`;
             }
+            case "table": {
+                const ths = b.headers.map((h) => `<th>${formatInline(h)}</th>`).join("");
+                const trs = b.rows.map((row) => {
+                    const tds = row.map((cell) => `<td>${formatInline(cell)}</td>`).join("");
+                    return `<tr>${tds}</tr>`;
+                }).join("");
+                return `<div class="assistant-table-wrapper"><table class="assistant-table"><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table></div>`;
+            }
             case "paragraph":
             default: {
                 return `<p>${formatInline(b.text).replace(/\n/g, "<br>")}</p>`;
@@ -501,7 +670,19 @@ function parseMarkdownToHtml(rawText) {
         }
     });
 
-    return `<div class="assistant-markdown">${htmlParts.join("")}</div>`;
+    let html = `<div class="assistant-markdown">${htmlParts.join("")}</div>`;
+
+    // Khôi phục các thẻ KaTeX placeholder sang HTML DOM elements với data-katex-math
+    html = html.replace(/§§MATH_BLOCK:(\d+)§§/g, (m, idx) => {
+        const formula = mathBlocks[idx] || "";
+        return `<div class="katex-display" data-katex-math="${escapeHtml(formula)}"></div>`;
+    });
+    html = html.replace(/§§MATH_INLINE:(\d+)§§/g, (m, idx) => {
+        const formula = mathInlines[idx] || "";
+        return `<span class="katex-inline" data-katex-math="${escapeHtml(formula)}"></span>`;
+    });
+
+    return html;
 }
 
 /**
@@ -532,7 +713,7 @@ function sanitizeAnswerText(text) {
 
 /**
  * Phân tích và render nội dung câu trả lời của AI:
- * - Định dạng Markdown hoàn chỉnh (tiêu đề, in đậm, danh sách, khối mã, trích dẫn).
+ * - Định dạng Markdown hoàn chỉnh kèm KaTeX.
  * - Tự động phát hiện các chuỗi trích dẫn [1], [2] và gắn sự kiện Popover preview.
  * - Hiển thị khay nguồn tham khảo nếu không có inline citations.
  */
@@ -549,6 +730,9 @@ function appendAnswerContent(bubble, response) {
 
     // Render Markdown sang HTML
     bubble.innerHTML = parseMarkdownToHtml(rawAnswer);
+
+    // Kích hoạt render công thức KaTeX
+    renderKaTeX(bubble);
 
     // Gắn sự kiện hover và click cho tất cả các thẻ citation inline [1], [2]
     bubble.querySelectorAll(".assistant-inline-citation").forEach((citationNode) => {
@@ -580,25 +764,74 @@ function appendAnswerContent(bubble, response) {
     }
 }
 
-function appendAssistantResponse(container, response, timeStr) {
+/**
+ * Tạo footer tin nhắn gồm: thời gian, nút Sao chép và nút đánh giá Thumbs Up / Down.
+ */
+function createMessageFooter(rawAnswerText, timeStr, messageId, savedRating, onFeedback) {
+    const footer = element("div", "assistant-message-footer");
+    const timeNode = element("time", "", timeStr || currentTime());
+    const actions = element("div", "assistant-message-actions");
+
+    const copyBtn = createCopyButton(rawAnswerText);
+    actions.append(copyBtn);
+
+    if (messageId && typeof onFeedback === "function") {
+        const feedbackWrap = element("div", "assistant-feedback-actions");
+
+        const upBtn = element("button", "assistant-feedback-btn feedback-up");
+        upBtn.type = "button";
+        upBtn.title = "Hữu ích (Thumbs up)";
+        upBtn.setAttribute("aria-label", "Đánh giá câu trả lời hữu ích");
+        upBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>`;
+
+        const downBtn = element("button", "assistant-feedback-btn feedback-down");
+        downBtn.type = "button";
+        downBtn.title = "Chưa tốt (Thumbs down)";
+        downBtn.setAttribute("aria-label", "Đánh giá câu trả lời chưa tốt");
+        downBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>`;
+
+        if (savedRating === "UP") upBtn.classList.add("is-active");
+        if (savedRating === "DOWN") downBtn.classList.add("is-active");
+
+        upBtn.addEventListener("click", () => {
+            const nextRating = upBtn.classList.contains("is-active") ? "NONE" : "UP";
+            onFeedback(messageId, nextRating, upBtn, downBtn);
+        });
+
+        downBtn.addEventListener("click", () => {
+            const nextRating = downBtn.classList.contains("is-active") ? "NONE" : "DOWN";
+            onFeedback(messageId, nextRating, upBtn, downBtn);
+        });
+
+        feedbackWrap.append(upBtn, downBtn);
+        actions.append(feedbackWrap);
+    }
+
+    footer.append(timeNode, actions);
+    return footer;
+}
+
+function appendAssistantResponse(container, response, timeStr, messageId, savedRating, onFeedback) {
     const group = element("div", "assistant-response");
     const row = element("div", "assistant-message-row assistant-message-row-system");
     const content = element("div");
     const bubble = element("div", "assistant-message assistant-message-system");
     appendAnswerContent(bubble, response);
 
-    // Footer chứa thời gian và nút sao chép câu trả lời
-    const footer = element("div", "assistant-message-footer");
-    const timeNode = element("time", "", timeStr || currentTime());
+    // Footer chứa thời gian, nút sao chép và đánh giá Thumbs Up / Down
     const rawAnswerText = sanitizeAnswerText(response.answer || response.message || "");
-    const copyBtn = createCopyButton(rawAnswerText);
-    footer.append(timeNode, copyBtn);
+    const effectiveMsgId = messageId || response.messageId;
+    const effectiveRating = savedRating || response.rating;
+    const footer = createMessageFooter(rawAnswerText, timeStr, effectiveMsgId, effectiveRating, onFeedback);
 
     content.append(bubble, footer);
     row.append(createSystemAvatar(), content);
     group.append(row);
 
-    if (Array.isArray(response.documents) && response.documents.length > 0) {
+    // Chỉ hiển thị thẻ tài liệu khi người dùng chủ động tìm kiếm danh mục (RESULTS), không hiển thị khi đang hỏi đáp hội thoại
+    const isConversationalAnswer = response.type === "RAG_ANSWER" || response.type === "RAG_INSUFFICIENT";
+
+    if (!isConversationalAnswer && Array.isArray(response.documents) && response.documents.length > 0) {
         const list = element("div", "assistant-result-list");
         response.documents.forEach((item) => {
             const card = element("article", "assistant-result-card");
@@ -636,13 +869,13 @@ function appendAssistantResponse(container, response, timeStr) {
         group.append(list);
     }
 
-    if (response.hasMore && response.allResultsUrl) {
+    if (!isConversationalAnswer && response.hasMore && response.allResultsUrl) {
         const allResults = element("a", "assistant-all-results", "Xem tất cả kết quả →");
         allResults.href = response.allResultsUrl;
         group.append(allResults);
     }
 
-    if (Array.isArray(response.suggestions) && response.suggestions.length > 0) {
+    if (!isConversationalAnswer && Array.isArray(response.suggestions) && response.suggestions.length > 0) {
         const suggestions = element("div", "assistant-suggestions assistant-suggestions-response");
         const label = element("p", "", "Bạn có thể thử");
         const actions = element("div");
@@ -657,6 +890,134 @@ function appendAssistantResponse(container, response, timeStr) {
     }
     container.append(group);
     container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+}
+
+/**
+ * Gửi đánh giá phản hồi (Thumbs Up / Down) lên server.
+ */
+async function sendFeedbackRating(messageId, rating, scopedDocId, upBtn, downBtn) {
+    if (!messageId) return false;
+    try {
+        const response = await fetch("/api/document-assistant/feedback", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({
+                messageId: messageId,
+                rating: rating,
+                scopedDocumentId: scopedDocId ? Number(scopedDocId) : null
+            })
+        });
+
+        if (response.ok) {
+            upBtn.classList.toggle("is-active", rating === "UP");
+            downBtn.classList.toggle("is-active", rating === "DOWN");
+            return true;
+        }
+    } catch (err) {
+        console.warn("Feedback submission error:", err);
+    }
+    return false;
+}
+
+/**
+ * Đọc luồng dữ liệu Server-Sent Events (SSE) theo thời gian thực từ /api/document-assistant/stream.
+ */
+async function streamAssistantResponse({
+    url,
+    message,
+    scopedDocumentId,
+    context,
+    signal,
+    onStart,
+    onCitation,
+    onToken,
+    onDone,
+    onError
+}) {
+    const streamUrl = new URL(url.endsWith("/") ? `${url}stream` : `${url}/stream`, window.location.origin);
+    streamUrl.searchParams.set("message", message);
+    if (scopedDocumentId) {
+        streamUrl.searchParams.set("scopedDocumentId", String(scopedDocumentId));
+    }
+    if (context) {
+        if (context.keyword) streamUrl.searchParams.set("contextKeyword", context.keyword);
+        if (context.topic) streamUrl.searchParams.set("contextTopic", context.topic);
+    }
+
+    const response = await fetch(streamUrl.toString(), {
+        method: "GET",
+        headers: { "Accept": "text/event-stream" },
+        signal
+    });
+
+    if (response.status === 429) {
+        onError("Bạn đang gửi yêu cầu quá nhanh. Vui lòng đợi trong giây lát rồi thử lại nhé.");
+        return;
+    }
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+    let currentEvent = "message";
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split(/\r\n|\r|\n/);
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed) {
+                currentEvent = "message";
+                continue;
+            }
+            if (trimmed.startsWith("event:")) {
+                currentEvent = trimmed.slice(6).trim();
+            } else if (trimmed.startsWith("data:")) {
+                const dataStr = trimmed.slice(5).trim();
+                if (currentEvent === "start") {
+                    onStart && onStart();
+                } else if (currentEvent === "citation") {
+                    try {
+                        const sources = JSON.parse(dataStr);
+                        onCitation && onCitation(sources);
+                    } catch (e) {
+                        console.warn("Could not parse citations", e);
+                    }
+                } else if (currentEvent === "token") {
+                    let token = dataStr;
+                    try {
+                        const parsed = JSON.parse(dataStr);
+                        // Server có thể trả về: "text" (quoted string) hoặc {"content":"text"}
+                        if (typeof parsed === "string") {
+                            token = parsed;
+                        } else if (parsed && typeof parsed.content === "string") {
+                            token = parsed.content;
+                        }
+                    } catch {}
+                    onToken && onToken(token);
+                } else if (currentEvent === "done") {
+                    try {
+                        const donePayload = JSON.parse(dataStr);
+                        onDone && onDone(donePayload);
+                    } catch (e) {
+                        onDone && onDone({ messageId: null });
+                    }
+                } else if (currentEvent === "error") {
+                    onError && onError(dataStr);
+                }
+            }
+        }
+    }
 }
 
 export function initDocumentAssistant() {
@@ -674,6 +1035,20 @@ export function initDocumentAssistant() {
     const messages = root.querySelector("[data-assistant-messages]");
     const loading = root.querySelector("[data-assistant-loading]");
     const count = root.querySelector("[data-assistant-count]");
+    const attachmentPreview = root.querySelector("[data-assistant-attachment]");
+    const attachmentImg = root.querySelector("[data-assistant-attachment-img]");
+    const attachmentName = root.querySelector("[data-assistant-attachment-name]");
+    const attachmentRemove = root.querySelector("[data-assistant-attachment-remove]");
+    const fileInput = root.querySelector("[data-assistant-file-input]");
+    const attachBtn = root.querySelector("[data-assistant-attach-btn]");
+
+    // Các thành phần Scoped Document và Streaming Control mới
+    const scopedBanner = root.querySelector("[data-assistant-scoped-banner]");
+    const scopedTitle = root.querySelector("[data-scoped-title]");
+    const scopedClearBtn = root.querySelector("[data-scoped-clear]");
+    const streamingBar = root.querySelector("[data-assistant-streaming-bar]");
+    const stopButton = root.querySelector("[data-assistant-stop]");
+
     if (!openButton || !closeButton || !clearButton || !panel || !form || !input || !submitButton || !messages || !loading || !count) return;
 
     const assistantUrl = root.dataset.assistantUrl || "/api/document-assistant";
@@ -681,29 +1056,64 @@ export function initDocumentAssistant() {
     let pending = false;
     let conversationContext = loadContext();
     let history = loadHistory();
+    let attachedFile = null;
+    let attachedPreviewUrl = null;
 
-    const appendContext = (url) => {
-        if (!conversationContext) return;
-        const fields = {
-            contextKeyword: conversationContext.keyword,
-            contextTopic: conversationContext.topic,
-            contextAuthor: conversationContext.author,
-            contextLanguageCode: conversationContext.languageCode,
-            contextYear: conversationContext.year,
-            contextSortMode: conversationContext.sortMode,
-            contextPage: conversationContext.page,
-            contextAnchorAuthor: conversationContext.anchorAuthor,
-            contextAnchorTopic: conversationContext.anchorTopic
-        };
-        Object.entries(fields).forEach(([key, value]) => {
-            if (value !== null && value !== undefined && value !== "") url.searchParams.set(key, String(value));
-        });
+    // Trạng thái Scoped Q&A và AbortController để dừng stream
+    let activeScopedDocument = null;
+    let currentAbortController = null;
+
+    const handleFeedbackClick = async (messageId, rating, upBtn, downBtn) => {
+        const docId = activeScopedDocument?.id || null;
+        const success = await sendFeedbackRating(messageId, rating, docId, upBtn, downBtn);
+        if (success) {
+            const histItem = history.find(item => item.payload && item.payload.messageId === messageId);
+            if (histItem && histItem.payload) {
+                histItem.payload.rating = rating;
+                saveHistory(history);
+            }
+        }
+    };
+
+    const clearAttachment = () => {
+        if (attachedPreviewUrl) {
+            URL.revokeObjectURL(attachedPreviewUrl);
+            attachedPreviewUrl = null;
+        }
+        attachedFile = null;
+        if (fileInput) fileInput.value = "";
+        if (attachmentPreview) attachmentPreview.hidden = true;
+        if (attachmentImg) attachmentImg.src = "";
+        updateComposer();
+    };
+
+    const setAttachment = (file) => {
+        if (!file) return;
+        const validTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+        if (!validTypes.includes(file.type.toLowerCase())) {
+            alert("Chỉ hỗ trợ dán hoặc tải lên hình ảnh định dạng PNG, JPG hoặc WebP.");
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            alert("Dung lượng ảnh vượt quá giới hạn cho phép (tối đa 5MB).");
+            return;
+        }
+        if (attachedPreviewUrl) {
+            URL.revokeObjectURL(attachedPreviewUrl);
+        }
+        attachedFile = file;
+        attachedPreviewUrl = URL.createObjectURL(file);
+        if (attachmentImg) attachmentImg.src = attachedPreviewUrl;
+        if (attachmentName) attachmentName.textContent = file.name || "anh-chup-man-hinh.png";
+        if (attachmentPreview) attachmentPreview.hidden = false;
+        updateComposer();
     };
 
     const updateComposer = () => {
         const length = input.value.length;
         count.textContent = String(length);
-        submitButton.disabled = pending || input.value.trim().length === 0;
+        const hasContent = input.value.trim().length > 0 || attachedFile !== null;
+        submitButton.disabled = pending || !hasContent;
         input.style.height = "auto";
         input.style.height = `${Math.min(input.scrollHeight, 104)}px`;
     };
@@ -722,14 +1132,46 @@ export function initDocumentAssistant() {
         }
     };
 
+    // Thiết lập chế độ Scoped Document Q&A
+    const setScopedDocument = (docId, docTitle) => {
+        if (!docId) {
+            activeScopedDocument = null;
+            if (scopedBanner) scopedBanner.hidden = true;
+            input.placeholder = "Dán ảnh (Ctrl+V) hoặc hỏi bài tập, Java, AI…";
+            return;
+        }
+        activeScopedDocument = { id: Number(docId), title: docTitle || "Tài liệu đang mở" };
+        if (scopedTitle) scopedTitle.textContent = activeScopedDocument.title;
+        if (scopedBanner) scopedBanner.hidden = false;
+        input.placeholder = `Hỏi về "${activeScopedDocument.title}"…`;
+        setOpen(true);
+    };
+
+    if (scopedClearBtn) {
+        scopedClearBtn.addEventListener("click", () => {
+            setScopedDocument(null, null);
+        });
+    }
+
+    // Lắng nghe click các nút "Chat với tài liệu này" trên trang chi tiết
+    document.addEventListener("click", (event) => {
+        const btn = event.target.closest(".assistant-scoped-chat-btn");
+        if (btn) {
+            event.preventDefault();
+            const docId = btn.dataset.chatDocumentId;
+            const docTitle = btn.dataset.chatDocumentTitle;
+            setScopedDocument(docId, docTitle);
+        }
+    });
+
     // Khôi phục lịch sử chat từ bộ nhớ lưu trữ khi chuyển trang
     if (Array.isArray(history) && history.length > 0) {
         root.querySelector("[data-assistant-suggestions]")?.remove();
         history.forEach((item) => {
             if (item.type === "user") {
-                appendUserMessage(messages, item.content, item.time);
+                appendUserMessage(messages, item.content, item.time, item.imageSrc);
             } else if (item.type === "assistant" && item.payload) {
-                appendAssistantResponse(messages, item.payload, item.time);
+                appendAssistantResponse(messages, item.payload, item.time, item.payload.messageId, item.payload.rating, handleFeedbackClick);
             }
         });
         messages.scrollTo({ top: messages.scrollHeight, behavior: "auto" });
@@ -741,72 +1183,259 @@ export function initDocumentAssistant() {
     }
 
     const sendMessage = async (message) => {
-        if (pending || !message) return;
+        const hasText = Boolean(message && message.trim().length > 0);
+        const hasImage = Boolean(attachedFile);
+        if (pending || (!hasText && !hasImage)) return;
+
         root.querySelector("[data-assistant-suggestions]")?.remove();
         const userTime = currentTime();
-        appendUserMessage(messages, message, userTime);
-        history.push({ type: "user", content: message, time: userTime });
+        const currentFile = attachedFile;
+        const currentPreviewUrl = attachedPreviewUrl;
+
+        let thumbDataUrl = null;
+        if (currentFile) {
+            try {
+                thumbDataUrl = await createThumbnailDataUrl(currentFile);
+            } catch {}
+        }
+
+        appendUserMessage(messages, message, userTime, currentPreviewUrl || thumbDataUrl);
+        history.push({ type: "user", content: message, time: userTime, imageSrc: thumbDataUrl });
         saveHistory(history);
 
         input.value = "";
+        clearAttachment();
         pending = true;
         input.disabled = true;
         submitButton.disabled = true;
-        loading.hidden = false;
-        messages.scrollTo({ top: messages.scrollHeight, behavior: "smooth" });
         updateComposer();
-        try {
-            const url = new URL(assistantUrl, window.location.origin);
-            url.searchParams.set("message", message);
-            appendContext(url);
-            const response = await fetch(url.toString(), {
-                method: "GET",
-                credentials: "same-origin",
-                headers: { Accept: "application/json" }
-            });
-            let payload;
-            if (response.status === 429) {
-                try {
-                    payload = await response.json();
-                } catch {
-                    payload = { message: "Bạn đang gửi câu hỏi quá nhanh. Vui lòng đợi trong giây lát rồi thử lại nhé.", documents: [] };
-                }
-            } else if (!response.ok) {
-                throw new Error("Assistant request failed");
-            } else {
-                payload = await response.json();
-            }
 
-            if (payload.context && payload.type !== "ERROR" && payload.type !== "RATE_LIMITED") {
-                conversationContext = payload.context;
-                saveContext(conversationContext);
+        // 1. Trường hợp có ảnh đính kèm (Vision OCR): Gửi qua multipart POST
+        if (currentFile) {
+            loading.hidden = false;
+            messages.scrollTo({ top: messages.scrollHeight, behavior: "smooth" });
+            try {
+                const visionUrl = assistantUrl.endsWith("/") ? `${assistantUrl}vision` : `${assistantUrl}/vision`;
+                const formData = new FormData();
+                formData.append("image", currentFile);
+                if (message && message.trim().length > 0) {
+                    formData.append("message", message.trim());
+                }
+                if (activeScopedDocument?.id) {
+                    formData.append("scopedDocumentId", String(activeScopedDocument.id));
+                }
+                if (conversationContext) {
+                    if (conversationContext.keyword) formData.append("contextKeyword", conversationContext.keyword);
+                    if (conversationContext.topic) formData.append("contextTopic", conversationContext.topic);
+                }
+
+                const response = await fetch(visionUrl, {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: { Accept: "application/json" },
+                    body: formData
+                });
+
+                let payload;
+                if (response.status === 429) {
+                    payload = { message: "Bạn đang gửi yêu cầu quá nhanh. Vui lòng đợi trong giây lát rồi thử lại nhé.", documents: [] };
+                } else if (!response.ok) {
+                    throw new Error("Vision assistant request failed");
+                } else {
+                    payload = await response.json();
+                }
+
+                const assistantTime = currentTime();
+                appendAssistantResponse(messages, payload, assistantTime, payload.messageId, null, handleFeedbackClick);
+                history.push({ type: "assistant", payload: payload, time: assistantTime });
+                saveHistory(history);
+            } catch (_error) {
+                const errPayload = { message: ERROR_MESSAGE, documents: [] };
+                const assistantTime = currentTime();
+                appendAssistantResponse(messages, errPayload, assistantTime, null, null, handleFeedbackClick);
+                history.push({ type: "assistant", payload: errPayload, time: assistantTime });
+                saveHistory(history);
+            } finally {
+                pending = false;
+                input.disabled = false;
+                loading.hidden = true;
+                updateComposer();
+                input.focus();
             }
+            return;
+        }
+
+        // 2. Trường hợp chỉ có văn bản: STREAMING REAL-TIME QUA SSE (/stream)
+        loading.hidden = true;
+        if (streamingBar) streamingBar.hidden = false;
+
+        const group = element("div", "assistant-response");
+        const row = element("div", "assistant-message-row assistant-message-row-system");
+        const content = element("div");
+        const bubble = element("div", "assistant-message assistant-message-system assistant-thinking-state");
+        bubble.innerHTML = '<div class="assistant-thinking-indicator"><span class="thinking-dot"></span><span class="thinking-dot"></span><span class="thinking-dot"></span><span class="thinking-text">Đang suy nghĩ...</span></div>';
+        content.append(bubble);
+        row.append(createSystemAvatar(), content);
+        group.append(row);
+        messages.append(group);
+        messages.scrollTo({ top: messages.scrollHeight, behavior: "smooth" });
+
+        currentAbortController = new AbortController();
+        let accumulatedText = "";
+        let collectedSources = [];
+        let messageId = null;
+
+        try {
+            await streamAssistantResponse({
+                url: assistantUrl,
+                message: message,
+                scopedDocumentId: activeScopedDocument?.id || null,
+                context: conversationContext,
+                signal: currentAbortController.signal,
+                onStart: () => {
+                    // Bubble đã được khởi tạo
+                },
+                onCitation: (sources) => {
+                    collectedSources = sources;
+                },
+                onToken: (token) => {
+                    if (bubble.classList.contains("assistant-thinking-state")) {
+                        bubble.classList.remove("assistant-thinking-state");
+                        bubble.innerHTML = "";
+                    }
+                    accumulatedText += token;
+                    bubble.textContent = accumulatedText;
+                    const cursor = element("span", "assistant-streaming-cursor");
+                    cursor.setAttribute("aria-hidden", "true");
+                    bubble.append(cursor);
+                    messages.scrollTo({ top: messages.scrollHeight, behavior: "auto" });
+                },
+                onDone: (donePayload) => {
+                    messageId = donePayload?.messageId || `msg-${Date.now()}`;
+                },
+                onError: (errText) => {
+                    throw new Error(errText);
+                }
+            });
+
+            // Hoàn tất câu trả lời: Render Markdown + KaTeX + Citations + Footer
             const assistantTime = currentTime();
-            appendAssistantResponse(messages, payload, assistantTime);
-            history.push({ type: "assistant", payload: payload, time: assistantTime });
+            const cleanPayload = {
+                answer: accumulatedText,
+                sources: collectedSources,
+                messageId: messageId
+            };
+            bubble.innerHTML = "";
+            appendAnswerContent(bubble, cleanPayload);
+            const footer = createMessageFooter(accumulatedText, assistantTime, messageId, null, handleFeedbackClick);
+            content.append(footer);
+
+            history.push({ type: "assistant", payload: cleanPayload, time: assistantTime });
             saveHistory(history);
-        } catch (_error) {
-            const errPayload = { message: ERROR_MESSAGE, documents: [] };
-            const assistantTime = currentTime();
-            appendAssistantResponse(messages, errPayload, assistantTime);
-            history.push({ type: "assistant", payload: errPayload, time: assistantTime });
-            saveHistory(history);
+
+        } catch (err) {
+            if (err.name === "AbortError") {
+                // Người dùng chủ động dừng tạo câu trả lời
+                const assistantTime = currentTime();
+                if (accumulatedText.trim().length > 0) {
+                    const cleanPayload = {
+                        answer: accumulatedText,
+                        sources: collectedSources,
+                        messageId: messageId || `msg-stopped-${Date.now()}`
+                    };
+                    bubble.innerHTML = "";
+                    appendAnswerContent(bubble, cleanPayload);
+                    const stopNote = element("p", "assistant-stopped-note", "⏹ Bạn đã dừng tạo câu trả lời.");
+                    stopNote.style.fontSize = "0.75rem";
+                    stopNote.style.color = "#94a3b8";
+                    stopNote.style.marginTop = "0.4rem";
+                    stopNote.style.fontStyle = "italic";
+                    bubble.append(stopNote);
+                    const footer = createMessageFooter(accumulatedText, assistantTime, cleanPayload.messageId, null, handleFeedbackClick);
+                    content.append(footer);
+
+                    history.push({ type: "assistant", payload: cleanPayload, time: assistantTime });
+                    saveHistory(history);
+                } else {
+                    group.remove();
+                }
+            } else {
+                bubble.innerHTML = "";
+                const errText = err.message && err.message.length < 150 ? err.message : ERROR_MESSAGE;
+                const errPayload = { message: errText, sources: [] };
+                appendAnswerContent(bubble, errPayload);
+                const assistantTime = currentTime();
+                const footer = createMessageFooter(errText, assistantTime, null, null, null);
+                content.append(footer);
+            }
         } finally {
             pending = false;
+            currentAbortController = null;
+            if (streamingBar) streamingBar.hidden = true;
             input.disabled = false;
-            loading.hidden = true;
             updateComposer();
             input.focus();
         }
     };
 
+    // Xử lý nút Dừng phản hồi (Stop Generation)
+    if (stopButton) {
+        stopButton.addEventListener("click", () => {
+            if (currentAbortController) {
+                currentAbortController.abort();
+            }
+        });
+    }
+
+    // Dán ảnh từ Clipboard (PrtScn / Ctrl + V)
+    const handlePaste = (event) => {
+        const clipboardData = event.clipboardData || window.clipboardData;
+        if (!clipboardData || !clipboardData.items) return;
+
+        for (let i = 0; i < clipboardData.items.length; i++) {
+            const item = clipboardData.items[i];
+            if (item.type && item.type.startsWith("image/")) {
+                const blob = item.getAsFile();
+                if (blob) {
+                    event.preventDefault();
+                    setAttachment(blob);
+                    input.focus();
+                    break;
+                }
+            }
+        }
+    };
+
+    input.addEventListener("paste", handlePaste);
+    form.addEventListener("paste", handlePaste);
+
+    if (attachBtn && fileInput) {
+        attachBtn.addEventListener("click", () => fileInput.click());
+        fileInput.addEventListener("change", () => {
+            if (fileInput.files && fileInput.files[0]) {
+                setAttachment(fileInput.files[0]);
+            }
+        });
+    }
+
+    if (attachmentRemove) {
+        attachmentRemove.addEventListener("click", () => {
+            clearAttachment();
+            input.focus();
+        });
+    }
+
     openButton.addEventListener("click", () => setOpen(panel.hidden));
     closeButton.addEventListener("click", () => setOpen(false));
     clearButton.addEventListener("click", () => {
         if (pending) return;
+        clearAttachment();
         messages.replaceChildren(...initialConversation.map((node) => node.cloneNode(true)));
         conversationContext = null;
         history = [];
+        activeScopedDocument = null;
+        if (scopedBanner) scopedBanner.hidden = true;
+        input.placeholder = "Dán ảnh (Ctrl+V) hoặc hỏi bài tập, Java, AI…";
         clearStorage();
         input.value = "";
         updateComposer();
@@ -820,6 +1449,11 @@ export function initDocumentAssistant() {
         if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
             event.preventDefault();
             form.requestSubmit();
+        } else if (event.key === "Backspace" && input.value === "" && attachedFile) {
+            clearAttachment();
+        } else if (event.key === "Escape" && attachedFile) {
+            clearAttachment();
+            event.stopPropagation();
         }
     });
     document.addEventListener("click", (event) => {

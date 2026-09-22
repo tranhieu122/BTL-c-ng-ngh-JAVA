@@ -4,6 +4,9 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+/**
+ * Biểu mẫu DTO đăng ký tài khoản thành viên mới trong hệ thống EduRepo.
+ */
 public class RegisterForm {
     @NotBlank(message = "Họ tên không được để trống")
     @Size(max = 255, message = "Họ tên không được vượt quá 255 ký tự")

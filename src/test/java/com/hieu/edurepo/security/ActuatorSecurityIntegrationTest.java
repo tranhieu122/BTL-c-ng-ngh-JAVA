@@ -29,6 +29,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 @AutoConfigureMockMvc
 @AutoConfigureObservability
+/**
+ * Kiểm thử an ninh phân quyền các cổng giám sát Spring Boot Actuator.
+ * Đảm bảo chỉ người dùng có quyền ROLE_ADMIN mới được truy cập các cổng giám sát nhạy cảm.
+ */
 class ActuatorSecurityIntegrationTest {
     @Autowired MockMvc mvc;
 

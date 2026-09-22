@@ -24,6 +24,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Kiểm thử dịch vụ ghi nhận hoạt động người dùng (User Activity Service Test).
+ * Đảm bảo ghi nhận lịch sử xem bài, tải bài và chống spam tăng biến đếm lượt xem liên tục.
+ */
 class UserActivityServiceTest {
     private final DocumentViewHistoryRepository views = mock(DocumentViewHistoryRepository.class);
     private final DocumentDownloadHistoryRepository downloads = mock(DocumentDownloadHistoryRepository.class);

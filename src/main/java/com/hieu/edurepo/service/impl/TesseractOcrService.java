@@ -12,6 +12,8 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -87,6 +89,15 @@ public class TesseractOcrService implements OcrService {
             String tessDataPath = ragProperties.getTesseractDataPath();
             if (tessDataPath != null && !tessDataPath.isBlank()) {
                 pb.environment().put("TESSDATA_PREFIX", tessDataPath);
+            } else {
+                try {
+                    Path exePath = Path.of(executablePath).toAbsolutePath();
+                    Path autoTessData = exePath.getParent() != null ? exePath.getParent().resolve("tessdata") : null;
+                    if (autoTessData != null && Files.isDirectory(autoTessData)) {
+                        pb.environment().put("TESSDATA_PREFIX", autoTessData.toString());
+                    }
+                } catch (Exception ignored) {
+                }
             }
 
             Process process = pb.start();
@@ -141,15 +152,18 @@ public class TesseractOcrService implements OcrService {
             return new DetectionResult(false, null, "OCR is disabled by configuration (rag.ingestion.ocr-enabled=false)");
         }
 
-        // Danh sách các đường dẫn ứng viên phổ biến
-        String[] candidatePaths = new String[]{
-                "tesseract",
-                "tesseract.exe",
-                "C:\\Program Files\\Tesseract-OCR\\tesseract.exe",
-                "C:\\Program Files (x86)\\Tesseract-OCR\\tesseract.exe",
-                "/usr/bin/tesseract",
-                "/usr/local/bin/tesseract"
-        };
+        // Danh sách các đường dẫn ứng viên (ưu tiên bản portable trong thư mục dự án)
+        List<String> candidatePaths = new ArrayList<>();
+        candidatePaths.add(Path.of("tools", "tesseract", "tesseract.exe").toAbsolutePath().toString());
+        candidatePaths.add(Path.of("EduRepo", "tools", "tesseract", "tesseract.exe").toAbsolutePath().toString());
+        candidatePaths.add("tools/tesseract/tesseract.exe");
+        candidatePaths.add("tools\\tesseract\\tesseract.exe");
+        candidatePaths.add("tesseract");
+        candidatePaths.add("tesseract.exe");
+        candidatePaths.add("C:\\Program Files\\Tesseract-OCR\\tesseract.exe");
+        candidatePaths.add("C:\\Program Files (x86)\\Tesseract-OCR\\tesseract.exe");
+        candidatePaths.add("/usr/bin/tesseract");
+        candidatePaths.add("/usr/local/bin/tesseract");
 
         for (String candidate : candidatePaths) {
             try {

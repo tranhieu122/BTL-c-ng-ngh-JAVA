@@ -25,6 +25,13 @@ import java.util.Set;
 
 @Service
 @Transactional
+/**
+ * Triển khai dịch vụ quản lý và giải quyết báo cáo vi phạm học liệu (Document Report Service Implementation).
+ * <p>
+ * Xử lý tiếp nhận phản ánh vi phạm, ngăn chặn gửi báo cáo trùng lặp,
+ * cung cấp danh sách cho ban biên tập kiểm duyệt và xác định các tài liệu bị cảnh báo nghiêm trọng.
+ * </p>
+ */
 public class DocumentReportServiceImpl implements DocumentReportService {
     public static final long SERIOUS_REPORT_WARNING_THRESHOLD = 3;
 

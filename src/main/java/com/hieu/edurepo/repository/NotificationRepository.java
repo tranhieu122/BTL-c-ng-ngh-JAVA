@@ -11,6 +11,9 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+/**
+ * Kho lưu trữ thông báo hệ thống và quản lý trạng thái đã đọc của người dùng.
+ */
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     Page<Notification> findByRecipientIdOrderByCreatedAtDescIdDesc(Long recipientId, Pageable pageable);
     Optional<Notification> findByIdAndRecipientId(Long id, Long recipientId);

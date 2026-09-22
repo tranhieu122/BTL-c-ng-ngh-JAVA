@@ -25,6 +25,10 @@ import java.util.Set;
 
 @SpringBootTest
 @Transactional
+/**
+ * Bộ kiểm thử an ninh toàn diện cho hệ thống RAG Chatbot theo chuẩn OWASP Top 10 for LLM.
+ * Kiểm tra khả năng phòng thủ trước các kịch bản tiêm lệnh bẻ khóa (Prompt Injection) và rò rỉ dữ liệu.
+ */
 class OwaspRagEndToEndTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OwaspRagEndToEndTest.class);

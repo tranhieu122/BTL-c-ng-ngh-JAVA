@@ -10,6 +10,10 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Kiểm thử bộ xây dựng ngữ cảnh RAG (Context Builder Test).
+ * Xác minh việc kết hợp các đoạn trích dẫn, gán chỉ mục trang [Trang X] và cắt tỉa token an toàn.
+ */
 class ContextBuilderTest {
 
     @Test

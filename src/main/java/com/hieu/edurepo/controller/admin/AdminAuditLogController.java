@@ -20,6 +20,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @RequestMapping("/admin/audit-logs")
 @PreAuthorize("hasRole('ADMIN')")
+/**
+ * Bộ điều hướng quản trị Nhật ký kiểm toán an ninh hệ thống (Admin Audit Log Controller).
+ * Cung cấp tính năng tra cứu lịch sử hành vi người dùng, lọc theo hành động và IP.
+ */
 public class AdminAuditLogController {
     private static final int PAGE_SIZE = 25;
 

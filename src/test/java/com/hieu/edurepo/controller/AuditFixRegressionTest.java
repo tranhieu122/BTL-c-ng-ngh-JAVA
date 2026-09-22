@@ -34,6 +34,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "app.upload.dir=target/fix-test-uploads"
 })
 @AutoConfigureMockMvc
+/**
+ * Bộ kiểm thử hồi quy các bản vá bảo mật đã được kiểm toán (Audit Fix Regression Test).
+ * Đảm bảo các vị trí vá lỗi an ninh (chống tiêm mã độc XSS, chống CSRF, ngăn chặn IDOR) hoạt động an toàn.
+ */
 class AuditFixRegressionTest {
     @Autowired MockMvc mvc;
     @Autowired UserRepository users;

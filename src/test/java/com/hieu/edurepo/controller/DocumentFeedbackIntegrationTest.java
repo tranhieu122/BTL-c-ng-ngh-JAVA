@@ -43,6 +43,10 @@ import static org.hamcrest.Matchers.containsString;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+/**
+ * Kiểm thử tích hợp chức năng phản hồi và đánh giá chất lượng AI (Document Feedback Integration Test).
+ * Xác minh việc lưu trữ đánh giá Thích/Không thích kèm nhận xét của sinh viên vào cơ sở dữ liệu.
+ */
 class DocumentFeedbackIntegrationTest {
     @Autowired MockMvc mockMvc;
     @Autowired DocumentRepository documentRepository;

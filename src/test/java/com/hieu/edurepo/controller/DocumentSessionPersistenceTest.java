@@ -29,6 +29,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+/**
+ * Kiểm thử tính bền vững của phiên hội thoại Trợ lý AI (Document Session Persistence Test).
+ * Đảm bảo lịch sử tin nhắn hỏi đáp giáo trình được lưu trữ toàn vẹn và phục hồi sau khi restart ứng dụng.
+ */
 class DocumentSessionPersistenceTest {
 
     @Autowired MockMvc mockMvc;

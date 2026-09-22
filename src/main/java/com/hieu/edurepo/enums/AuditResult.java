@@ -1,5 +1,8 @@
 package com.hieu.edurepo.enums;
 
+/**
+ * Kết quả thực thi của hành vi kiểm toán (Thành công hoặc Thất bại).
+ */
 public enum AuditResult {
     SUCCESS("Thành công"),
     FAILURE("Thất bại");

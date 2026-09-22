@@ -5,6 +5,9 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+/**
+ * Biểu mẫu DTO gửi nhận xét và điểm số thẩm định học liệu theo thang Rubric.
+ */
 public class DocumentReviewForm {
     @NotNull(message = "Vui lòng chọn số sao")
     @Min(value = 1, message = "Số sao phải từ 1 đến 5")

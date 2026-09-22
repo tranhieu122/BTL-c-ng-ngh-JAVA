@@ -18,6 +18,10 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+/**
+ * Kiểm thử dịch vụ gửi email xác thực OTP (Email Service Test).
+ * Kiểm tra việc định dạng nội dung thư, gửi qua SMTP và xử lý ngoại lệ khi mất kết nối mạng.
+ */
 class EmailServiceTest {
     @Test
     void smtpTimeoutIsMeasuredWithoutSensitiveMetricTags() {

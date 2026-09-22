@@ -18,6 +18,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Objects;
 
+/**
+ * Bộ điều hướng tiếp nhận đánh giá câu trả lời của Trợ lý AI (Document Feedback Controller).
+ * Cho phép sinh viên bấm Thích/Không thích (Upvote/Downvote) và gửi nhận xét cải thiện chất lượng bot.
+ */
 @Controller
 public class DocumentFeedbackController {
     private final DocumentReviewService reviewService;

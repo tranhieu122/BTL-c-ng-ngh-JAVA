@@ -16,6 +16,11 @@ import java.nio.file.Path;
 import java.util.Locale;
 import java.util.UUID;
 
+/**
+ * Dịch vụ lưu trữ và xử lý ảnh đại diện người dùng (Avatar).
+ * Kiểm tra tính hợp lệ định dạng ảnh (PNG, JPEG), giới hạn kích thước tối đa 2MB,
+ * tỷ lệ và độ phân giải, chuẩn hóa và lưu trữ an toàn chống tấn công tệp độc hại.
+ */
 @Service
 public class AvatarStorageService {
     public static final long MAX_BYTES = 2 * 1024 * 1024;

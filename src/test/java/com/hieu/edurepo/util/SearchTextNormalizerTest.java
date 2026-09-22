@@ -4,6 +4,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Kiểm thử tiện ích chuẩn hóa từ khóa tìm kiếm tiếng Việt (Search Text Normalizer Test).
+ * Đảm bảo loại bỏ dấu câu, chuyển chữ thường và xử lý khoảng trắng thừa chính xác.
+ */
 class SearchTextNormalizerTest {
 
     @Test

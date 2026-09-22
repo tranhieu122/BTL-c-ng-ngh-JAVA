@@ -6,6 +6,9 @@ import com.hieu.edurepo.enums.NotificationType;
 
 import java.time.LocalDateTime;
 
+/**
+ * DTO hiển thị chi tiết thông báo trên giao diện người dùng.
+ */
 public record NotificationView(Long id, String title, String message, NotificationType type,
                                Long documentId, boolean read, LocalDateTime createdAt,
                                String senderName, String receiverName, NotificationLevel level,

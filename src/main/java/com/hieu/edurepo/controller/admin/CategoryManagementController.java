@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * Bộ điều hướng quản trị Danh mục phân loại học liệu (Category Management Controller).
+ * Hỗ trợ thêm mới, chỉnh sửa tên và ẩn/hiện danh mục tài liệu đào tạo.
+ */
 @Controller
 @RequestMapping("/admin/categories")
 public class CategoryManagementController {

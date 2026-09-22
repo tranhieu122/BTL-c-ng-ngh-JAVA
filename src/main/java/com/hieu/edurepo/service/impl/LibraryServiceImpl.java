@@ -23,6 +23,13 @@ import java.util.List;
 
 @Service
 @Transactional
+/**
+ * Triển khai dịch vụ Thư viện học tập cá nhân của người học (Library Service Implementation).
+ * <p>
+ * Quản lý danh sách tài liệu yêu thích (Bookmark), tạo và sắp xếp các bộ sưu tập tài liệu theo chuyên đề,
+ * và hỗ trợ các đề xuất học liệu phù hợp dựa trên danh mục sinh viên quan tâm.
+ * </p>
+ */
 public class LibraryServiceImpl implements LibraryService {
     private final BookmarkRepository bookmarkRepository;
     private final DocumentCollectionRepository collectionRepository;

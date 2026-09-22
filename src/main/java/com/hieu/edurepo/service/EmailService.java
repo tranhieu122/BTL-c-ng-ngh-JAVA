@@ -14,13 +14,25 @@ import org.springframework.stereotype.Service;
 import java.net.SocketTimeoutException;
 import java.time.Duration;
 
+/**
+ * Dịch vụ truyền phát thư điện tử (Email Service) phục vụ gửi mã xác thực OTP.
+ * <p>
+ * Hỗ trợ cơ chế che giấu email riêng tư (masking), đo lường thời gian xử lý và phân loại lỗi gửi thư (Timeout, Cấu hình).
+ * </p>
+ */
 @Service
 public class EmailService {
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
+    /**
+     * Trạng thái gửi mã OTP qua email.
+     */
     public enum OtpDeliveryStatus {
+        /** Gửi thư thành công */
         SUCCESS,
+        /** Lỗi thiếu cấu hình SMTP */
         CONFIGURATION_ERROR,
+        /** Gửi thư thất bại do mạng hoặc nhà cung cấp mail từ chối */
         DELIVERY_FAILED
     }
 
@@ -42,10 +54,21 @@ public class EmailService {
         this.metrics = metrics;
     }
 
+    /**
+     * Gửi mã OTP tới email người nhận.
+     *
+     * @param email Địa chỉ email
+     * @param code Mã OTP 6 số
+     * @param purpose Mục đích sử dụng OTP
+     * @return true nếu gửi thành công
+     */
     public boolean sendOtp(String email, String code, OtpPurpose purpose) {
         return sendOtpStatus(email, code, purpose) == OtpDeliveryStatus.SUCCESS;
     }
 
+    /**
+     * Gửi mã OTP và trả về mã trạng thái chi tiết (phục vụ hiển thị cảnh báo và kiểm toán).
+     */
     public OtpDeliveryStatus sendOtpStatus(String email, String code, OtpPurpose purpose) {
         long started = System.nanoTime();
         JavaMailSender sender = mailSender.getIfAvailable();
@@ -53,15 +76,17 @@ public class EmailService {
                 && (username == null || username.isBlank() || password == null || password.isBlank()))) {
             metrics.otpEmail(purpose, "SKIPPED", OperationalMetrics.MailFailureType.CONFIGURATION,
                     elapsed(started));
-            log.warn("SMTP is not configured; OTP delivery skipped purpose={}", purpose);
+            log.warn("Cấu hình SMTP chưa được thiết lập; bỏ qua việc gửi mã OTP purpose={}", purpose);
             return OtpDeliveryStatus.CONFIGURATION_ERROR;
         }
+
         SimpleMailMessage message = new SimpleMailMessage();
         if (username != null && !username.isBlank()) message.setFrom(username);
         message.setTo(email);
-        message.setSubject("Ma OTP EduRepo");
-        message.setText("Ma OTP " + purposeLabel(purpose) + " cua ban la: " + code
-                + "\nMa co hieu luc trong 10 phut. Neu ban khong thuc hien yeu cau nay, hay bo qua email.");
+        message.setSubject("Mã OTP xác thực EduRepo");
+        message.setText("Mã xác thực OTP " + purposeLabel(purpose) + " của bạn là: " + code
+                + "\nMã có hiệu lực trong 5 phút. Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.");
+
         try {
             sender.send(message);
             metrics.otpEmail(purpose, "SUCCESS", null, elapsed(started));
@@ -71,9 +96,9 @@ public class EmailService {
                     ? OperationalMetrics.MailFailureType.TIMEOUT
                     : OperationalMetrics.MailFailureType.MAIL_PROVIDER;
             metrics.otpEmail(purpose, "FAILED", failureType, elapsed(started));
-            log.warn("OTP delivery failed purpose={} recipient={} failureType={} exception={}",
+            log.warn("Gửi mã OTP thất bại purpose={} recipient={} failureType={} exception={}",
                     purpose, maskEmail(email), failureType, exception.getClass().getSimpleName());
-            log.debug("SMTP diagnostic for failed OTP delivery", exception);
+            log.debug("Chi tiết ngoại lệ SMTP khi gửi mã OTP", exception);
             return OtpDeliveryStatus.DELIVERY_FAILED;
         }
     }
@@ -95,9 +120,12 @@ public class EmailService {
     }
 
     private String purposeLabel(OtpPurpose purpose) {
-        return purpose == OtpPurpose.REGISTER ? "dang ky tai khoan" : "lay lai mat khau";
+        return purpose == OtpPurpose.REGISTER ? "đăng ký tài khoản" : "đặt lại mật khẩu";
     }
 
+    /**
+     * Che giấu một phần địa chỉ email khi ghi log an toàn (ví dụ s***@gmail.com).
+     */
     private String maskEmail(String email) {
         if (email == null || email.isBlank()) return "unknown";
         int separator = email.indexOf('@');

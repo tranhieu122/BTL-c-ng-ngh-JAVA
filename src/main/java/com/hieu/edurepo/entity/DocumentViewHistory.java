@@ -17,6 +17,9 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "document_view_history", uniqueConstraints =
         @UniqueConstraint(name = "uk_view_history_user_document", columnNames = {"user_id", "document_id"}))
+/**
+ * Thực thể lưu vết lịch sử các tài liệu người học đã mở đọc gần đây.
+ */
 public class DocumentViewHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

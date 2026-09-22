@@ -1,3 +1,8 @@
+/**
+ * Module quản lý tra cứu và lọc học liệu (Catalog & Search Script).
+ * Xử lý bộ lọc đa tiêu chí (Faceted Search), sắp xếp kết quả, tìm kiếm không đồng bộ và phân trang.
+ */
+
 import { normalizeText, safeStorage } from "./core.js";
 
 const setupCategoryFilters = () => {

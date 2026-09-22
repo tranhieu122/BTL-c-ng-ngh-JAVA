@@ -1,5 +1,8 @@
 package com.hieu.edurepo.enums;
 
+/**
+ * Danh sách các lý do báo cáo vi phạm nội dung học liệu từ người học.
+ */
 public enum DocumentReportReason {
     FILE_UNOPENABLE("File không mở được", true),
     WRONG_SUBJECT("Nội dung sai môn học/chủ đề", false),

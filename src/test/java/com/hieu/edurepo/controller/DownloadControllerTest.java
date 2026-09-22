@@ -20,6 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+/**
+ * Kiểm thử bộ điều hướng tải tài liệu an toàn (Download Controller Test).
+ * Kiểm tra việc cấp token tải tệp một lần, kiểm tra thời hạn hiệu lực và truyền phát luồng nhị phân.
+ */
 class DownloadControllerTest {
 
     @Test

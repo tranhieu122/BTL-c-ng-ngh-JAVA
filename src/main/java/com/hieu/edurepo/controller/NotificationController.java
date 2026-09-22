@@ -21,6 +21,10 @@ import java.util.Map;
 @Controller
 @RequestMapping("/notifications")
 @PreAuthorize("isAuthenticated()")
+/**
+ * Bộ điều hướng Trung tâm thông báo người dùng (Notification Controller).
+ * Cung cấp danh sách thông báo cá nhân, đánh dấu đã đọc và xóa thông báo.
+ */
 public class NotificationController {
     private final NotificationService notifications;
 

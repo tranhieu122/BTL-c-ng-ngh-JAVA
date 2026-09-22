@@ -20,6 +20,13 @@ import java.util.List;
 
 @Service
 @Transactional
+/**
+ * Triển khai quy trình xét duyệt đơn xin cấp quyền đóng góp học liệu (Submitter Request Service Implementation).
+ * <p>
+ * Cho phép sinh viên gửi nguyện vọng đăng tải tài liệu, hỗ trợ Quản trị viên phê duyệt
+ * hoặc từ chối đơn có kèm lý do cụ thể, tự động nâng cấp vai trò ROLE_SUBMITTER an toàn.
+ * </p>
+ */
 public class SubmitterRequestServiceImpl implements SubmitterRequestService {
     private final SubmitterRequestRepository requests;
     private final UserRepository users;

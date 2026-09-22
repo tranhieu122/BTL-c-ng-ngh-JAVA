@@ -8,6 +8,9 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Kho lưu trữ các mục tài liệu được đưa vào bộ sưu tập cá nhân (Collection Item).
+ */
 public interface CollectionItemRepository extends JpaRepository<CollectionItem, Long> {
     @Query("select i from CollectionItem i join fetch i.document d left join fetch d.category "
             + "where i.collection.id = :collectionId order by i.addedAt desc")

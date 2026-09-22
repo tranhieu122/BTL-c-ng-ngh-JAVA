@@ -6,6 +6,9 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 
+/**
+ * Biểu mẫu DTO chấm điểm Rubric thẩm định học liệu của Giảng viên kiểm duyệt.
+ */
 public class ReviewForm {
     @NotNull(message = "Vui lòng chọn quyết định")
     private ReviewAction action;

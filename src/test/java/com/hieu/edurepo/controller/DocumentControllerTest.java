@@ -35,6 +35,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Kiểm thử tích hợp quy trình quản lý học liệu của tác giả (Document Controller Test).
+ * Kiểm tra việc nộp bản nháp, cập nhật nội dung, gửi phê duyệt và tải lên tài liệu đa định dạng.
+ */
 class DocumentControllerTest {
 
     @Test

@@ -1,3 +1,8 @@
+/**
+ * Module tiện ích cốt lõi của giao diện người dùng (Core UI Utilities).
+ * Cung cấp các hàm dùng chung: hiển thị thông báo Toast, hộp thoại xác nhận Modal, định dạng tiền tệ/ngày tháng và escape HTML an toàn chống XSS.
+ */
+
 export const ready = (callback) => {
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", callback, { once: true });

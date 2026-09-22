@@ -7,6 +7,10 @@ import org.springframework.mock.web.MockMultipartFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+/**
+ * Kiểm thử bộ tiện ích kiểm định tệp tin tải lên (File Validation Util Test).
+ * Kiểm tra xác thực định dạng tài liệu hợp lệ, kiểm tra kích thước tối đa và phát hiện tệp giả mạo phần mở rộng.
+ */
 class FileValidationUtilTest {
 
     @Test

@@ -23,6 +23,10 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Kiểm thử tính bền vững của dữ liệu sau chu kỳ tắt và bật lại máy chủ (Persistence Restart Test).
+ * Đảm bảo dữ liệu người dùng, tài liệu và phân quyền không bị suy hao sau khi server khởi động lại.
+ */
 class PersistenceRestartIntegrationTest {
 
     @Test

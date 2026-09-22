@@ -1,3 +1,8 @@
+/**
+ * Module điều khiển tương tác trang chủ EduRepo (Home Page Script).
+ * Quản lý các hiệu ứng chuyển động, đếm số liệu thống kê và tương tác thẻ tài liệu nổi bật.
+ */
+
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 document.addEventListener("DOMContentLoaded", () => {
     const home = document.querySelector(".home-page");

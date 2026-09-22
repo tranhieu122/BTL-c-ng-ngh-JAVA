@@ -2,6 +2,9 @@ package com.hieu.edurepo.dto;
 
 import com.hieu.edurepo.entity.User;
 
+/**
+ * DTO chứa toàn bộ thông tin hiển thị hồ sơ cá nhân của người học trên giao diện.
+ */
 public record ProfileView(String fullName, String email, String phoneNumber,
                           String affiliation, String bio, String avatarRevision) {
     public static ProfileView from(User user) {

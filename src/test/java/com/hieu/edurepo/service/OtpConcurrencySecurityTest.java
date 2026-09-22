@@ -24,6 +24,10 @@ import static org.junit.jupiter.api.Assertions.*;
         "spring.datasource.url=jdbc:h2:mem:otp_concurrency_test;MODE=MySQL;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000",
         "app.upload.dir=target/otp-concurrency-test-uploads"
 })
+/**
+ * Kiểm thử an toàn luồng và chống tấn công Race Condition khi xác thực OTP.
+ * Đảm bảo một mã OTP chỉ có thể được tiêu thụ một lần duy nhất khi có nhiều luồng cùng gửi đồng thời.
+ */
 class OtpConcurrencySecurityTest {
 
     @Autowired

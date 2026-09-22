@@ -12,6 +12,10 @@ import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
 
+/**
+ * Thực thể lưu trữ mã xác thực OTP dùng một lần (Auth OTP Token).
+ * Hỗ trợ xác minh email đăng ký và cấp quyền đặt lại mật khẩu an toàn.
+ */
 @Entity
 @Table(name = "auth_otp_tokens")
 public class AuthOtpToken {

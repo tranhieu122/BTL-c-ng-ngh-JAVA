@@ -22,6 +22,13 @@ import java.util.Optional;
 
 @Service
 @Transactional
+/**
+ * Triển khai dịch vụ đánh giá, thẩm định và bình luận tài liệu (Document Review Service Implementation).
+ * <p>
+ * Quản lý các nhận xét công khai của sinh viên, tính điểm sao trung bình của học liệu,
+ * và hỗ trợ Quản trị viên ẩn các nhận xét vi phạm tiêu chuẩn cộng đồng.
+ * </p>
+ */
 public class DocumentReviewServiceImpl implements DocumentReviewService {
     private final DocumentReviewRepository reviewRepository;
     private final DocumentRepository documentRepository;

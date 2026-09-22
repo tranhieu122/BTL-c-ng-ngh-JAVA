@@ -10,6 +10,10 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Kiểm thử thu thập chỉ số vận hành Micrometer (Operational Metrics Test).
+ * Kiểm tra các thẻ đo lường (tags) có giới hạn hữu hạn, an toàn và không làm rò rỉ thông tin cá nhân (PII).
+ */
 class OperationalMetricsTest {
     @Test
     void otpMetricsContainOnlyFiniteOperationalTags() {

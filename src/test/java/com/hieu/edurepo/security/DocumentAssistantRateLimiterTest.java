@@ -4,6 +4,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Kiểm thử giới hạn tần suất gửi tin nhắn tới Trợ lý AI (Rate Limiter Test).
+ * Kiểm tra chặn đứng các request vượt hạn mức với mã HTTP 429 và khôi phục hạn mức sau cửa sổ thời gian.
+ */
 class DocumentAssistantRateLimiterTest {
 
     @Test

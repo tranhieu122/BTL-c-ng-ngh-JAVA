@@ -1,3 +1,8 @@
+/**
+ * Tập lệnh khởi tạo chính của toàn bộ hệ thống EduRepo (Main Application Script).
+ * Tự động đăng ký các module tương tác, khởi tạo tooltip, modal popup và kết nối sự kiện giao diện.
+ */
+
 import { initCoreUi, ready, setupCardReveal } from "./modules/core.js";
 import { initForms } from "./modules/forms.js";
 import { initNavigation } from "./modules/navigation.js";

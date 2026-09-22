@@ -23,6 +23,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Kiểm thử nghiệp vụ quản lý tài liệu (Document Service Test).
+ * Xác minh các chức năng tạo bài, lọc tài liệu công khai, tìm kiếm theo bộ môn và tăng biến đếm lượt tải.
+ */
 class DocumentServiceTest {
 
     @Test

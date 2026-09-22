@@ -1,3 +1,8 @@
+/**
+ * Module kết nối truyền phát sự kiện thời gian thực qua Server-Sent Events (SSE Client Script).
+ * Quản lý kết nối /events/stream, tự động kết nối lại khi mất mạng và phát sóng sự kiện tới các module khác.
+ */
+
 const labels = {DRAFT: "Bản nháp", SUBMITTED: "Chờ duyệt", REVISION_REQUIRED: "Cần chỉnh sửa", APPROVED: "Đã duyệt", PUBLISHED: "Đã xuất bản", REJECTED: "Từ chối"};
 
 // Injectable browser primitives make lifecycle/reconnect behavior testable without a server mock UI.

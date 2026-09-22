@@ -1,3 +1,8 @@
+/**
+ * Module xử lý xác thực và an ninh tài khoản (Authentication Script).
+ * Kiểm soát form đăng nhập, form đăng ký, đếm ngược thời gian gửi lại mã OTP (5 phút) và kiểm tra độ mạnh mật khẩu.
+ */
+
 const setupPasswordToggle = () => {
     document.querySelectorAll("[data-password-toggle]").forEach((toggle) => {
         const inputId = toggle.getAttribute("aria-controls");

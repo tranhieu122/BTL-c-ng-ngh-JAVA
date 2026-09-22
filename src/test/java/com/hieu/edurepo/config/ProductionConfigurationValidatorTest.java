@@ -5,6 +5,10 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Kiểm thử bộ kiểm định cấu hình môi trường sản xuất (Production Configuration Validator Test).
+ * Xác minh các biến môi trường bắt buộc (DB_URL, UPLOAD_DIR, MAIL_HOST) phải được khai báo đầy đủ.
+ */
 class ProductionConfigurationValidatorTest {
     private final ApplicationContextRunner context = new ApplicationContextRunner()
             .withUserConfiguration(ProductionConfigurationValidator.class)

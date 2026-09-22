@@ -9,6 +9,9 @@ import org.springframework.data.jpa.repository.Lock;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Kho lưu trữ và quản lý mã OTP phục vụ xác thực đăng ký tài khoản và đặt lại mật khẩu.
+ */
 public interface AuthOtpTokenRepository extends JpaRepository<AuthOtpToken, Long> {
     Optional<AuthOtpToken> findTopByEmailIgnoreCaseAndPurposeAndConsumedAtIsNullOrderByCreatedAtDesc(
             String email, OtpPurpose purpose);

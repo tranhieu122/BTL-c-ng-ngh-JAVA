@@ -10,6 +10,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
+/**
+ * Biểu mẫu DTO dùng cho Quản trị viên soạn và phát hành thông báo hệ thống.
+ */
 public class AdminNotificationForm {
     @NotBlank(message = "Tiêu đề thông báo không được để trống")
     @Size(max = 180, message = "Tiêu đề không được vượt quá 180 ký tự")

@@ -3,6 +3,9 @@ package com.hieu.edurepo.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+/**
+ * Biểu mẫu DTO tạo mới hoặc cập nhật tên bộ sưu tập học tập cá nhân.
+ */
 public class CollectionForm {
     @NotBlank(message = "Tên bộ sưu tập không được để trống")
     @Size(max = 150, message = "Tên bộ sưu tập không được vượt quá 150 ký tự")

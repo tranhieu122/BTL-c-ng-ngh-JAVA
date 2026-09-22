@@ -35,6 +35,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+/**
+ * Kiểm thử tích hợp giao diện trang quản lý người dùng (User Module Pages Integration Test).
+ * Xác minh việc hiển thị danh sách thành viên, cột phân vai trò và các nút chức năng khóa tài khoản.
+ */
 class UserModulePagesIntegrationTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private UserRepository users;

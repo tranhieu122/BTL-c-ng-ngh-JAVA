@@ -1,5 +1,8 @@
 package com.hieu.edurepo.enums;
 
+/**
+ * Loại đối tượng chịu tác động trong bản ghi kiểm toán hệ thống.
+ */
 public enum AuditTargetType {
     PAGE("Trang"),
     USER("Người dùng"),

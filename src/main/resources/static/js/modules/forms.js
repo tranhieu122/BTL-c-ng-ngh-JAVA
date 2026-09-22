@@ -1,3 +1,8 @@
+/**
+ * Module kiểm tra và ràng buộc biểu mẫu phía client (Form Validation Script).
+ * Kiểm tra hợp lệ thời gian thực các trường dữ liệu trước khi gửi lên máy chủ (Client-side validation).
+ */
+
 import { formatBytes, showToast } from "./core.js";
 
 const MAX_UPLOAD_SIZE = 200 * 1024 * 1024;

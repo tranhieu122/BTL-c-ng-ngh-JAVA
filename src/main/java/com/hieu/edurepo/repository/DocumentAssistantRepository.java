@@ -9,6 +9,9 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
+/**
+ * Kho lưu trữ lịch sử hội thoại trợ lý ảo AI và truy vấn RAG của người dùng.
+ */
 public interface DocumentAssistantRepository extends Repository<Document, Long> {
 
     @Query(value = "select d from Document d left join fetch d.category c left join fetch d.createdBy creator "
@@ -175,4 +178,8 @@ public interface DocumentAssistantRepository extends Repository<Document, Long> 
             + "or lower(d.title) like lower(concat('%', :keyword, '%'))) "
             + "order by c.name")
     List<String> suggestPublishedCategories(@Param("keyword") String keyword, Pageable pageable);
+
+    @Query("select d from Document d left join fetch d.category c left join fetch d.createdBy creator where d.id = :id")
+    java.util.Optional<Document> findById(@Param("id") Long id);
 }
+

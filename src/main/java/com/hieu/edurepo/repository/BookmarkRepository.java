@@ -8,6 +8,9 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Kho lưu trữ dữ liệu đánh dấu tài liệu yêu thích (Bookmark) của người dùng.
+ */
 public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     Optional<Bookmark> findByUserIdAndDocumentId(Long userId, Long documentId);
     boolean existsByUserIdAndDocumentId(Long userId, Long documentId);

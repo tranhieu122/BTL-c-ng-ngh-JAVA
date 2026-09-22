@@ -49,10 +49,10 @@ button:hover, .button:hover, .btn:hover { background: var(--primary-700); box-sh
 .button-warning:hover, .btn-warning:hover { background: #7b561b; }
 .button-success, .btn-success { background: #286443; }
 .button-sm, .btn-sm { min-height: 32px; padding: 6px 10px; font-size: .75rem; }
-button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid #82aa8e66; outline-offset: 3px; }
-main :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]), select, textarea),
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:not(#document-assistant-input):focus-visible, summary:focus-visible { outline: 3px solid #82aa8e66; outline-offset: 3px; }
+main :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]), select, textarea:not(#document-assistant-input)),
 .auth-page :where(input:not([type="checkbox"]):not([type="hidden"]), select, textarea) { border-radius: 8px; border-color: #d8e2db; background-color: #fff; font-size: .84rem; }
-main :where(input, select, textarea):focus { border-color: #7ca98b; }
+main :where(input, select, textarea:not(#document-assistant-input)):focus { border-color: #7ca98b; }
 .field-label { font-size: .78rem; font-weight: 600; color: #516257; }
 .field-hint, .help-text { color: #7c8a81; font-size: .74rem; }
 .field-error { color: #b23a32; font-size: .75rem; font-weight: 500; }
@@ -296,7 +296,7 @@ form[aria-busy="true"] :where(input, select, textarea) { opacity: .78; }
     .confirm-dialog { padding: 10px; }
 }
 @media (prefers-contrast: more) {
-    :where(button, a, input, select, textarea, summary):focus-visible { outline-color: var(--color-focus); }
+    :where(button, a, input, select, textarea:not(#document-assistant-input), summary):focus-visible { outline-color: var(--color-focus); }
     .workspace-content :is(.data-panel, .workspace-panel, .form-card, .review-card, .metric-card, .queue-card) { border-color: #9caca1; }
 }
 @media (prefers-reduced-motion: reduce) {

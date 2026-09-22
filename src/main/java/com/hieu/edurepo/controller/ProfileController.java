@@ -20,6 +20,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * Bộ điều hướng quản trị thông tin cá nhân người học (Profile Controller).
+ * Cho phép xem hồ sơ, chỉnh sửa thông tin sinh viên, đổi ảnh đại diện và đổi mật khẩu an toàn.
+ */
 @Controller
 @RequestMapping("/profile")
 public class ProfileController {

@@ -129,8 +129,8 @@
     </dependencies>
 
     <build>
-        <!-- Allow `mvn` / `mvnw` without arguments to start the application. -->
-        <defaultGoal>spring-boot:run</defaultGoal>
+        <!-- Allow `mvn` / `mvnw` without arguments to compile and start the application. -->
+        <defaultGoal>compile spring-boot:run</defaultGoal>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

@@ -9,6 +9,9 @@ import jakarta.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Biểu mẫu DTO dùng cho Quản trị viên cập nhật thông tin và vai trò người dùng.
+ */
 public class UserForm {
     private Long id;
 

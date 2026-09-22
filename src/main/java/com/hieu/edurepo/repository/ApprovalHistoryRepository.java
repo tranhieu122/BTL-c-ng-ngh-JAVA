@@ -8,6 +8,9 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
+/**
+ * Kho lưu trữ dữ liệu lịch sử phê duyệt và kiểm duyệt tài liệu học liệu.
+ */
 public interface ApprovalHistoryRepository extends JpaRepository<ApprovalHistory, Long> {
     @EntityGraph(attributePaths = "reviewer")
     List<ApprovalHistory> findByDocumentIdOrderByCreatedAtAsc(Long documentId);

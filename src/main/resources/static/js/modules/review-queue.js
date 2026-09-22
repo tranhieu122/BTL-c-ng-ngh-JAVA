@@ -1,3 +1,8 @@
+/**
+ * Module hàng đợi kiểm duyệt học liệu của Giảng viên (Review Queue Script).
+ * Xử lý giao diện chấm điểm Rubric, tính điểm trung bình trực tiếp và gửi kết quả thẩm định.
+ */
+
 export const initReviewQueue = () => {
     const list = document.querySelector("[data-review-list]");
     if (!list || list.dataset.initialized) return;

@@ -39,6 +39,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+/**
+ * Kiểm thử tích hợp thông báo quản trị (Admin Notification Integration Test).
+ * Xác minh việc Quản trị viên gửi thông báo hệ thống và tự động tạo thông báo khi phê duyệt bài viết.
+ */
 class AdminNotificationIntegrationTest {
     @Autowired private MockMvc mvc;
     @Autowired private UserRepository users;

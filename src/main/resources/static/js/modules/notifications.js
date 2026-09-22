@@ -1,3 +1,8 @@
+/**
+ * Module quản lý trung tâm thông báo thời gian thực (Notifications Script).
+ * Cập nhật số đếm trên biểu tượng chuông báo, hiển thị danh sách thông báo popup và đánh dấu đã đọc.
+ */
+
 function formatTime(value) {
     if (!value) return "";
     const date = new Date(value);

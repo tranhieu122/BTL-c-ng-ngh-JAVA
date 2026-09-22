@@ -25,6 +25,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
+/**
+ * Kiểm thử tích hợp toàn bộ đường ống RAG (RAG Pipeline Integration Test).
+ * Đảm bảo sự phối hợp nhịp nhàng giữa Text Extraction, Vector Embedding, Retrieval và LLM Generation.
+ */
 class RagPipelineIntegrationTest {
 
     @Autowired

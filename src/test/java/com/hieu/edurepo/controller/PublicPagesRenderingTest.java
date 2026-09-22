@@ -32,6 +32,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+/**
+ * Kiểm thử kết xuất giao diện các trang công khai (Public Pages Rendering Test).
+ * Đảm bảo các trang Giới thiệu, Liên hệ, Điều khoản và Trang chủ render HTML mượt mà không lỗi template.
+ */
 class PublicPagesRenderingTest {
 
     @Autowired

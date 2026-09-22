@@ -106,16 +106,16 @@ if defined USES_MYSQL_PROFILE (
         rem Reuse a password already present in the process environment without prompting again.
         echo Da co DB_PASSWORD trong moi truong. Dang khoi dong web...
         echo Buoc 3/3 - Khoi dong EduRepo
-        .\mvnw.cmd "-Dmaven.repo.local=%~dp0.m2\repository" --no-transfer-progress spring-boot:run
+        .\mvnw.cmd "-Dmaven.repo.local=%~dp0.m2\repository" --no-transfer-progress compile spring-boot:run
     ) else (
         rem Keep the password inside PowerShell's process environment. This avoids cmd.exe
         rem corrupting passwords that contain characters such as &, !, ^, or quotation marks.
-        powershell.exe -NoProfile -Command "$secret=Read-Host 'Nhap mat khau MySQL cua user root (Enter neu de trong neu MySQL khong co mat khau)' -AsSecureString; $pointer=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($secret); try { $env:DB_PASSWORD=[Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer); Write-Host 'Buoc 3/3 - Khoi dong EduRepo'; & '.\mvnw.cmd' '-Dmaven.repo.local=%~dp0.m2\repository' '--no-transfer-progress' 'spring-boot:run'; exit $LASTEXITCODE } finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer) }"
+        powershell.exe -NoProfile -Command "$secret=Read-Host 'Nhap mat khau MySQL cua user root (Enter neu de trong neu MySQL khong co mat khau)' -AsSecureString; $pointer=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($secret); try { $env:DB_PASSWORD=[Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer); Write-Host 'Buoc 3/3 - Khoi dong EduRepo'; & '.\mvnw.cmd' '-Dmaven.repo.local=%~dp0.m2\repository' '--no-transfer-progress' 'compile' 'spring-boot:run'; exit $LASTEXITCODE } finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer) }"
     )
 ) else (
     echo Buoc 2/3 - Profile nay khong dung MySQL mac dinh cua dev/local.
     echo Buoc 3/3 - Khoi dong EduRepo
-    .\mvnw.cmd "-Dmaven.repo.local=%~dp0.m2\repository" --no-transfer-progress spring-boot:run
+    .\mvnw.cmd "-Dmaven.repo.local=%~dp0.m2\repository" --no-transfer-progress compile spring-boot:run
 )
 set "APP_EXIT_CODE=%ERRORLEVEL%"
 

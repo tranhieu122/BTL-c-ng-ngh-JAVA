@@ -5,6 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
+/**
+ * Kho lưu trữ và quản lý dữ liệu tài khoản người dùng trong hệ thống EduRepo.
+ */
 public interface UserRepository extends JpaRepository<User, Long> {
     java.util.List<User> findByDeletedAtIsNull();
     java.util.List<User> findByEnabledTrueAndDeletedAtIsNullOrderByFullNameAscEmailAsc();

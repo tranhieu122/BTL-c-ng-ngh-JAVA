@@ -6,6 +6,10 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Kiểm thử thuật toán phân mảnh văn bản (Document Chunker Test).
+ * Đảm bảo chia nhỏ văn bản theo độ dài chunkSize và chunkOverlap mà không làm ngắt đôi từ hoặc câu.
+ */
 class DocumentChunkerTest {
 
     private final DocumentChunker chunker = new DocumentChunker();

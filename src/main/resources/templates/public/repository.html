@@ -157,46 +157,62 @@
             <article class="product-card" th:each="doc, loop : ${documents.content}" data-document-card
                      th:classappend="${loop.first ? ' product-card-featured' : ''}"
                      th:attr="data-category=${doc.category != null ? doc.category.name : ''},data-title=${doc.title},data-date=${doc.publishedAt}">
-                <div class="product-card-topline">
-                    <div class="product-card-labels">
-                        <span class="category-label" th:text="${doc.category != null ? doc.category.name : 'Chưa phân loại'}">Danh mục</span>
-                        <span class="new-document-label" th:if="${loop.first}">Nổi bật</span>
+                
+                <!-- Bìa sách 3D (3D Realistic Book Cover) -->
+                <a class="book-cover" th:href="@{/repository/{id}(id=${doc.id})}"
+                   th:attr="aria-label=${'Đọc tài liệu: ' + doc.title}">
+                    <span class="book-spine" aria-hidden="true"></span>
+                    <div class="book-cover-inner">
+                        <div class="book-brand" aria-hidden="true">
+                            <span class="book-brand-dot"></span>
+                            <span>EDUREPO</span>
+                        </div>
+                        <div class="book-cover-title" th:text="${doc.title}">Tên tài liệu</div>
+                        <div class="book-cover-footer">
+                            <span class="book-category-tag" th:text="${doc.category != null ? doc.category.name : 'Học liệu'}">Danh mục</span>
+                            <span class="book-format-badge" th:text="${#strings.containsIgnoreCase(doc.fileType, 'pdf') ? 'PDF' : 'TỆP'}">PDF</span>
+                        </div>
                     </div>
-                    <span class="verified-label"><i aria-hidden="true">✓</i> Đã công bố</span>
-                </div>
+                    <span class="book-page-edges" aria-hidden="true"></span>
+                </a>
 
-                <div class="product-card-main">
-                    <a class="file-thumbnail" th:if="${#strings.containsIgnoreCase(doc.fileType, 'pdf')}" th:href="@{/repository/{id}(id=${doc.id})}" th:attr="data-file-type=${doc.fileType},aria-label=${'Đọc PDF: ' + doc.title}"><span class="file-fold" aria-hidden="true"></span><span class="file-extension" data-file-label>PDF</span></a>
-                    <div class="file-thumbnail" th:unless="${#strings.containsIgnoreCase(doc.fileType, 'pdf')}" th:attr="data-file-type=${doc.fileType}"><span class="file-fold" aria-hidden="true"></span><span class="file-extension" data-file-label>TỆP</span></div>
-                    <div class="product-card-copy">
+                <div class="product-card-body">
+                    <div class="product-card-topline">
+                        <div class="product-card-labels">
+                            <span class="category-label" th:text="${doc.category != null ? doc.category.name : 'Chưa phân loại'}">Danh mục</span>
+                            <span class="new-document-label" th:if="${loop.first}">Nổi bật</span>
+                        </div>
                         <p class="document-author">
                             <span class="mini-avatar" aria-hidden="true">A</span>
                             <span th:text="${#strings.isEmpty(doc.authorName) ? 'Tác giả EduRepo' : doc.authorName}">Tác giả EduRepo</span>
                         </p>
-                        <h3>
-                            <a th:if="${#strings.containsIgnoreCase(doc.fileType, 'pdf')}" th:href="@{/repository/{id}(id=${doc.id})}" th:text="${doc.title}">Tên tài liệu</a>
-                            <a th:unless="${#strings.containsIgnoreCase(doc.fileType, 'pdf')}" th:href="@{/repository/{id}(id=${doc.id})}" th:text="${doc.title}">Tên tài liệu</a>
+                        <span class="verified-label"><i aria-hidden="true">✓</i> Đã công bố</span>
+                    </div>
+
+                    <div class="product-card-main">
+                        <h3 class="document-title">
+                            <a th:href="@{/repository/{id}(id=${doc.id})}" th:text="${doc.title}">Tên tài liệu</a>
                         </h3>
                         <p class="document-description" th:text="${#strings.isEmpty(doc.description) ? 'Tài liệu học tập được chia sẻ và kiểm duyệt trên EduRepo.' : doc.description}">
                             Mô tả tài liệu.
                         </p>
                     </div>
-                </div>
 
-                <div class="document-metadata">
-                    <span th:if="${doc.department != null}">
-                        <i aria-hidden="true">⌂</i>
-                        <span th:text="${doc.department.name}">Khoa</span>
-                    </span>
-                    <span th:if="${doc.fileSize != null}" class="js-file-size"
-                          th:attr="data-bytes=${doc.fileSize}" th:text="${doc.fileSize + ' bytes'}">0 KB</span>
-                    <time class="js-date" th:if="${doc.publishedAt != null}"
-                          th:attr="datetime=${doc.publishedAt}" th:text="${doc.publishedAt}">01/01/2026</time>
+                    <div class="document-metadata">
+                        <span th:if="${doc.department != null}">
+                            <i aria-hidden="true">⌂</i>
+                            <span th:text="${doc.department.name}">Khoa</span>
+                        </span>
+                        <span th:if="${doc.fileSize != null}" class="js-file-size"
+                              th:attr="data-bytes=${doc.fileSize}" th:text="${doc.fileSize + ' bytes'}">0 KB</span>
+                        <time class="js-date" th:if="${doc.publishedAt != null}"
+                              th:attr="datetime=${doc.publishedAt}" th:text="${doc.publishedAt}">01/01/2026</time>
+                    </div>
                 </div>
 
                 <div class="product-card-footer">
                     <a class="card-primary-link" th:href="@{/repository/{id}(id=${doc.id})}">
-                        Mở học liệu <span aria-hidden="true">→</span>
+                        <span>Mở học liệu</span> <span aria-hidden="true">→</span>
                     </a>
                     <a class="card-download-link" th:href="@{/download/{id}(id=${doc.id})}"
                        th:attr="aria-label=${'Tải xuống ' + doc.title}" title="Tải xuống">

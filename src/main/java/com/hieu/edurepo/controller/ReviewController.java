@@ -26,6 +26,10 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * Bộ điều hướng quy trình Thẩm định học liệu của Giảng viên (Review Controller).
+ * Cung cấp giao diện chấm điểm Rubric, yêu cầu chỉnh sửa và phê duyệt xuất bản tài liệu.
+ */
 @Controller
 @RequestMapping("/reviews")
 public class ReviewController {

@@ -18,6 +18,13 @@ import java.util.UUID;
 
 @Service
 @Transactional
+/**
+ * Dịch vụ quản trị hồ sơ cá nhân của người dùng (Profile Service).
+ * <p>
+ * Xử lý cập nhật thông tin cá nhân, tải lên ảnh đại diện an toàn, đổi mật khẩu định kỳ,
+ * kích hoạt phát sóng cập nhật SSE theo thời gian thực và xóa tài khoản an toàn (Tombstone pattern).
+ * </p>
+ */
 public class ProfileService {
     private final UserRepository users;
     private final RoleRepository roles;
@@ -44,6 +51,11 @@ public class ProfileService {
         return active(users.lockById(id).orElseThrow(() -> new AccessDeniedException("Không tìm thấy tài khoản.")));
     }
     @Transactional(readOnly = true)
+    /**
+     * Lấy thông tin hồ sơ của người dùng theo mã định danh ID.
+     * @param id Mã người dùng
+     * @return Đối tượng DTO ProfileView dùng để hiển thị trên giao diện
+     */
     public ProfileView get(Long id) {
         return ProfileView.from(active(users.findById(id).orElseThrow(() -> new AccessDeniedException("Không tìm thấy tài khoản."))));
     }
@@ -92,6 +104,16 @@ public class ProfileService {
             @Override public void afterCommit() { avatars.delete(id, key); }
         });
     }
+    /**
+     * Xóa vĩnh viễn tài khoản người dùng theo cơ chế Tombstone an toàn:
+     * Khóa bi quan chống xóa đồng thời Admin cuối cùng, xóa sạch bookmark và bộ sưu tập,
+     * xóa ảnh đại diện vật lý, và ẩn danh hóa thông tin cá nhân (GDPR compliance).
+     *
+     * @param id Mã người dùng yêu cầu xóa
+     * @param password Mật khẩu xác nhận quyền sở hữu
+     * @param confirmation Chuỗi văn bản xác nhận bắt buộc gõ đúng 'XÓA TÀI KHOẢN'
+     * @param acknowledged Cờ xác nhận đã đọc cảnh báo rủi ro
+     */
     public void deleteAccount(Long id, String password, String confirmation, boolean acknowledged) {
         // Serialize self-deletions before locking individual users, including simultaneous admins.
         roles.lockByName(RoleName.ADMIN).orElseThrow();

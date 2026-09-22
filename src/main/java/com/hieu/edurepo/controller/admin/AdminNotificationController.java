@@ -21,6 +21,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/admin/notifications")
 @PreAuthorize("hasRole('ADMIN')")
+/**
+ * Bộ điều hướng phát hành thông báo hệ thống của Quản trị viên (Admin Notification Controller).
+ * Hỗ trợ gửi thông báo tới tất cả người dùng hoặc gửi đích danh theo vai trò/tài khoản.
+ */
 public class AdminNotificationController {
     private final NotificationService notifications;
     private final com.hieu.edurepo.service.AuditLogService auditLogs;

@@ -38,9 +38,11 @@ build/
 *.log
 debug.log
 
-### OS Files ###
+### OS Files & Temp Backups ###
 Thumbs.db
 .DS_Store
+*.bkp
+.$*
 
 ### Custom ###
 .codex/
@@ -48,6 +50,7 @@ Thumbs.db
 ### EduRepo runtime data ###
 .data/
 backups/
+test_sheets_backup/
 uploads/
 outputs/
 downloaded_*/
@@ -69,3 +72,7 @@ application-local.yaml
 application-secret.properties
 application-secret.yml
 application-secret.yaml
+
+### Local Tools & Binaries (Tesseract, etc.) ###
+tools/
+!tools/README.md

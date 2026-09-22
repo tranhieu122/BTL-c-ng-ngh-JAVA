@@ -3,6 +3,9 @@ package com.hieu.edurepo.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
+/**
+ * DTO chứa thông tin đăng nhập (email và mật khẩu) của người dùng.
+ */
 public class LoginRequest {
     @NotBlank
     @Email

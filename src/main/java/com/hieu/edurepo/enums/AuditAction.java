@@ -1,5 +1,8 @@
 package com.hieu.edurepo.enums;
 
+/**
+ * Danh sách các hành vi nhạy cảm được ghi lại trong Nhật ký kiểm toán an ninh (Audit Action).
+ */
 public enum AuditAction {
     HOME_VIEWED("Xem trang chủ"),
     REPOSITORY_VIEWED("Xem kho tài liệu"),

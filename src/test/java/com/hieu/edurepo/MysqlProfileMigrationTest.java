@@ -16,6 +16,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Runs the migration/restart path against an isolated real MySQL instance when Docker is available. */
 @Testcontainers(disabledWithoutDocker = true)
+/**
+ * Kiểm thử di chuyển cơ sở dữ liệu với Flyway trên profile MySQL (MySQL Migration Test).
+ * Đảm bảo các script SQL từ V1 đến V8 thực thi tuần tự không lỗi trên hệ quản trị CSDL thực tế.
+ */
 class MysqlProfileMigrationTest {
     @Container
     static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4")

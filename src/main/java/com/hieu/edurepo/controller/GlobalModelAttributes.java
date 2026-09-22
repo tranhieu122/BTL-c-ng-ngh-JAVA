@@ -12,6 +12,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
+/**
+ * Bộ bổ sung thuộc tính toàn cục cho mọi trang Thymeleaf (Global Model Attributes).
+ * Tự động nạp tên hệ thống, năm hiện tại, số lượng thông báo chưa đọc và cấu hình giao diện.
+ */
 @ControllerAdvice(annotations = Controller.class)
 public class GlobalModelAttributes {
 

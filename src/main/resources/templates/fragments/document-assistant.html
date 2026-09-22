@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <body>
+<!-- Thư viện KaTeX hỗ trợ render công thức toán học/khoa học tốc độ cao và an toàn -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+
 <div class="document-assistant" th:fragment="widget" data-document-assistant
      th:attr="data-assistant-url=@{/api/document-assistant}">
     <section class="document-assistant-panel" id="document-assistant-panel" role="dialog" data-assistant-panel
@@ -40,6 +44,17 @@
                 </button>
             </div>
         </header>
+
+        <!-- Banner Scoped PDF Q&A: hiển thị khi người dùng đang chat với một tài liệu cụ thể -->
+        <div class="assistant-scoped-banner" data-assistant-scoped-banner hidden>
+            <div class="scoped-banner-content">
+                <span class="scoped-banner-icon" aria-hidden="true">📄</span>
+                <span class="scoped-banner-text">Đang hỏi về: <strong data-scoped-title>Tài liệu</strong></span>
+            </div>
+            <button class="scoped-banner-clear" type="button" data-scoped-clear title="Bỏ khoanh vùng, hỏi toàn bộ kho">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+        </div>
 
         <!-- Khung hiển thị cuộc trò chuyện (Conversation Container) -->
         <div class="document-assistant-conversation" data-assistant-messages role="log"
@@ -99,10 +114,40 @@
 
         <!-- Khung soạn thảo tin nhắn (Composer Island) -->
         <div class="document-assistant-composer">
+            <!-- Vùng xem trước ảnh đính kèm (Clipboard / PrtScn / File Upload) -->
+            <div class="assistant-attachment-preview" data-assistant-attachment hidden>
+                <div class="assistant-attachment-card">
+                    <img src="" alt="Ảnh xem trước" class="assistant-attachment-img" data-assistant-attachment-img>
+                    <div class="assistant-attachment-meta">
+                        <span class="assistant-attachment-name" data-assistant-attachment-name>anh-chup.png</span>
+                    </div>
+                    <button type="button" class="assistant-attachment-remove" data-assistant-attachment-remove aria-label="Xóa ảnh đính kèm">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Thanh điều khiển dừng tạo phản hồi (Stop Streaming) -->
+            <div class="assistant-streaming-bar" data-assistant-streaming-bar hidden>
+                <button type="button" class="assistant-stop-btn" data-assistant-stop aria-label="Dừng tạo phản hồi">
+                    <span class="stop-square-icon" aria-hidden="true">■</span>
+                    <span>Dừng phản hồi</span>
+                </button>
+            </div>
+
             <form class="document-assistant-form" data-assistant-form>
                 <label class="assistant-sr-only" for="document-assistant-input">Hỏi EduBot về tài liệu cần tìm</label>
+                <input type="file" accept="image/png,image/jpeg,image/webp" data-assistant-file-input hidden>
+                <button type="button" class="document-assistant-attach-btn" data-assistant-attach-btn aria-label="Đính kèm ảnh chụp bài tập hoặc giáo trình">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" fill="currentColor"/>
+                    </svg>
+                </button>
                 <textarea id="document-assistant-input" name="message" rows="1" maxlength="250"
-                          autocomplete="off" placeholder="Hỏi EduBot về Spring Boot, Java, OWASP, AI…"
+                          autocomplete="off" placeholder="Dán ảnh (Ctrl+V) hoặc hỏi bài tập, Java, AI…"
+                          style="border: none !important; outline: none !important; box-shadow: none !important; background: transparent !important;"
                           data-assistant-input></textarea>
                 <button type="submit" data-assistant-submit aria-label="Gửi câu hỏi tới EduBot" disabled>
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -111,7 +156,6 @@
                 </button>
             </form>
             <div class="document-assistant-composer-meta">
-                <span class="composer-hint">Nhấn <b>Enter</b> để gửi · <b>Shift + Enter</b> xuống dòng</span>
                 <span class="composer-counter"><b data-assistant-count>0</b>/250</span>
             </div>
         </div>

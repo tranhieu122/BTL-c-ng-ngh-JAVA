@@ -10,6 +10,10 @@ import java.util.Objects;
 import org.junit.jupiter.api.Test;
 import org.springframework.ui.ConcurrentModel;
 
+/**
+ * Kiểm thử bộ nạp thuộc tính toàn cục cho View (Global Model Attributes Test).
+ * Đảm bảo các trang Thymeleaf đều nhận được thông tin người dùng đăng nhập và số đếm thông báo chưa đọc.
+ */
 class GlobalModelAttributesTest {
 
     @Test

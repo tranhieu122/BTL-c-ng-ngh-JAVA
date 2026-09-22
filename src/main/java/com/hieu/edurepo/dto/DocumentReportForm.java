@@ -4,6 +4,9 @@ import com.hieu.edurepo.enums.DocumentReportReason;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+/**
+ * Biểu mẫu DTO tiếp nhận lý do và mô tả báo cáo vi phạm học liệu từ sinh viên.
+ */
 public class DocumentReportForm {
     @NotNull(message = "Vui lòng chọn lý do báo cáo")
     private DocumentReportReason reason;

@@ -9,6 +9,9 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+/**
+ * Thực thể đại diện cho Khoa viện đào tạo trong trường đại học.
+ */
 @Entity
 @Table(name = "faculties")
 public class Faculty {

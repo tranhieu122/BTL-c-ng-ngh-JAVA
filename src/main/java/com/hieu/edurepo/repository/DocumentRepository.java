@@ -17,6 +17,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Kho lưu trữ và truy vấn dữ liệu tài liệu học liệu số của hệ thống EduRepo.
+ */
 public interface DocumentRepository extends JpaRepository<Document, Long> {
     @Override
     @EntityGraph(attributePaths = {"createdBy", "category", "department"})

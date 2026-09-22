@@ -30,6 +30,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+/**
+ * Kiểm thử dịch vụ Trợ lý AI và xử lý câu hỏi sinh viên (Document Assistant Service Test).
+ * Đánh giá các kịch bản hỏi đáp giáo trình, trích xuất nguồn tham khảo và xử lý phản hồi streaming.
+ */
 class DocumentAssistantServiceTest {
 
     @Test

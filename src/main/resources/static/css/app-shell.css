@@ -1,4 +1,4 @@
-﻿/* Internal application shell */
+/* Internal application shell */
 
 .page-shell {
     min-height: calc(100vh - var(--header-height));
@@ -119,7 +119,7 @@
 
 input,
 select,
-textarea {
+textarea:not(#document-assistant-input) {
     width: 100%;
     border: 1px solid var(--line-strong);
     border-radius: 11px;
@@ -132,7 +132,7 @@ textarea {
 
 input:focus,
 select:focus,
-textarea:focus {
+textarea:not(#document-assistant-input):focus {
     border-color: var(--primary-400);
     box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }

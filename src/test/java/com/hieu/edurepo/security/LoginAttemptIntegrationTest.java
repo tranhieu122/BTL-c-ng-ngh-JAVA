@@ -28,6 +28,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+/**
+ * Kiểm thử cơ chế bảo vệ đăng nhập chống tấn công dò mật khẩu (Brute-force Login Test).
+ * Xác nhận tài khoản bị tự động khóa tạm thời sau 5 lần đăng nhập sai liên tiếp.
+ */
 class LoginAttemptIntegrationTest {
 
     @Autowired

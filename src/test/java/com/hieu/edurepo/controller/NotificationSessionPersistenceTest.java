@@ -32,6 +32,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+/**
+ * Kiểm thử tính bền vững của dữ liệu thông báo người dùng (Notification Session Persistence Test).
+ * Đảm bảo danh sách thông báo và trạng thái đã đọc/chưa đọc không bị mất mát khi máy chủ khởi động lại.
+ */
 class NotificationSessionPersistenceTest {
     private static final String PASSWORD = "Password123";
 

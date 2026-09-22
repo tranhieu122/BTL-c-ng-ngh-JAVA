@@ -14,6 +14,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/rag")
 @PreAuthorize("hasRole('ADMIN')")
+/**
+ * Bộ điều hướng quản trị cấu hình và tái lập chỉ mục Trợ lý AI (Admin RAG Controller).
+ * Cung cấp chức năng kiểm tra trạng thái chỉ mục vector và kích hoạt đồng bộ lại tri thức RAG.
+ */
 public class AdminRagController {
 
     private final DocumentIndexingService indexingService;

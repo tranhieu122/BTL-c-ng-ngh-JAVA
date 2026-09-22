@@ -7,6 +7,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 
+/**
+ * DTO chứa các tiêu chí lọc và tra cứu lịch sử kiểm toán hệ thống.
+ */
 public class AuditLogFilter {
     private AuditAction action;
     private Long actorId;

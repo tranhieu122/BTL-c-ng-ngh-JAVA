@@ -20,6 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Kiểm thử dịch vụ lưu trữ tệp tin vật lý trên ổ đĩa (File Storage Service Test).
+ * Xác minh an toàn thư mục, ngăn chặn tấn công Path Traversal và sinh tên tệp duy nhất bằng UUID.
+ */
 class FileStorageServiceTest {
 
     @Test

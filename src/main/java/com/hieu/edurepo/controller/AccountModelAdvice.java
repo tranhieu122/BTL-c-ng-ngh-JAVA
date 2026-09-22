@@ -7,6 +7,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
+/**
+ * Bộ bổ sung thuộc tính tài khoản toàn cục cho các View (Account Model Advice).
+ * Tự động nạp thông tin người dùng đăng nhập hiện tại vào Model dưới thuộc tính 'currentUser'.
+ */
 @ControllerAdvice
 public class AccountModelAdvice {
     private final UserRepository users;

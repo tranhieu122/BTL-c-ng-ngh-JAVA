@@ -1,3 +1,8 @@
+/**
+ * Module quản trị Bảng điều khiển (Admin Dashboard Script).
+ * Khởi tạo biểu đồ đường thống kê xu hướng tải học liệu, vẽ biểu đồ tròn phân loại danh mục bằng Chart.js.
+ */
+
 export const initAdminDashboard = () => {
     const dashboard = document.querySelector("[data-admin-dashboard]");
     if (!dashboard) return;

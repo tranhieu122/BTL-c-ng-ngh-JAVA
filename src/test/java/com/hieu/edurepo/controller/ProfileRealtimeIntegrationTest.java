@@ -37,6 +37,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "app.upload.dir=target/profile-test-uploads", "app.realtime.interval-ms=100"
 })
 @AutoConfigureMockMvc
+/**
+ * Kiểm thử tích hợp đồng bộ thông tin hồ sơ theo thời gian thực (Profile Realtime Integration Test).
+ * Xác minh việc cập nhật họ tên, đổi ảnh đại diện và phát sóng tín hiệu đồng bộ đa tab qua kênh SSE.
+ */
 class ProfileRealtimeIntegrationTest {
     @Autowired MockMvc mvc;
     @Autowired UserRepository users;

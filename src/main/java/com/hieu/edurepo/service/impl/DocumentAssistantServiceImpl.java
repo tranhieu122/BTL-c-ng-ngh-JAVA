@@ -34,6 +34,8 @@ import java.util.regex.Pattern;
 @Service
 public class DocumentAssistantServiceImpl implements DocumentAssistantService {
 
+    private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(DocumentAssistantServiceImpl.class);
+
     private static final int FUZZY_CANDIDATE_LIMIT = 500;
     private static final String EMPTY_MESSAGE = "Bạn hãy nhập tên hoặc chủ đề tài liệu cần tìm.";
     private static final String NO_RESULTS_MESSAGE = "Mình chưa thấy kết quả thật khớp với \"%s\". Bạn có thể thử từ khóa ngắn hơn hoặc xem các tài liệu mới nhất.";
@@ -141,6 +143,12 @@ public class DocumentAssistantServiceImpl implements DocumentAssistantService {
     @Override
     @Transactional(readOnly = true)
     public DocumentAssistantResponse respond(String message, DocumentAssistantContext suppliedContext) {
+        return respond(message, suppliedContext, null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DocumentAssistantResponse respond(String message, DocumentAssistantContext suppliedContext, Long scopedDocumentId) {
         DocumentAssistantContext context = suppliedContext == null ? DocumentAssistantContext.empty() : suppliedContext;
         String normalized = normalize(message);
         if (normalized.isEmpty()) {
@@ -150,6 +158,38 @@ public class DocumentAssistantServiceImpl implements DocumentAssistantService {
             return messageWithContext("INVALID_INPUT",
                     "Nội dung tìm kiếm không được vượt quá " + MAX_MESSAGE_LENGTH + " ký tự.", List.of(), context);
         }
+
+        // =========================================================================
+        // SCOPED PDF MODE (Tra cứu trực tiếp trong tài liệu đang mở)
+        // =========================================================================
+        if (scopedDocumentId != null) {
+            Document scopedDoc = repository.findById(scopedDocumentId).orElse(null);
+            if (scopedDoc == null || scopedDoc.getStatus() != com.hieu.edurepo.enums.DocumentStatus.PUBLISHED) {
+                return messageWithContext("INVALID_INPUT", "Tài liệu này không tồn tại hoặc chưa được công bố.", List.of(), context);
+            }
+
+            if (retrievalService != null && contextBuilder != null && openAiService != null && openAiService.isAvailable()) {
+                List<com.hieu.edurepo.dto.RagSearchResult> scopedResults = retrievalService.retrieveForDocument(scopedDocumentId, normalized);
+                var builtContext = contextBuilder.buildScopedContext(normalized, scopedDocumentId, scopedDoc.getTitle(), scopedResults);
+                String llmAnswer = openAiService.generateChatCompletion(builtContext.systemPrompt(), builtContext.userPrompt());
+                String cleanedAnswer = stripAnswerStatus(llmAnswer);
+                Map<String, String> meta = Map.of("model", "gpt-5.6-luna", "scope", "document", "documentId", String.valueOf(scopedDocumentId));
+                List<DocumentAssistantItem> docs = List.of(toItem(scopedDoc));
+                return new DocumentAssistantResponse(
+                        "RAG_ANSWER",
+                        cleanedAnswer != null && !cleanedAnswer.isBlank() ? cleanedAnswer : "Chưa có thông tin phù hợp trong tài liệu này.",
+                        normalized,
+                        meta,
+                        docs,
+                        List.of("Tóm tắt tài liệu này", "Chủ đề chính là gì?"),
+                        false,
+                        "/view/" + scopedDoc.getId(),
+                        context,
+                        builtContext.sources()
+                );
+            }
+        }
+
         if (GREETING.matcher(normalized).matches()) {
             return messageWithContext("GREETING", GREETING_MESSAGE, DEFAULT_SUGGESTIONS, context);
         }
@@ -163,6 +203,7 @@ public class DocumentAssistantServiceImpl implements DocumentAssistantService {
                 && query.languageCode().isEmpty() && query.year() == null) {
             return messageWithContext("INVALID_INPUT", EMPTY_MESSAGE, DEFAULT_SUGGESTIONS, context);
         }
+
 
         // =========================================================================
         // Tool Calling AI Assistant (Weather, Time & Multi-tool Execution)
@@ -1075,4 +1116,224 @@ public class DocumentAssistantServiceImpl implements DocumentAssistantService {
         int end = boundary >= maxLength / 2 ? boundary : maxLength - 1;
         return clean.substring(0, end).stripTrailing() + "…";
     }
+
+    @Override
+    public void streamResponse(String message, DocumentAssistantContext suppliedContext, Long scopedDocumentId,
+                               org.springframework.web.servlet.mvc.method.annotation.SseEmitter emitter) {
+        java.util.concurrent.CompletableFuture.runAsync(() -> {
+            String messageId = "msg-" + java.util.UUID.randomUUID().toString().substring(0, 8);
+            try {
+                DocumentAssistantContext context = suppliedContext == null ? DocumentAssistantContext.empty() : suppliedContext;
+                String normalized = normalize(message);
+
+                if (normalized.isEmpty()) {
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token").data(java.util.Map.of("content", EMPTY_MESSAGE)));
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(java.util.Map.of("type", "DONE", "messageId", messageId)));
+                    emitter.complete();
+                    return;
+                }
+                if (normalized.length() > MAX_MESSAGE_LENGTH) {
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token").data(java.util.Map.of("content", "Nội dung tìm kiếm không được vượt quá " + MAX_MESSAGE_LENGTH + " ký tự.")));
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(java.util.Map.of("type", "DONE", "messageId", messageId)));
+                    emitter.complete();
+                    return;
+                }
+
+                // =========================================================================
+                // 1. SCOPED PDF MODE (Tra cứu trực tiếp trong tài liệu đang mở)
+                // =========================================================================
+                if (scopedDocumentId != null) {
+                    Document scopedDoc = repository.findById(scopedDocumentId).orElse(null);
+                    if (scopedDoc == null || scopedDoc.getStatus() != com.hieu.edurepo.enums.DocumentStatus.PUBLISHED) {
+                        emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token").data(java.util.Map.of("content", "Tài liệu này không tồn tại hoặc chưa được công bố.")));
+                        emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(java.util.Map.of("type", "DONE", "messageId", messageId)));
+                        emitter.complete();
+                        return;
+                    }
+
+                    List<com.hieu.edurepo.dto.RagSearchResult> scopedResults = (retrievalService != null)
+                            ? retrievalService.retrieveForDocument(scopedDocumentId, normalized)
+                            : List.of();
+                    var builtContext = contextBuilder.buildScopedContext(normalized, scopedDocumentId, scopedDoc.getTitle(), scopedResults);
+
+                    // Gửi event START
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("start").data(java.util.Map.of(
+                            "type", "START",
+                            "messageId", messageId,
+                            "scope", java.util.Map.of("type", "DOCUMENT", "documentId", scopedDocumentId, "title", scopedDoc.getTitle())
+                    )));
+
+                    // Gửi event CITATION nếu có nguồn tham chiếu
+                    if (!builtContext.sources().isEmpty()) {
+                        emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("citation").data(builtContext.sources()));
+                    }
+
+                    // Gửi các token sinh ra từ OpenAI qua SSE
+                    if (openAiService != null && openAiService.isAvailable()) {
+                        openAiService.streamChatCompletion(
+                                builtContext.systemPrompt(),
+                                builtContext.userPrompt(),
+                                token -> {
+                                    try {
+                                        emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token").data(java.util.Map.of("content", token)));
+                                    } catch (Exception ex) {
+                                        throw new RuntimeException("Client disconnected", ex);
+                                    }
+                                },
+                                () -> {
+                                    try {
+                                        emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(java.util.Map.of(
+                                                "type", "DONE",
+                                                "messageId", messageId,
+                                                "allResultsUrl", "/view/" + scopedDoc.getId()
+                                        )));
+                                        emitter.complete();
+                                    } catch (Exception ex) {
+                                        emitter.completeWithError(ex);
+                                    }
+                                },
+                                error -> {
+                                    try {
+                                        emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("error").data(java.util.Map.of(
+                                                "message", "Đã xảy ra sự cố khi kết nối tới mô hình AI. Vui lòng thử lại sau."
+                                        )));
+                                        emitter.complete();
+                                    } catch (Exception ignored) {
+                                        emitter.completeWithError(error);
+                                    }
+                                }
+                        );
+                    } else {
+                        emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token").data(java.util.Map.of("content", "Hệ thống AI chưa sẵn sàng. Bạn vui lòng thử lại sau.")));
+                        emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(java.util.Map.of("type", "DONE", "messageId", messageId)));
+                        emitter.complete();
+                    }
+                    return;
+                }
+
+                // =========================================================================
+                // 2. GLOBAL CHAT MODE (Tra cứu toàn kho học liệu EduRepo)
+                // =========================================================================
+                if (GREETING.matcher(normalized).matches()) {
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("start").data(java.util.Map.of("type", "START", "messageId", messageId, "scope", java.util.Map.of("type", "GLOBAL"))));
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token").data(java.util.Map.of("content", GREETING_MESSAGE)));
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(java.util.Map.of("type", "DONE", "messageId", messageId)));
+                    emitter.complete();
+                    return;
+                }
+                if (OUT_OF_SCOPE.matcher(normalized).find()) {
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("start").data(java.util.Map.of("type", "START", "messageId", messageId, "scope", java.util.Map.of("type", "GLOBAL"))));
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token").data(java.util.Map.of("content", OUT_OF_SCOPE_MESSAGE)));
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(java.util.Map.of("type", "DONE", "messageId", messageId)));
+                    emitter.complete();
+                    return;
+                }
+
+                DocumentAssistantQuery query = analyze(normalized, context);
+
+                // Tool candidate (weather, time)
+                if (isToolCandidate(normalized) && toolExecutorService != null) {
+                    var resp = respond(message, suppliedContext, null);
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("start").data(java.util.Map.of("type", "START", "messageId", messageId, "scope", java.util.Map.of("type", "GLOBAL"))));
+                    if (resp.sources() != null && !resp.sources().isEmpty()) {
+                        emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("citation").data(resp.sources()));
+                    }
+                    String ans = resp.message() != null ? resp.message() : "";
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token").data(java.util.Map.of("content", ans)));
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(java.util.Map.of(
+                            "type", "DONE",
+                            "messageId", messageId,
+                            "documents", resp.documents() != null ? resp.documents() : List.of()
+                    )));
+                    emitter.complete();
+                    return;
+                }
+
+                // Global RAG
+                List<com.hieu.edurepo.dto.RagSearchResult> ragResults = (retrievalService != null)
+                        ? retrievalService.retrieve(normalized)
+                        : List.of();
+                if ((ragResults == null || ragResults.isEmpty()) && !query.topic().isBlank()) {
+                    ragResults = retrievalService.retrieve(query.topic());
+                }
+                if ((ragResults == null || ragResults.isEmpty()) && !query.keyword().isBlank()) {
+                    ragResults = retrievalService.retrieve(query.keyword());
+                }
+                if (ragResults == null) ragResults = List.of();
+
+                var builtContext = contextBuilder.buildContext(normalized, ragResults);
+
+                // Gửi event START
+                emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("start").data(java.util.Map.of(
+                        "type", "START",
+                        "messageId", messageId,
+                        "scope", java.util.Map.of("type", "GLOBAL")
+                )));
+
+                // Gửi event CITATION
+                if (!builtContext.sources().isEmpty()) {
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("citation").data(builtContext.sources()));
+                }
+
+                if (!ragResults.isEmpty() && openAiService != null && openAiService.isAvailable()) {
+                    openAiService.streamChatCompletion(
+                            builtContext.systemPrompt(),
+                            builtContext.userPrompt(),
+                            token -> {
+                                try {
+                                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token").data(java.util.Map.of("content", token)));
+                                } catch (Exception ex) {
+                                    throw new RuntimeException("Client disconnected", ex);
+                                }
+                            },
+                            () -> {
+                                try {
+                                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(java.util.Map.of(
+                                            "type", "DONE",
+                                            "messageId", messageId,
+                                            "allResultsUrl", repositoryUrl(query)
+                                    )));
+                                    emitter.complete();
+                                } catch (Exception ex) {
+                                    emitter.completeWithError(ex);
+                                }
+                            },
+                            error -> {
+                                try {
+                                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("error").data(java.util.Map.of(
+                                            "message", "Đã xảy ra sự cố khi kết nối tới mô hình AI. Vui lòng thử lại sau."
+                                    )));
+                                    emitter.complete();
+                                } catch (Exception ignored) {
+                                    emitter.completeWithError(error);
+                                }
+                            }
+                    );
+                } else {
+                    // Fallback to sync respond() và stream câu trả lời
+                    var resp = respond(message, suppliedContext, null);
+                    String ans = resp.message() != null ? resp.message() : "";
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token").data(java.util.Map.of("content", ans)));
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(java.util.Map.of(
+                            "type", "DONE",
+                            "messageId", messageId,
+                            "documents", resp.documents() != null ? resp.documents() : List.of(),
+                            "allResultsUrl", resp.allResultsUrl() != null ? resp.allResultsUrl() : ""
+                    )));
+                    emitter.complete();
+                }
+            } catch (Exception e) {
+                LOGGER.warn("SSE stream processing terminated or failed: {}", e.getMessage());
+                try {
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("error").data(java.util.Map.of(
+                            "message", "Đã xảy ra lỗi khi tạo câu trả lời. Vui lòng thử lại sau."
+                    )));
+                    emitter.complete();
+                } catch (Exception ignored) {
+                    emitter.completeWithError(e);
+                }
+            }
+        });
+    }
 }
+

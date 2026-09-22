@@ -20,6 +20,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Bộ điều hướng Thư viện học tập cá nhân của sinh viên (Library Controller).
+ * Quản lý danh sách tài liệu yêu thích (Bookmark) và các bộ sưu tập tài liệu theo chuyên đề.
+ */
 @Controller
 @RequestMapping("/library")
 public class LibraryController {

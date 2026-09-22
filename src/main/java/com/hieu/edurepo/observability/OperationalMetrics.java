@@ -8,7 +8,11 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/** Low-cardinality metrics for the few application flows that need operational alerts. */
+/**
+ * Thành phần đo lường và giám sát vận hành hệ thống (Operational Metrics).
+ * Thu thập các chỉ số Micrometer (Counter, Timer, Gauge, DistributionSummary)
+ * phục vụ cảnh báo vận hành, giám sát OTP, upload tệp tin và kết nối SSE thời gian thực.
+ */
 @Component
 public class OperationalMetrics {
     private final MeterRegistry registry;

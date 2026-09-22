@@ -21,6 +21,10 @@ import java.util.Objects;
 @Controller
 @RequestMapping("/moderation")
 @PreAuthorize("hasAnyRole('ADMIN','REVIEWER')")
+/**
+ * Bộ điều hướng kiểm duyệt báo cáo vi phạm nội dung học liệu (Moderation Controller).
+ * Dành cho Quản trị viên và Ban biên tập xem xét các phản ánh vi phạm bản quyền hoặc nội dung xấu.
+ */
 public class ModerationController {
     private final DocumentReportService reportService;
     private final DocumentReviewService reviewService;

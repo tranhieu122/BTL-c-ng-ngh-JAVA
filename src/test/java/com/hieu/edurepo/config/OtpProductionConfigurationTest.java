@@ -5,6 +5,10 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Kiểm thử tính hợp lệ của cấu hình mã băm OTP trên môi trường Production.
+ * Kiểm tra ràng buộc độ dài khóa bí mật pepper tối thiểu 32 ký tự và cơ chế fail-fast khi thiếu khóa.
+ */
 class OtpProductionConfigurationTest {
     private final ApplicationContextRunner context = new ApplicationContextRunner()
             .withUserConfiguration(OtpProductionConfiguration.class)

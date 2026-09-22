@@ -9,6 +9,10 @@ import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Kiểm thử ánh xạ các biến môi trường nhạy cảm vào đối tượng ConfigurationProperties.
+ * Đảm bảo các thuộc tính RAG API key, mail credentials và timeout nạp đúng giá trị.
+ */
 class ProductionPropertiesBindingTest {
 
     @Test

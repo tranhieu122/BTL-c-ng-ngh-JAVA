@@ -22,7 +22,7 @@ public record ToolExecutionResult(String toolResultJson, List<RagSource> sources
     }
 
     public ToolExecutionResult {
-        sources = sources == null ? List.of() : List.copyOf(sources);
-        documents = documents == null ? List.of() : List.copyOf(documents);
+        sources = sources == null ? List.of() : sources.stream().filter(java.util.Objects::nonNull).toList();
+        documents = documents == null ? List.of() : documents.stream().filter(java.util.Objects::nonNull).toList();
     }
 }

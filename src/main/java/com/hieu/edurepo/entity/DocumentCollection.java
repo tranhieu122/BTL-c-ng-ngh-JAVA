@@ -18,6 +18,9 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "document_collections", uniqueConstraints =
         @UniqueConstraint(name = "uk_collection_owner_name", columnNames = {"owner_id", "name"}))
+/**
+ * Thực thể bộ sưu tập học liệu theo chuyên đề do sinh viên tự tổ chức và quản lý.
+ */
 public class DocumentCollection {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

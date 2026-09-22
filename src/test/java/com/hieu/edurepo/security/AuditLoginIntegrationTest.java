@@ -22,6 +22,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+/**
+ * Kiểm thử tự động ghi nhật ký kiểm toán khi người dùng đăng nhập hệ thống.
+ * Xác nhận các sự kiện LOGIN_SUCCESS và LOGIN_FAILURE được lưu đầy đủ IP và thời gian vào CSDL.
+ */
 class AuditLoginIntegrationTest {
     @Autowired MockMvc mockMvc;
     @Autowired AuditLogRepository auditLogs;

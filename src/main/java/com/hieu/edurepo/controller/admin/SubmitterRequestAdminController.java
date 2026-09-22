@@ -15,6 +15,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Objects;
 
+/**
+ * Bộ điều hướng xét duyệt đơn xin quyền tác giả của Quản trị viên (Submitter Request Admin Controller).
+ * Phê duyệt cấp quyền ROLE_SUBMITTER hoặc từ chối đơn kèm lý do giải thích cho sinh viên.
+ */
 @Controller
 @RequestMapping("/admin/submitter-requests")
 public class SubmitterRequestAdminController {

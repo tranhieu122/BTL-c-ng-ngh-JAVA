@@ -28,6 +28,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Kiểm thử dịch vụ thư viện học tập cá nhân (Library Service Test).
+ * Kiểm tra thêm/xóa tài liệu yêu thích (Bookmark) và quản trị các bộ sưu tập học tập của sinh viên.
+ */
 class LibraryServiceTest {
 
     @Test

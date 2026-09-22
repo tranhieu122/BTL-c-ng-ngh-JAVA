@@ -42,6 +42,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "app.upload.dir=target/auth-otp-test-uploads"
 })
 @AutoConfigureMockMvc
+/**
+ * Kiểm thử tích hợp quy trình xác thực mã OTP qua Email (Auth OTP Integration Test).
+ * Xác minh toàn bộ luồng gửi OTP, xác minh mã, kích hoạt tài khoản và cấp quyền đặt lại mật khẩu.
+ */
 class AuthOtpIntegrationTest {
     @Autowired MockMvc mvc;
     @Autowired UserRepository users;

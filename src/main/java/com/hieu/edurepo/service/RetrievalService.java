@@ -29,7 +29,28 @@ public interface RetrievalService {
     List<RagSearchResult> retrieve(String query, int topK, double minSimilarity);
 
     /**
+     * Truy xuất các chunk tài liệu liên quan nhất nhưng BỊ GIỚI HẠN trong phạm vi một tài liệu cụ thể (Scoped Document Q&A).
+     *
+     * @param documentId ID tài liệu cần giới hạn truy vấn
+     * @param query Câu hỏi hoặc nội dung người dùng nhập vào
+     * @return Danh sách kết quả tìm kiếm gồm tài liệu, chunk và điểm tương đồng
+     */
+    List<RagSearchResult> retrieveForDocument(Long documentId, String query);
+
+    /**
+     * Truy xuất các chunk tài liệu liên quan nhất trong phạm vi một tài liệu với tùy chỉnh topK và minSimilarity.
+     *
+     * @param documentId ID tài liệu cần giới hạn truy vấn
+     * @param query Câu hỏi hoặc nội dung người dùng nhập vào
+     * @param topK Số lượng kết quả tối đa cần lấy
+     * @param minSimilarity Ngưỡng tương đồng tối thiểu (0.0 đến 1.0)
+     * @return Danh sách kết quả tìm kiếm phù hợp
+     */
+    List<RagSearchResult> retrieveForDocument(Long documentId, String query, int topK, double minSimilarity);
+
+    /**
      * Xóa bộ nhớ đệm (cache) chỉ mục chunk trong RAM khi có tài liệu mới được xuất bản hoặc reindex lại.
      */
     void invalidateChunkCache();
 }
+

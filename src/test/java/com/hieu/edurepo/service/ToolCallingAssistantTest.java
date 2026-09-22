@@ -26,6 +26,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+/**
+ * Kiểm thử tính năng gọi công cụ mở rộng của Trợ lý AI (Tool Calling Assistant Test).
+ * Xác minh việc nhận diện ý định gọi tool, bóc tách JSON arguments và xử lý fallback khi tool lỗi.
+ */
 class ToolCallingAssistantTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();

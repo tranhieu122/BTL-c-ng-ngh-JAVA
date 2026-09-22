@@ -19,6 +19,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+/**
+ * Kiểm thử các thành phần cốt lõi của đường ống RAG (RAG Pipeline Unit Test).
+ * Đánh giá tính chính xác của thuật toán xếp hạng tương đồng Cosine và cơ chế fallback an toàn.
+ */
 class RagPipelineTest {
 
     // =========================================================================

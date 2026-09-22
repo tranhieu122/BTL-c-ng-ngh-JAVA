@@ -31,6 +31,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+/**
+ * Kiểm thử tích hợp trung tâm thông báo người dùng (Notification Integration Test).
+ * Xác minh việc hiển thị danh sách thông báo, phân trang và thao tác đánh dấu đã đọc.
+ */
 class NotificationIntegrationTest {
     @Autowired private MockMvc mvc;
     @Autowired private UserRepository users;

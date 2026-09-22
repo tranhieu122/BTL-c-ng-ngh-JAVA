@@ -211,4 +211,97 @@ public class OpenAIServiceImpl implements OpenAIService {
 
         return new com.hieu.edurepo.dto.ToolChatResponse("", accumulatedSources, toolsUsed, accumulatedDocuments);
     }
+
+    @Override
+    public void streamChatCompletion(String systemPrompt, String userPrompt,
+                                     java.util.function.Consumer<String> tokenConsumer,
+                                     Runnable onComplete,
+                                     java.util.function.Consumer<Throwable> onError) {
+        if (!properties.isConfigured()) {
+            LOGGER.warn("OpenAI API key is missing or blank. Cannot stream answer with model {}.", properties.getModel());
+            if (onError != null) onError.accept(new IllegalStateException("OpenAI API key is not configured"));
+            return;
+        }
+
+        try {
+            String endpoint = properties.getBaseUrl().replaceAll("/+$", "") + "/chat/completions";
+
+            List<Map<String, String>> messages = new ArrayList<>();
+            if (systemPrompt != null && !systemPrompt.isBlank()) {
+                messages.add(Map.of("role", "system", "content", systemPrompt));
+            }
+            messages.add(Map.of("role", "user", "content", userPrompt != null ? userPrompt : ""));
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("model", properties.getModel());
+            body.put("messages", messages);
+            body.put("stream", true);
+
+            String requestJson = objectMapper.writeValueAsString(body);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + properties.getApiKey())
+                    .timeout(Duration.ofSeconds(properties.getTimeoutSeconds()))
+                    .POST(HttpRequest.BodyPublishers.ofString(requestJson))
+                    .build();
+
+            HttpResponse<java.io.InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(response.body(), java.nio.charset.StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        line = line.trim();
+                        if (line.isEmpty() || line.startsWith(":")) {
+                            continue;
+                        }
+                        if (line.startsWith("data: ")) {
+                            String data = line.substring(6).trim();
+                            if ("[DONE]".equals(data)) {
+                                break;
+                            }
+                            try {
+                                JsonNode root = objectMapper.readTree(data);
+                                JsonNode choices = root.path("choices");
+                                if (choices.isArray() && !choices.isEmpty()) {
+                                    JsonNode delta = choices.get(0).path("delta");
+                                    if (delta.has("content")) {
+                                        String content = delta.path("content").asText("");
+                                        if (!content.isEmpty() && tokenConsumer != null) {
+                                            tokenConsumer.accept(content);
+                                        }
+                                    }
+                                }
+                            } catch (Exception parseEx) {
+                                LOGGER.debug("Non-critical JSON chunk parse warning: {}", parseEx.getMessage());
+                            }
+                        }
+                    }
+                }
+                if (onComplete != null) {
+                    onComplete.run();
+                }
+            } else {
+                String errorBody = "";
+                try {
+                    errorBody = new String(response.body().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                } catch (Exception ignored) {}
+                LOGGER.error("OpenAI Chat Completion Stream API error (Model: {}): HTTP {} - {}",
+                        properties.getModel(), response.statusCode(), errorBody);
+                if (onError != null) {
+                    onError.accept(new RuntimeException("OpenAI Streaming HTTP " + response.statusCode() + ": " + errorBody));
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Exception calling OpenAI Chat Completion Stream API (Model: {}): {}",
+                    properties.getModel(), e.getMessage());
+            if (onError != null) {
+                onError.accept(e);
+            }
+        }
+    }
 }
+

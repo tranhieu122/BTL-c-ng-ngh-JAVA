@@ -12,6 +12,9 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Kho lưu trữ yêu cầu đăng ký nâng quyền Người đăng tải học liệu (Submitter).
+ */
 public interface SubmitterRequestRepository extends JpaRepository<SubmitterRequest, Long> {
     boolean existsByRequesterIdAndStatus(Long requesterId, SubmitterRequestStatus status);
     @EntityGraph(attributePaths = {"requester", "reviewedBy"})

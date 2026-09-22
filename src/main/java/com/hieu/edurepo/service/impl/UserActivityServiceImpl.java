@@ -17,6 +17,13 @@ import java.util.List;
 
 @Service
 @Transactional
+/**
+ * Triển khai dịch vụ theo dõi và ghi nhận hoạt động người dùng (User Activity Service Implementation).
+ * <p>
+ * Lưu vết và cập nhật thời điểm xem học liệu, đếm số lượt tải về của tài khoản,
+ * và truy vấn danh sách lịch sử học tập cá nhân của sinh viên.
+ * </p>
+ */
 public class UserActivityServiceImpl implements UserActivityService {
     private final DocumentViewHistoryRepository views;
     private final DocumentDownloadHistoryRepository downloads;

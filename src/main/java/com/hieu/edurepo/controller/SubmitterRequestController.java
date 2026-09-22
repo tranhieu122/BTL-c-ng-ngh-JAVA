@@ -16,6 +16,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Objects;
 
+/**
+ * Bộ điều hướng đăng ký quyền tác giả nộp bài (Submitter Request Controller).
+ * Cho phép người học gửi đơn xin cấp quyền tải tài liệu kèm minh chứng.
+ */
 @Controller
 public class SubmitterRequestController {
     private final SubmitterRequestService service;

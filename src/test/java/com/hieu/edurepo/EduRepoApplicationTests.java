@@ -9,6 +9,10 @@ import org.springframework.util.unit.DataSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
+/**
+ * Kiểm thử khởi động ngữ cảnh ứng dụng chính (Application Context Boot Test).
+ * Kiểm tra các bean Spring nạp thành công và cấu hình Multipart upload đúng 200MB.
+ */
 class EduRepoApplicationTests {
 
     @Autowired

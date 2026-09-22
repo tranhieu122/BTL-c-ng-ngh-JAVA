@@ -7,6 +7,9 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import com.hieu.edurepo.enums.AuditAction;
 import java.util.Optional;
 
+/**
+ * Kho lưu trữ dữ liệu nhật ký kiểm toán và giám sát hành vi người dùng trong hệ thống.
+ */
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long>, JpaSpecificationExecutor<AuditLog> {
     Optional<AuditLog> findTopByActionOrderByOccurredAtDescIdDesc(AuditAction action);
 }

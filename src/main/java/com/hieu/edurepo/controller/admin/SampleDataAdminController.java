@@ -10,6 +10,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/admin/sample-data")
 @PreAuthorize("hasRole('ADMIN')")
+/**
+ * Bộ điều hướng quản trị nạp dữ liệu mẫu ban đầu (Sample Data Admin Controller).
+ * Hỗ trợ khởi tạo nhanh dữ liệu demo tương tác (lượt tải, đánh giá) khi kiểm thử hệ thống.
+ */
 public class SampleDataAdminController {
 
     private final SampleDataService sampleDataService;

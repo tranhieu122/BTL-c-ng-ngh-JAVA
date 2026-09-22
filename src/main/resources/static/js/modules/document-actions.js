@@ -1,3 +1,8 @@
+/**
+ * Module xử lý các thao tác nhanh trên tài liệu (Document Actions Script).
+ * Thao tác bật/tắt yêu thích (Bookmark), sao chép liên kết chia sẻ, và hiển thị hộp thoại báo cáo vi phạm.
+ */
+
 import { showToast } from "./core.js";
 
 const copyText = async (value) => {

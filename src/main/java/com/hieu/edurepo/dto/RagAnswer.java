@@ -2,6 +2,9 @@ package com.hieu.edurepo.dto;
 
 import java.util.List;
 
+/**
+ * DTO đóng gói câu trả lời hoàn chỉnh của AI kèm các nguồn trích dẫn giáo trình.
+ */
 public record RagAnswer(String answer, List<RagSource> sources, boolean foundInformation) {
 
     public static final String NOT_FOUND_MESSAGE =

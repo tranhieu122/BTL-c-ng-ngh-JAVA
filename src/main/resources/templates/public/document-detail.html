@@ -45,7 +45,13 @@
                      aria-labelledby="reader-title">
                 <div class="document-reader-heading">
                     <div><span class="eyebrow">Đọc trực tiếp</span><h2 id="reader-title">Trình xem tài liệu</h2></div>
-                    <a class="reader-download" th:href="@{/download/{id}(id=${document.id})}">Tải PDF ↓</a>
+                    <div class="reader-heading-actions">
+                        <button class="button button-sm assistant-scoped-chat-btn" type="button"
+                                th:attr="data-chat-document-id=${document.id},data-chat-document-title=${document.title}">
+                            <span>💬</span> Chat với tài liệu
+                        </button>
+                        <a class="reader-download" th:href="@{/download/{id}(id=${document.id})}">Tải PDF ↓</a>
+                    </div>
                 </div>
                 <iframe class="document-reader-frame" th:src="@{/view/{id}(id=${document.id})}"
                         th:title="${'Trình xem PDF: ' + document.title}" scrolling="yes" tabindex="0">
@@ -191,6 +197,10 @@
                 </div>
             </div>
             <p>Tải bản đầy đủ để đọc, nghiên cứu và sử dụng cho mục đích học tập.</p>
+            <button class="button assistant-scoped-chat-btn assistant-scoped-chat-main" type="button"
+                    th:attr="data-chat-document-id=${document.id},data-chat-document-title=${document.title}">
+                <span class="ai-sparkle-inline" aria-hidden="true">✨</span> Hỏi đáp AI với tài liệu này
+            </button>
             <a class="button preview-primary"
                th:if="${#strings.containsIgnoreCase(document.fileType, 'pdf')}"
                th:href="@{/view/{id}(id=${document.id})}" target="_blank" rel="noopener">

@@ -10,6 +10,9 @@ import org.springframework.data.repository.query.Param;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Kho lưu trữ dữ liệu khiếu nại, báo cáo sai phạm học liệu từ cộng đồng người dùng.
+ */
 public interface DocumentReportRepository extends JpaRepository<DocumentReport, Long> {
     boolean existsByDocumentIdAndReporterIdAndReason(Long documentId, Long reporterId, DocumentReportReason reason);
     List<DocumentReport> findAllByOrderByCreatedAtDesc();

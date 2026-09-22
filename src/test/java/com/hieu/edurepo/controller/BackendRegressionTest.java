@@ -42,6 +42,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+/**
+ * Bộ kiểm thử hồi quy Backend quét toàn bộ các endpoint công khai (Backend Regression Test).
+ * Đảm bảo tất cả 16 URL chính của hệ thống trả về mã HTTP 200 thành công và không phát sinh lỗi sập máy chủ 500.
+ */
 class BackendRegressionTest {
 
     @Autowired

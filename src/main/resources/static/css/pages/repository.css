@@ -1,4 +1,4 @@
-﻿/* Public home hero */
+/* Public home hero */
 
 .public-main {
     overflow: hidden;
@@ -965,18 +965,217 @@
     border-color: #b7e7cb;
     white-space: nowrap;
 }
+    white-space: nowrap;
+}
 
 .verified-label i {
     font-style: normal;
 }
 
-.product-card-main {
+.product-card-body {
     display: flex;
-    gap: 1rem;
-    padding: 0.78rem 1rem 1rem;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    padding: 0 1rem 0.35rem;
 }
 
-.file-thumbnail,
+.product-card-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0;
+}
+
+/* ==========================================================================
+   3D REALISTIC BOOK COVER COMPONENT
+   ========================================================================== */
+
+.book-cover {
+    position: relative;
+    width: 86px;
+    height: 116px;
+    flex: 0 0 86px;
+    margin: 1.1rem auto 0.4rem;
+    border-radius: 2px 7px 7px 2px;
+    overflow: hidden;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    user-select: none;
+    background: linear-gradient(140deg, #134e4a 0%, #042f2e 100%);
+    box-shadow:
+        1px 2px 4px rgba(0, 0, 0, 0.12),
+        3px 8px 18px rgba(15, 23, 42, 0.2),
+        inset -1px 0 2px rgba(255, 255, 255, 0.12);
+    transform-origin: left center;
+    transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.28s ease;
+}
+
+.book-cover:hover {
+    transform: translateY(-3px) rotateY(-6deg) scale(1.03);
+    box-shadow:
+        2px 5px 12px rgba(0, 0, 0, 0.18),
+        6px 14px 26px rgba(15, 23, 42, 0.28),
+        inset -1px 0 2px rgba(255, 255, 255, 0.22);
+}
+
+/* Realistic Spine Crease */
+.book-spine {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 9px;
+    z-index: 4;
+    pointer-events: none;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0.35) 0%,
+        rgba(255, 255, 255, 0.08) 25%,
+        rgba(0, 0, 0, 0.35) 75%,
+        rgba(0, 0, 0, 0.55) 90%,
+        rgba(255, 255, 255, 0.18) 100%
+    );
+}
+
+/* Simulated White Paper Page Edges (Right side) */
+.book-page-edges {
+    position: absolute;
+    top: 2px;
+    right: 0;
+    bottom: 2px;
+    width: 3px;
+    z-index: 3;
+    pointer-events: none;
+    border-radius: 0 4px 4px 0;
+    background: repeating-linear-gradient(
+        to bottom,
+        #f8fafc,
+        #f8fafc 1px,
+        #e2e8f0 1px,
+        #e2e8f0 2px
+    );
+    box-shadow: -1px 0 2px rgba(0, 0, 0, 0.15);
+}
+
+/* Inner Cover Art */
+.book-cover-inner {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 7px 7px 7px 13px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.book-cover-inner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.16), transparent 45%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+.book-brand {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.46rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: rgba(255, 255, 255, 0.72);
+    text-transform: uppercase;
+}
+
+.book-brand-dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #5eead4;
+    display: inline-block;
+}
+
+.book-cover-title {
+    font-size: 0.6rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: #ffffff;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+    margin: auto 0;
+}
+
+.book-cover-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3px;
+    margin-top: auto;
+}
+
+.book-category-tag {
+    font-size: 0.44rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.88);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 44px;
+}
+
+.book-format-badge {
+    font-size: 0.44rem;
+    font-weight: 900;
+    padding: 1px 3px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    letter-spacing: 0.03em;
+    line-height: 1;
+}
+
+/* Dynamic Palette Varieties for Book Covers (Academic Rich Tones) */
+.product-card:nth-child(4n+1) .book-cover {
+    background: linear-gradient(140deg, #0f5147 0%, #042c26 100%); /* Emerald Jade */
+}
+.product-card:nth-child(4n+1) .book-brand-dot {
+    background: #6ee7b7;
+}
+
+.product-card:nth-child(4n+2) .book-cover {
+    background: linear-gradient(140deg, #1e3a5f 0%, #0a192f 100%); /* Royal Navy */
+}
+.product-card:nth-child(4n+2) .book-brand-dot {
+    background: #38bdf8;
+}
+
+.product-card:nth-child(4n+3) .book-cover {
+    background: linear-gradient(140deg, #5b21b6 0%, #2e1065 100%); /* Deep Indigo */
+}
+.product-card:nth-child(4n+3) .book-brand-dot {
+    background: #c084fc;
+}
+
+.product-card:nth-child(4n+4) .book-cover {
+    background: linear-gradient(140deg, #7c2d12 0%, #431407 100%); /* Bordeaux Amber */
+}
+.product-card:nth-child(4n+4) .book-brand-dot {
+    background: #fbbf24;
+}
+
+/* Legacy file-thumbnail / detail-file-icon retained for detail page compatibility */
 .detail-file-icon {
     position: relative;
     width: 60px;
@@ -993,32 +1192,7 @@
     box-shadow: 0 12px 22px rgba(51, 65, 85, 0.2);
 }
 
-.file-thumbnail::before,
 .detail-file-icon::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.22), transparent 42%);
-}
-
-a.file-thumbnail:hover { color: var(--white); transform: translateY(-2px) scale(1.02); }
-
-.file-fold {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 19px;
-    height: 19px;
-    border-radius: 0 0 0 7px;
-    background: rgba(255, 255, 255, 0.36);
-}
-
-.file-extension {
-    position: relative;
-    z-index: 1;
-    font-size: 0.66rem;
-    font-weight: 900;
-    letter-spacing: 0.055em;
 }
 
 .type-pdf {
@@ -1211,64 +1385,254 @@ a.file-thumbnail:hover { color: var(--white); transform: translateY(-2px) scale(
     transform: translateY(-5px);
 }
 
-/* Document list view */
+/* ==========================================================================
+   COMPACT & SLEEK DOCUMENT LIST VIEW (.document-grid.is-list-view)
+   ========================================================================== */
 
 .document-grid.is-list-view {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
 }
 
-.document-grid.is-list-view .product-card {
-    min-height: 178px;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 180px;
-    grid-template-rows: auto 1fr auto;
+.document-grid.is-list-view .product-card,
+.repository-v2 .document-grid.is-list-view .product-card {
+    min-height: 104px;
+    height: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: 14px;
+    border: 1px solid #dfe6e4;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-.document-grid.is-list-view .product-card-topline {
-    grid-column: 1;
-    grid-row: 1;
+.document-grid.is-list-view .product-card:hover,
+.repository-v2 .document-grid.is-list-view .product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(15, 74, 67, 0.1);
+    border-color: #aed1c9;
 }
 
-.document-grid.is-list-view .product-card-main {
-    grid-column: 1;
-    grid-row: 2;
-    padding-top: 0.6rem;
+.document-grid.is-list-view .product-card-featured,
+.repository-v2 .document-grid.is-list-view .product-card-featured {
+    background: linear-gradient(90deg, #f7fdfb 0%, #ffffff 100%);
+    border-color: #b2ded6;
 }
 
-.document-grid.is-list-view .document-description {
-    -webkit-line-clamp: 2;
+/* 3D Book Cover in List View */
+.document-grid.is-list-view .book-cover,
+.repository-v2 .document-grid.is-list-view .book-cover {
+    width: 66px;
+    height: 88px;
+    flex: 0 0 66px;
+    margin: 0;
+    box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.14), 2px 6px 14px rgba(15, 23, 42, 0.2);
 }
 
-.document-grid.is-list-view .document-metadata {
-    grid-column: 1;
-    grid-row: 3;
+.document-grid.is-list-view .book-cover-inner {
+    padding: 6px 6px 6px 11px;
 }
 
-.document-grid.is-list-view .product-card-footer {
-    grid-column: 2;
-    grid-row: 1 / 4;
+.document-grid.is-list-view .book-cover-title {
+    font-size: 0.56rem;
+    -webkit-line-clamp: 3;
+}
+
+/* Content Area in List View */
+.document-grid.is-list-view .product-card-body,
+.repository-v2 .document-grid.is-list-view .product-card-body {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    display: flex;
     flex-direction: column;
-    align-items: stretch;
     justify-content: center;
-    padding: 1.25rem;
-    border-top: 0;
-    border-left: 1px solid #eef0f5;
+    gap: 0.22rem;
 }
 
-.document-grid.is-list-view .card-primary-link {
-    min-height: 42px;
+/* Topline: Badges & Author inline */
+.document-grid.is-list-view .product-card-topline,
+.repository-v2 .document-grid.is-list-view .product-card-topline {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.55rem;
+    padding: 0;
+    min-height: auto;
+}
+
+.document-grid.is-list-view .product-card-labels {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.document-grid.is-list-view .category-label {
+    padding: 0.18rem 0.45rem;
+    font-size: 0.65rem;
+}
+
+.document-grid.is-list-view .document-author {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.74rem;
+    color: #4b5563;
+    font-weight: 550;
+}
+
+.document-grid.is-list-view .document-author .mini-avatar {
+    width: 17px;
+    height: 17px;
+    font-size: 0.55rem;
+}
+
+.document-grid.is-list-view .verified-label {
+    padding: 0.18rem 0.45rem;
+    font-size: 0.62rem;
+}
+
+/* Document Title */
+.document-grid.is-list-view .product-card-main,
+.repository-v2 .document-grid.is-list-view .product-card-main {
+    padding: 0;
+    min-height: auto;
+    gap: 0.15rem;
+}
+
+.document-grid.is-list-view .document-title,
+.repository-v2 .document-grid.is-list-view .product-card h3 {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 700;
+    line-height: 1.35;
+    color: #0f172a;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.document-grid.is-list-view .document-title a,
+.repository-v2 .document-grid.is-list-view .product-card h3 a {
+    color: #0f172a;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.document-grid.is-list-view .document-title a:hover,
+.repository-v2 .document-grid.is-list-view .product-card h3 a:hover {
+    color: #0b665c;
+}
+
+/* Description preview (1 line) */
+.document-grid.is-list-view .document-description,
+.repository-v2 .document-grid.is-list-view .document-description {
+    margin: 0;
+    font-size: 0.76rem;
+    line-height: 1.4;
+    color: #64748b;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Metadata: clean inline row */
+.document-grid.is-list-view .document-metadata,
+.repository-v2 .document-grid.is-list-view .document-metadata {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    border-top: none;
+    min-height: auto;
+    font-size: 0.7rem;
+    color: #64748b;
+}
+
+/* Compact Actions at Right */
+.document-grid.is-list-view .product-card-footer,
+.repository-v2 .document-grid.is-list-view .product-card-footer {
+    grid-column: auto;
+    grid-row: auto;
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 0 0 0.5rem;
+    border-left: none;
+    border-top: none;
+    margin-left: auto;
+    min-height: auto;
+    background: transparent;
+}
+
+.document-grid.is-list-view .card-primary-link,
+.repository-v2 .document-grid.is-list-view .card-primary-link {
+    height: 36px;
+    min-height: 36px;
+    padding: 0 0.95rem;
+    border-radius: 999px;
+    background: #0b665c;
+    color: #ffffff !important;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    text-decoration: none;
+    box-shadow: 0 2px 6px rgba(11, 102, 92, 0.2);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.document-grid.is-list-view .card-primary-link:hover,
+.repository-v2 .document-grid.is-list-view .card-primary-link:hover {
+    background: #07463f;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(11, 102, 92, 0.3);
+}
+
+.document-grid.is-list-view .card-download-link,
+.repository-v2 .document-grid.is-list-view .card-download-link {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0;
+    border-radius: 999px;
+    border: 1px solid #cfdedc;
+    background: #f2f8f7;
+    color: #0b665c;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    border-radius: 10px;
-    color: var(--white);
-    background: var(--primary-600);
+    text-decoration: none;
+    transition: all 0.2s ease;
 }
 
-.document-grid.is-list-view .card-download-link {
-    width: 100%;
-    min-height: 40px;
+.document-grid.is-list-view .card-download-link:hover,
+.repository-v2 .document-grid.is-list-view .card-download-link:hover {
+    background: #dfedea;
+    border-color: #0b665c;
+    color: #0b665c;
+    transform: translateY(-1px);
 }
 
-/* Empty state and pagination */
+.document-grid.is-list-view .card-download-link small,
+.repository-v2 .document-grid.is-list-view .card-download-link small {
+    display: none;
+}
 
 .empty-state,
 .client-empty-state {
@@ -1617,14 +1981,13 @@ a.file-thumbnail:hover { color: var(--white); transform: translateY(-2px) scale(
     font-weight: 850;
 }
 
-.repository-v2 .product-card-main { min-height: 150px; padding-top: 1rem; }
-.repository-v2 .file-thumbnail { width: 66px; height: 82px; flex-basis: 66px; border-radius: 10px 21px 10px 10px; }
-.repository-v2 .product-card h3 { font-size: 1.08rem; }
-.repository-v2 .document-description { font-size: .78rem; }
-.repository-v2 .product-card-footer { min-height: 58px; padding-inline: 1rem; }
+.repository-v2 .document-grid:not(.is-list-view) .product-card-main { min-height: 0; padding-top: 0.5rem; }
+.repository-v2 .document-grid:not(.is-list-view) .product-card h3 { font-size: 1.08rem; }
+.repository-v2 .document-grid:not(.is-list-view) .document-description { font-size: .78rem; }
+.repository-v2 .document-grid:not(.is-list-view) .product-card-footer { min-height: 54px; padding-inline: 1rem; }
 
-.repository-v2 .card-primary-link { color: #0b665c; }
-.repository-v2 .card-download-link {
+.repository-v2 .document-grid:not(.is-list-view) .card-primary-link { color: #0b665c; }
+.repository-v2 .document-grid:not(.is-list-view) .card-download-link {
     width: auto;
     min-width: 74px;
     padding: 0 .65rem;
@@ -1634,7 +1997,7 @@ a.file-thumbnail:hover { color: var(--white); transform: translateY(-2px) scale(
     background: #eff8f6;
 }
 
-.repository-v2 .card-download-link small { font-size: .62rem; font-weight: 800; }
+.repository-v2 .document-grid:not(.is-list-view) .card-download-link small { font-size: .62rem; font-weight: 800; }
 .repository-v2 .home-cta {
     background:
         radial-gradient(circle at 82% 15%, rgba(240, 197, 94, .2), transparent 18rem),

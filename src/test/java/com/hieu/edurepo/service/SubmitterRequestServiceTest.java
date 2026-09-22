@@ -24,6 +24,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Kiểm thử dịch vụ xét duyệt quyền tác giả đóng góp học liệu (Submitter Request Service Test).
+ * Kiểm tra luồng phê duyệt đơn đăng ký và tự động cấp quyền ROLE_SUBMITTER cho sinh viên.
+ */
 class SubmitterRequestServiceTest {
     private final SubmitterRequestRepository requests = mock(SubmitterRequestRepository.class);
     private final UserRepository users = mock(UserRepository.class);

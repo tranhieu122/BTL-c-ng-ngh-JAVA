@@ -128,6 +128,69 @@ public class RetrievalServiceImpl implements RetrievalService {
         return keywordResults.stream().limit(topK).toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<RagSearchResult> retrieveForDocument(Long documentId, String query) {
+        return retrieveForDocument(documentId, query, ragProperties.getTopK(), ragProperties.getSimilarityThreshold());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<RagSearchResult> retrieveForDocument(Long documentId, String query, int topK, double minSimilarity) {
+        if (documentId == null || query == null || query.isBlank()) {
+            return List.of();
+        }
+
+        List<IndexedChunk> indexedChunks = getOrBuildChunkIndex();
+        // LỌC CỨNG (Hard Filter Scope) ngay tại Retrieval Layer
+        List<IndexedChunk> docChunks = indexedChunks.stream()
+                .filter(ic -> ic.chunk != null && ic.chunk.getDocument() != null && documentId.equals(ic.chunk.getDocument().getId()))
+                .toList();
+
+        if (docChunks.isEmpty()) {
+            LOGGER.debug("No published document chunks available for document ID: {}", documentId);
+            return List.of();
+        }
+
+        // 1. Semantic Vector Search qua Embedding
+        List<Double> queryEmbedding = getCachedEmbedding(query);
+        if (queryEmbedding != null && !queryEmbedding.isEmpty()) {
+            double[] queryVec = toDoubleArray(queryEmbedding);
+            List<RagSearchResult> vectorResults = new ArrayList<>();
+
+            for (IndexedChunk ic : docChunks) {
+                if (ic.vector == null || ic.vector.length == 0) {
+                    continue;
+                }
+                double similarity = cosineSimilarity(queryVec, ic.vector);
+                if (similarity >= minSimilarity) {
+                    vectorResults.add(new RagSearchResult(ic.chunk.getDocument(), ic.chunk, similarity));
+                }
+            }
+
+            if (!vectorResults.isEmpty()) {
+                vectorResults.sort(Comparator.comparingDouble(RagSearchResult::similarity).reversed());
+                return vectorResults.stream().limit(topK).toList();
+            }
+        }
+
+        // 2. Fallback: Lexical Keyword Match trong chính document đó
+        LOGGER.debug("Falling back to text similarity matching for scoped doc {}: {}", documentId, query);
+        List<RagSearchResult> keywordResults = new ArrayList<>();
+        Set<String> queryWords = extractWords(query);
+
+        double lexicalThreshold = Math.min(minSimilarity, 0.25);
+        for (IndexedChunk ic : docChunks) {
+            double score = computeTextRelevance(queryWords, ic.chunk);
+            if (score >= lexicalThreshold) {
+                keywordResults.add(new RagSearchResult(ic.chunk.getDocument(), ic.chunk, score));
+            }
+        }
+
+        keywordResults.sort(Comparator.comparingDouble(RagSearchResult::similarity).reversed());
+        return keywordResults.stream().limit(topK).toList();
+    }
+
     /**
      * Xóa cache chunk index — gọi phương thức này sau khi reindex tài liệu.
      */
@@ -135,6 +198,7 @@ public class RetrievalServiceImpl implements RetrievalService {
         chunkIndexRef.set(null);
         LOGGER.debug("Chunk index cache invalidated.");
     }
+
 
     // =========================================================================
     // Cache Management

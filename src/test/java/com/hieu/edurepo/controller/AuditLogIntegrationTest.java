@@ -45,6 +45,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+/**
+ * Kiểm thử tích hợp nhật ký kiểm toán hệ thống (Audit Log Integration Test).
+ * Kiểm tra việc tự động ghi nhận nhật ký cho các hành động thay đổi quyền hạn, thêm sửa danh mục và thao tác quản trị.
+ */
 class AuditLogIntegrationTest {
     @Autowired MockMvc mockMvc;
     @Autowired AuditLogRepository auditLogs;

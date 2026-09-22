@@ -17,6 +17,9 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "collection_items", uniqueConstraints =
         @UniqueConstraint(name = "uk_collection_item", columnNames = {"collection_id", "document_id"}))
+/**
+ * Thực thể liên kết giữa tài liệu học liệu và bộ sưu tập cá nhân của người học.
+ */
 public class CollectionItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

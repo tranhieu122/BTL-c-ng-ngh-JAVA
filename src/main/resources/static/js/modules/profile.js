@@ -1,3 +1,8 @@
+/**
+ * Module quản lý hồ sơ cá nhân và đổi mật khẩu (Profile Script).
+ * Xử lý cắt chỉnh xem trước ảnh đại diện (Avatar Preview) và kiểm tra khớp mật khẩu mới.
+ */
+
 export function avatarFileError(file) {
     if (!file || !file.size || file.size > 2 * 1024 * 1024 || !/\.(png|jpe?g)$/i.test(file.name)
         || !["image/png", "image/jpeg"].includes(file.type)) return "Chọn ảnh PNG hoặc JPEG, dung lượng tối đa 2 MB.";

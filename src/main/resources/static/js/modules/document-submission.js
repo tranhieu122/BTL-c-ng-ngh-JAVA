@@ -1,3 +1,8 @@
+/**
+ * Module xử lý biểu mẫu đăng tải học liệu (Document Submission Script).
+ * Kiểm tra dung lượng tệp tải lên (tối đa 200MB), xem trước ảnh bìa (Thumbnail Preview) và kéo thả tệp tài liệu (Drag & Drop).
+ */
+
 import { formatBytes, showToast } from "./core.js";
 
 const DRAFT_KEY = "edurepo-document-submission-draft";

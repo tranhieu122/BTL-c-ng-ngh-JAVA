@@ -66,6 +66,7 @@ public class SecurityConfig {
             com.hieu.edurepo.security.LoginAuthenticationFailureHandler failureHandler,
             com.hieu.edurepo.security.AuditLogoutSuccessHandler logoutSuccessHandler) throws Exception {
         http
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/document-assistant/**"))
                 // Mỗi request đã đăng nhập được kiểm tra lại với database để phát hiện tài khoản bị khóa,
                 // đổi mật khẩu hoặc đổi quyền sau thời điểm login.
                 .addFilterBefore(new com.hieu.edurepo.security.AccountSessionFilter(users),

@@ -24,6 +24,10 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Bộ điều hướng quản trị Danh sách thành viên người dùng (User Management Controller).
+ * Tìm kiếm thành viên, phân bổ vai trò (Admin/Reviewer/User) và khóa/mở khóa tài khoản vi phạm.
+ */
 @Controller
 @RequestMapping("/admin/users")
 public class UserManagementController {

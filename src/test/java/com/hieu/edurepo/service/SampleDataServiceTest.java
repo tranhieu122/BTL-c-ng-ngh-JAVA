@@ -24,6 +24,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
+/**
+ * Kiểm thử dịch vụ nạp dữ liệu mẫu ban đầu (Sample Data Service Test).
+ * Xác minh việc nạp danh mục khoa viện, môn học và tài khoản demo vào cơ sở dữ liệu trắng.
+ */
 class SampleDataServiceTest {
 
     @Autowired

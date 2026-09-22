@@ -10,6 +10,14 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+/**
+ * Trình khởi tạo dữ liệu tương tác mẫu (Sample Data Initializer).
+ * <p>
+ * Tự động chạy khi khởi động ứng dụng (Order 2): Nếu phát hiện kho học liệu chưa có số liệu thống kê
+ * (lượt tải bằng 0 hoặc chưa có đánh giá nhận xét), hệ thống tự động làm giàu dữ liệu demo
+ * để giao diện Dashboard và thẻ tài liệu hiển thị đẹp mắt, trực quan.
+ * </p>
+ */
 @Component
 @Order(2)
 public class SampleDataInitializer implements CommandLineRunner {
@@ -34,7 +42,7 @@ public class SampleDataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         if (!seedEnabled) {
-            LOGGER.info("Khoi tao du lieu mau bi tat theo cau hinh (app.seed.sample-data=false).");
+            LOGGER.info("Khởi tạo dữ liệu mẫu bị tắt theo cấu hình (app.seed.sample-data=false).");
             return;
         }
 
@@ -42,18 +50,18 @@ public class SampleDataInitializer implements CommandLineRunner {
             long totalDownloads = documentRepository.sumDownloadCount();
             long totalReviews = reviewRepository.count();
 
-            // Tu dong chay khi kho hoc lieu chua co luot tai hoac chua co binh luan/danh gia
+            // Tự động chạy khi kho học liệu chưa có lượt tải hoặc chưa có bình luận/đánh giá
             if (totalDownloads == 0 || totalReviews == 0) {
-                LOGGER.info("Phat hien he thong chua co luot tai hoac danh gia (downloads={}, reviews={}). Dang tao du lieu ao...",
+                LOGGER.info("Phát hiện hệ thống chưa có lượt tải hoặc đánh giá (downloads={}, reviews={}). Đang tạo dữ liệu mẫu...",
                         totalDownloads, totalReviews);
                 int count = sampleDataService.seedSampleDocuments(true);
-                LOGGER.info("Da lam giau tuong tac thanh cong cho {} tai lieu.", count);
+                LOGGER.info("Đã làm giàu tương tác thành công cho {} tài liệu học liệu mẫu.", count);
             } else {
-                LOGGER.info("Kho hoc lieu da co du lieu thong ke tuong tac day du (downloads={}, reviews={}).",
+                LOGGER.info("Kho học liệu đã có dữ liệu thống kê tương tác đầy đủ (downloads={}, reviews={}).",
                         totalDownloads, totalReviews);
             }
         } catch (Exception e) {
-            LOGGER.warn("Khong the khoi tao du lieu tuong tac mau: {}", e.getMessage(), e);
+            LOGGER.warn("Không thể khởi tạo dữ liệu tương tác mẫu: {}", e.getMessage(), e);
         }
     }
 }

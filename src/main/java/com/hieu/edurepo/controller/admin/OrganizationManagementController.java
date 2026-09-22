@@ -18,6 +18,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * Bộ điều hướng quản trị Cơ cấu tổ chức Khoa viện và Bộ môn (Organization Management Controller).
+ * Quản lý danh mục các Khoa đào tạo và các Bộ môn trực thuộc trong trường.
+ */
 @Controller
 @RequestMapping("/admin/organization")
 public class OrganizationManagementController {

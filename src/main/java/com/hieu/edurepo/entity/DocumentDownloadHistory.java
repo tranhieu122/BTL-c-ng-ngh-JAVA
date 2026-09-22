@@ -17,6 +17,9 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "document_download_history", uniqueConstraints =
         @UniqueConstraint(name = "uk_download_history_user_document", columnNames = {"user_id", "document_id"}))
+/**
+ * Thực thể ghi nhận lịch sử các lượt tải tệp tài liệu về máy tính của người dùng.
+ */
 public class DocumentDownloadHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

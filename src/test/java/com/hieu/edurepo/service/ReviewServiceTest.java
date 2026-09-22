@@ -23,6 +23,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Kiểm thử dịch vụ thẩm định học liệu của Giảng viên (Review Service Test).
+ * Kiểm tra công thức tính điểm Rubric có trọng số và chuyển đổi trạng thái duyệt bài.
+ */
 class ReviewServiceTest {
 
     @Test

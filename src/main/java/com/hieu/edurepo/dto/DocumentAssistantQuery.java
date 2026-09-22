@@ -2,6 +2,9 @@ package com.hieu.edurepo.dto;
 
 import java.util.Map;
 
+/**
+ * DTO đóng gói câu hỏi và các tham số truy vấn gửi tới Trợ lý AI Chatbot.
+ */
 public record DocumentAssistantQuery(String intent, String keyword, String topic, String author, String languageCode,
                                      Integer year, String sortMode, int page) {
 
