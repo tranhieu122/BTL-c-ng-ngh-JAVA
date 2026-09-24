@@ -54,7 +54,7 @@ class DocumentAssistantStreamTest {
                         .param("message", "Cấu trúc dữ liệu là gì?"))
                 .andExpect(status().isOk());
 
-        verify(assistantService).streamResponse(eq("Cấu trúc dữ liệu là gì?"), any(), any(), any());
+        verify(assistantService).streamResponse(eq("Cấu trúc dữ liệu là gì?"), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -65,7 +65,7 @@ class DocumentAssistantStreamTest {
                         .param("scopedDocumentId", "55"))
                 .andExpect(status().isOk());
 
-        verify(assistantService).streamResponse(eq("Định lý 1 là gì?"), any(), eq(55L), any());
+        verify(assistantService).streamResponse(eq("Định lý 1 là gì?"), any(), eq(55L), any(), any(), any());
     }
 
     @Test

@@ -6,7 +6,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
 
 <div class="document-assistant" th:fragment="widget" data-document-assistant
-     th:attr="data-assistant-url=@{/api/document-assistant}">
+     th:attr="data-assistant-url=@{/api/document-assistant}, data-sessions-url=@{/api/chat-sessions}, data-authenticated=${#authorization != null and #authorization.expression('isAuthenticated()')}">
     <section class="document-assistant-panel" id="document-assistant-panel" role="dialog" data-assistant-panel
              aria-labelledby="document-assistant-title" aria-describedby="document-assistant-intro" hidden>
         <!-- Header với hiệu ứng Glassmorphism & Badge AI thời gian thực -->
@@ -23,17 +23,23 @@
                 <div class="document-assistant-info">
                     <div class="document-assistant-header-top">
                         <h2 id="document-assistant-title">EduBot AI</h2>
-                        <span class="document-assistant-badge" title="Mô hình ngôn ngữ GPT-5.6 kết hợp kiến trúc RAG trích xuất ngữ cảnh">
-                            <span class="badge-pulse" aria-hidden="true"></span>
-                            GPT-5.6 &amp; RAG
-                        </span>
                     </div>
-                    <p class="document-assistant-status">
-                        Trợ lý học thuật kho học liệu số EduRepo
-                    </p>
                 </div>
             </div>
             <div class="document-assistant-header-actions">
+                <button class="document-assistant-icon-button document-assistant-sidebar-toggle" type="button"
+                        aria-label="Lịch sử các phiên trò chuyện" title="Lịch sử trò chuyện" data-assistant-sidebar-toggle>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+                    </svg>
+                </button>
+                <button class="document-assistant-icon-button document-assistant-new-chat-btn" type="button"
+                        aria-label="Tạo cuộc trò chuyện mới" title="Cuộc trò chuyện mới" data-assistant-new-session>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
                 <button class="document-assistant-icon-button" type="button" aria-label="Xóa nội dung hội thoại"
                         title="Làm mới hội thoại" data-assistant-clear>
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M9 11v6m6-6v6M9 7l1-2h4l1 2m3 0-1 13H7L6 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -44,6 +50,60 @@
                 </button>
             </div>
         </header>
+
+        <!-- Sidebar Drawer: Danh sách các phiên trò chuyện (Multi-Session Drawer) -->
+        <aside class="document-assistant-sidebar" data-assistant-sidebar hidden aria-label="Lịch sử trò chuyện">
+            <div class="sidebar-header">
+                <div class="sidebar-header-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="sidebar-title-icon" aria-hidden="true">
+                        <path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+                    </svg>
+                    <h3>Lịch sử trò chuyện</h3>
+                </div>
+                <button class="document-assistant-icon-button sidebar-close-btn" type="button"
+                        aria-label="Đóng lịch sử" title="Đóng" data-assistant-sidebar-close>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="sidebar-actions">
+                <button class="sidebar-new-btn" type="button" data-assistant-sidebar-new>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>Cuộc trò chuyện mới</span>
+                </button>
+            </div>
+
+            <!-- Banner Đồng bộ Guest Sessions (hiển thị khi có dữ liệu khách trên thiết bị) -->
+            <div class="guest-sync-banner" data-guest-sync-banner hidden>
+                <div class="guest-sync-icon" aria-hidden="true">🔄</div>
+                <div class="guest-sync-content">
+                    <p class="guest-sync-title">Đồng bộ lịch sử</p>
+                    <p class="guest-sync-desc">Tìm thấy <span data-guest-sync-count>0</span> cuộc trò chuyện từ thiết bị này. Lưu vào tài khoản của bạn?</p>
+                    <div class="guest-sync-actions">
+                        <button type="button" class="btn-sync-confirm" data-guest-sync-confirm>Đồng ý</button>
+                        <button type="button" class="btn-sync-dismiss" data-guest-sync-dismiss>Bỏ qua</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danh sách phiên theo nhóm: Hôm nay, 7 ngày qua, Cũ hơn -->
+            <div class="sidebar-session-list" data-session-list role="navigation" aria-label="Danh sách các phiên">
+                <div class="sidebar-loading" data-sessions-loading>
+                    <div class="sidebar-skeleton-item"></div>
+                    <div class="sidebar-skeleton-item"></div>
+                    <div class="sidebar-skeleton-item"></div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer" data-guest-hint hidden>
+                <small>💡 Đang lưu tạm trên trình duyệt. Đăng nhập để lưu vĩnh viễn.</small>
+            </div>
+        </aside>
 
         <!-- Banner Scoped PDF Q&A: hiển thị khi người dùng đang chat với một tài liệu cụ thể -->
         <div class="assistant-scoped-banner" data-assistant-scoped-banner hidden>
@@ -147,7 +207,7 @@
                 </button>
                 <textarea id="document-assistant-input" name="message" rows="1" maxlength="250"
                           autocomplete="off" placeholder="Dán ảnh (Ctrl+V) hoặc hỏi bài tập, Java, AI…"
-                          style="border: none !important; outline: none !important; box-shadow: none !important; background: transparent !important;"
+                          style="border: none !important; outline: none !important; box-shadow: none !important; background: transparent !important; resize: none !important; overflow-y: hidden !important; scrollbar-width: none !important;"
                           data-assistant-input></textarea>
                 <button type="submit" data-assistant-submit aria-label="Gửi câu hỏi tới EduBot" disabled>
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">

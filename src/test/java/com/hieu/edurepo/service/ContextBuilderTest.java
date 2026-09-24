@@ -52,4 +52,28 @@ class ContextBuilderTest {
         assertTrue(built.sources().get(0).excerpt().contains("Java là ngôn ngữ"));
         assertEquals(0.88, built.sources().get(0).relevance());
     }
+
+    @Test
+    void testBuildScopedContext() {
+        RagProperties props = new RagProperties();
+        ContextBuilder builder = new ContextBuilder(props);
+
+        Document doc = new Document();
+        doc.setId(25L);
+        doc.setTitle("Microservices Security Guidelines");
+
+        DocumentChunk chunk = new DocumentChunk(doc, 0, "Authentication between microservices uses mTLS or JWT tokens.", null, 15);
+        RagSearchResult searchResult = new RagSearchResult(doc, chunk, 0.92);
+
+        var scopedBuilt = builder.buildScopedContext("Bảo mật microservices thế nào?", 25L, "Microservices Security Guidelines", List.of(searchResult));
+
+        assertNotNull(scopedBuilt.systemPrompt());
+        assertTrue(scopedBuilt.systemPrompt().contains("SCOPED DOCUMENT Q&A"));
+        assertTrue(scopedBuilt.systemPrompt().contains("Microservices Security Guidelines"));
+        assertTrue(scopedBuilt.systemPrompt().contains("ĐI THẲNG VÀO NỘI DUNG"));
+        assertTrue(scopedBuilt.systemPrompt().contains("CẤU TRÚC MẠCH LẠC"));
+        assertTrue(scopedBuilt.userPrompt().contains("Bảo mật microservices thế nào?"));
+        assertEquals(1, scopedBuilt.sources().size());
+        assertEquals(25L, scopedBuilt.sources().get(0).documentId());
+    }
 }

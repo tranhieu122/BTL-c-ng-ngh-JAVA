@@ -1,9 +1,12 @@
-﻿/* ================================================================
-   EDUREPO UI SYSTEM
-   Premium academic SaaS interface for the public library and portal
+/* ================================================================
+   EDUREPO DESIGN SYSTEM — FOUNDATION LAYER (PHASE 1)
+   Tier-1 Academic SaaS Design System (Linear / Stripe / Vercel Grade)
    ================================================================ */
 
 :root {
+    /* -------------------------------------------------------------
+       1. PRIMARY COLOR SCALE (Academic Indigo — Calm & High Contrast)
+       ------------------------------------------------------------- */
     --primary-50: #eef2ff;
     --primary-100: #e0e7ff;
     --primary-200: #c7d2fe;
@@ -14,69 +17,135 @@
     --primary-700: #4338ca;
     --primary-800: #3730a3;
     --primary-900: #312e81;
+    --primary-950: #1e1b4b;
+
+    /* Secondary Accent Scale (Academic Cyan / Slate) */
     --cyan-300: #67e8f9;
     --cyan-400: #22d3ee;
     --cyan-500: #06b6d4;
-    --navy-950: #080d1d;
-    --navy-900: #0c1429;
-    --navy-850: #111b35;
-    --navy-800: #17213c;
-    --ink-950: #101828;
-    --ink-900: #172033;
-    --ink-800: #25324b;
-    --ink-700: #344054;
-    --ink-600: #475467;
-    --ink-500: #596579;
-    --ink-400: #667085;
-    --ink-300: #98a2b3;
-    --surface: #f7f8fc;
-    --surface-soft: #fbfcfe;
-    --white: #ffffff;
-    --line: #e4e8f0;
-    --line-strong: #d3d9e5;
-    --success: #067647;
-    --success-soft: #ecfdf3;
-    --warning: #b54708;
-    --warning-soft: #fffaeb;
-    --danger: #b42318;
-    --danger-soft: #fef3f2;
-    --info: #175cd3;
-    --info-soft: #eff8ff;
-    --radius-xs: 8px;
-    --radius-sm: 12px;
-    --radius-md: 16px;
-    --radius-lg: 22px;
-    --radius-xl: 30px;
-    --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.05);
-    --shadow-sm: 0 3px 10px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
-    --shadow-md: 0 14px 34px rgba(31, 42, 86, 0.1), 0 3px 8px rgba(16, 24, 40, 0.04);
-    --shadow-lg: 0 28px 70px rgba(17, 29, 68, 0.16);
-    --header-height: 76px;
-    --container: 1480px;
-    --shell-gutter: clamp(18px, 2.8vw, 40px);
-    --transition: 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    --cyan-600: #0891b2;
 
-    /* Semantic aliases keep page styles independent from palette names. */
+    /* Academic Neutral Ink Scale (Deep Navy Neutrals) */
+    --navy-950: #0b0f19;
+    --navy-900: #111827;
+    --navy-850: #182234;
+    --navy-800: #1f293d;
+
+    --ink-950: #090d16;
+    --ink-900: #0f172a;
+    --ink-800: #1e293b;
+    --ink-700: #334155;
+    --ink-600: #475569;
+    --ink-500: #64748b;
+    --ink-400: #94a3b8;
+    --ink-300: #cbd5e1;
+
+    /* -------------------------------------------------------------
+       2. SURFACE ARCHITECTURE (5 Tier-1 Layers — Section 6.1)
+       ------------------------------------------------------------- */
+    --surface-base: #f8fafc;
+    --surface-raised: #ffffff;
+    --surface-overlay: #ffffff;
+    --surface-sunken: #f1f5f9;
+    --surface-glass: rgba(255, 255, 255, 0.85);
+
+    /* Backward compatibility surface aliases */
+    --surface: var(--surface-base);
+    --surface-soft: var(--surface-sunken);
+    --white: #ffffff;
+    --line: #e2e8f0;
+    --line-strong: #cbd5e1;
+
+    /* -------------------------------------------------------------
+       3. SEMANTIC STATUS SYSTEM (WCAG 2.1 AA Compliant)
+       ------------------------------------------------------------- */
+    --success: #059669;
+    --success-soft: #ecfdf5;
+    --warning: #d97706;
+    --warning-soft: #fffbeb;
+    --danger: #dc2626;
+    --danger-soft: #fef2f2;
+    --info: #2563eb;
+    --info-soft: #eff6ff;
+
+    /* -------------------------------------------------------------
+       4. RADIUS SCALE
+       ------------------------------------------------------------- */
+    --radius-xs: 6px;
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-xl: 28px;
+    --radius-pill: 9999px;
+
+    /* -------------------------------------------------------------
+       5. SOPHISTICATED SHADOWS (Ambient + Direct Occlusion)
+       ------------------------------------------------------------- */
+    --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-sm: 0 2px 6px -1px rgba(15, 23, 42, 0.06), 0 1px 4px -1px rgba(15, 23, 42, 0.03);
+    --shadow-md: 0 8px 20px -3px rgba(15, 23, 42, 0.08), 0 3px 6px -2px rgba(15, 23, 42, 0.04);
+    --shadow-lg: 0 20px 32px -6px rgba(15, 23, 42, 0.1), 0 8px 12px -4px rgba(15, 23, 42, 0.04);
+    --shadow-inner-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
+
+    /* -------------------------------------------------------------
+       6. LAYOUT & DIMENSIONS
+       ------------------------------------------------------------- */
+    --header-height: 72px;
+    --container: 1440px;
+    --container-max-width: var(--container);
+    --sidebar-width: 240px;
+    --shell-gutter: clamp(16px, 3vw, 40px);
+
+    /* -------------------------------------------------------------
+       7. MOTION & TACTILE TOKENS (Section 9)
+       ------------------------------------------------------------- */
+    --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-fast: 100ms var(--ease-out);
+    --transition-normal: 180ms var(--ease-out);
+    --transition-slow: 280ms var(--ease-out);
+    --transition: var(--transition-normal);
+    --press-transition: 60ms var(--ease-out);
+
+    /* -------------------------------------------------------------
+       8. SEMANTIC DESIGN TOKENS
+       ------------------------------------------------------------- */
     --color-primary: var(--primary-600);
     --color-primary-hover: var(--primary-700);
+    --color-primary-active: var(--primary-800);
     --color-primary-light: var(--primary-50);
     --color-secondary: var(--cyan-500);
+
+    --color-text-primary: var(--ink-900);
+    --color-text-secondary: var(--ink-600);
+    --color-text-muted: var(--ink-400);
+
+    --color-border: var(--line);
+    --color-border-strong: var(--line-strong);
+    --color-focus: var(--primary-600);
+    --focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.22);
+
+    --color-background: var(--surface-base);
+    --color-surface: var(--surface-raised);
+    --color-surface-muted: var(--surface-sunken);
+
     --color-success: var(--success);
     --color-warning: var(--warning);
     --color-danger: var(--danger);
     --color-info: var(--info);
-    --color-background: var(--surface);
-    --color-surface: var(--white);
-    --color-surface-muted: var(--surface-soft);
-    --color-text-primary: var(--ink-900);
-    --color-text-secondary: var(--ink-600);
-    --color-text-muted: var(--ink-400);
-    --color-border: var(--line);
-    --color-border-strong: var(--line-strong);
-    --color-focus: var(--primary-600);
 
-    --font-sans: "Segoe UI", Arial, sans-serif;
-    --font-display: "Segoe UI", Arial, sans-serif;
+    --color-disabled-bg: #f1f5f9;
+    --color-disabled-text: #94a3b8;
+    --control-height: 42px;
+    --content-measure: 72ch;
+
+    /* -------------------------------------------------------------
+       9. TYPOGRAPHY TOKENS
+       ------------------------------------------------------------- */
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
     --space-1: 0.25rem;
     --space-2: 0.5rem;
     --space-3: 0.75rem;
@@ -86,16 +155,21 @@
     --space-8: 2rem;
     --space-10: 2.5rem;
     --space-12: 3rem;
-    --container-max-width: var(--container);
-    --sidebar-width: 224px;
-    --transition-fast: 120ms ease;
-    --transition-normal: var(--transition);
+
+    /* -------------------------------------------------------------
+       10. Z-INDEX HIERARCHY
+       ------------------------------------------------------------- */
     --z-header: 100;
+    --z-sticky: 200;
+    --z-drawer: 800;
     --z-overlay: 900;
     --z-modal: 1000;
+    --z-toast: 1100;
 }
 
-/* Base and accessibility */
+/* ================================================================
+   BASE & RESET
+   ================================================================ */
 
 *,
 *::before,
@@ -116,10 +190,12 @@ body {
     color: var(--color-text-primary);
     background: var(--color-background);
     font-family: var(--font-sans);
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.6;
+    letter-spacing: -0.015em;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 body.nav-open {
@@ -132,13 +208,13 @@ body.nav-open {
 }
 
 a {
-    color: var(--primary-600);
+    color: var(--color-primary);
     text-decoration: none;
-    transition: color var(--transition), opacity var(--transition), transform var(--transition);
+    transition: color var(--transition-fast), opacity var(--transition-fast);
 }
 
 a:hover {
-    color: var(--primary-800);
+    color: var(--color-primary-hover);
 }
 
 img,
@@ -163,14 +239,15 @@ button,
     touch-action: manipulation;
 }
 
+/* Accessible focus ring - Section 10 */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 [tabindex]:focus-visible {
-    outline: 3px solid rgba(99, 102, 241, 0.3);
-    outline-offset: 3px;
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
 }
 
 [hidden] {
@@ -191,17 +268,18 @@ textarea:focus-visible,
 
 .skip-link {
     position: fixed;
-    z-index: 1000;
+    z-index: var(--z-modal);
     top: 12px;
     left: 16px;
-    padding: 10px 16px;
+    padding: 10px 18px;
     color: var(--white);
     background: var(--navy-950);
-    border-radius: var(--radius-xs);
+    border-radius: var(--radius-sm);
     box-shadow: var(--shadow-md);
     font-size: 0.875rem;
-    font-weight: 800;
+    font-weight: 600;
     transform: translateY(-160%);
+    transition: transform var(--transition-fast);
 }
 
 .skip-link:focus {
@@ -214,7 +292,9 @@ textarea:focus-visible,
     margin-inline: auto;
 }
 
-body::selection { color: #fff; background: #167d70; }
+/* ================================================================
+   TYPOGRAPHY (Fluid & Calm Academic — Section 8)
+   ================================================================ */
 
 h1,
 h2,
@@ -233,33 +313,42 @@ h4 {
     color: var(--ink-950);
     font-family: var(--font-display);
     font-weight: 700;
-    letter-spacing: 0;
 }
 
 h1 {
     margin-bottom: 0.65rem;
-    font-size: clamp(2rem, 4vw, 3.5rem);
-    line-height: 1.16;
+    font-size: clamp(1.85rem, 3.2vw, 2.75rem);
+    line-height: 1.2;
+    letter-spacing: -0.03em;
 }
 
 h2 {
     margin-bottom: 0.6rem;
-    font-size: clamp(1.45rem, 2.6vw, 2.2rem);
-    line-height: 1.24;
+    font-size: clamp(1.4rem, 2.2vw, 1.85rem);
+    line-height: 1.25;
+    letter-spacing: -0.025em;
 }
 
 h3 {
     margin-bottom: 0.5rem;
-    font-size: 1.1rem;
-    line-height: 1.42;
+    font-size: 1.15rem;
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+}
+
+h4 {
+    margin-bottom: 0.4rem;
+    font-size: 1rem;
+    line-height: 1.4;
+    letter-spacing: -0.015em;
 }
 
 .eyebrow {
     margin-bottom: 0.55rem;
-    color: var(--primary-600);
+    color: var(--color-primary);
     font-size: 0.75rem;
-    font-weight: 850;
-    letter-spacing: 0.14em;
+    font-weight: 700;
+    letter-spacing: 0.08em;
     line-height: 1.4;
     text-transform: uppercase;
 }
@@ -267,75 +356,93 @@ h3 {
 .subtitle {
     max-width: 720px;
     margin-bottom: 1.75rem;
-    color: var(--ink-500);
+    color: var(--color-text-secondary);
+    font-size: 1.05rem;
+    line-height: 1.6;
 }
 
-/* Buttons and shared controls */
+/* ================================================================
+   CORE BUTTONS & SHARED CONTROLS (Tactile & Refined)
+   ================================================================ */
 
-button,
-.button,
-.btn {
-    min-height: 46px;
+:where(button, .button, .btn) {
+    min-height: var(--control-height);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.55rem;
-    padding: 0.72rem 1.15rem;
+    gap: 0.5rem;
+    padding: 0.65rem 1.15rem;
     border: 1px solid transparent;
     border-radius: var(--radius-sm);
     color: var(--white);
-    background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
-    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.2);
+    background: var(--color-primary);
+    box-shadow: var(--shadow-xs);
     cursor: pointer;
-    font-weight: 750;
+    font-size: 0.875rem;
+    font-weight: 600;
     line-height: 1.2;
-    transition: transform var(--transition), box-shadow var(--transition), background var(--transition), border-color var(--transition);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: color var(--transition-fast),
+                background-color var(--transition-fast),
+                border-color var(--transition-fast),
+                box-shadow var(--transition-fast),
+                transform var(--press-transition);
 }
 
-button:hover,
-.button:hover,
-.btn:hover {
+:where(button, .button, .btn):hover {
     color: var(--white);
-    background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
-    box-shadow: 0 12px 26px rgba(79, 70, 229, 0.28);
-    transform: translateY(-1px);
+    background: var(--color-primary-hover);
+    box-shadow: var(--shadow-sm);
 }
 
-button:active,
-.button:active,
-.btn:active {
-    transform: translateY(0);
+/* Tactile micro-scale feedback — Section 9 */
+:where(button, .button, .btn):active:not(:disabled):not([aria-disabled="true"]) {
+    background: var(--color-primary-active);
+    transform: scale(0.985);
+    transition-duration: var(--press-transition);
 }
 
-button:disabled,
-.button[aria-disabled="true"],
-.btn[aria-disabled="true"] {
+:where(button, .button, .btn):disabled,
+:where(button, .button, .btn)[aria-disabled="true"] {
+    color: var(--color-disabled-text);
+    background: var(--color-disabled-bg);
+    border-color: var(--line);
+    box-shadow: none;
     cursor: not-allowed;
-    opacity: 0.64;
     transform: none;
+    opacity: 0.85;
 }
 
 .button-sm,
 .btn-sm {
-    min-height: 40px;
-    padding: 0.58rem 0.92rem;
-    border-radius: 10px;
-    font-size: 0.875rem;
+    min-height: 34px;
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--radius-xs);
+    font-size: 0.8rem;
+}
+
+.button-lg,
+.btn-lg {
+    min-height: 48px;
+    padding: 0.8rem 1.4rem;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
 }
 
 .button-secondary,
 .button.secondary,
 .btn-secondary {
     color: var(--ink-700);
-    background: var(--white);
-    border-color: var(--line-strong);
+    background: var(--surface-raised);
+    border: 1px solid var(--line-strong);
     box-shadow: var(--shadow-xs);
 }
 
 .button-secondary:hover,
 .button.secondary:hover,
 .btn-secondary:hover {
-    color: var(--primary-700);
+    color: var(--color-primary);
     background: var(--primary-50);
     border-color: var(--primary-200);
     box-shadow: var(--shadow-sm);
@@ -344,53 +451,49 @@ button:disabled,
 .button-light {
     color: var(--primary-800);
     background: var(--white);
-    box-shadow: 0 12px 30px rgba(5, 10, 30, 0.18);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-sm);
 }
 
 .button-light:hover {
     color: var(--primary-900);
     background: var(--primary-50);
+    border-color: var(--primary-200);
 }
 
 .button-success,
 .btn-success {
     color: var(--white);
     background: var(--success);
-    box-shadow: 0 8px 18px rgba(6, 118, 71, 0.2);
 }
 
 .button-success:hover,
 .btn-success:hover {
-    color: var(--white);
-    background: #05603a;
+    background: #047857;
 }
 
 .button-warning,
 .btn-warning {
     color: var(--white);
     background: var(--warning);
-    box-shadow: 0 8px 18px rgba(181, 71, 8, 0.2);
 }
 
 .button-warning:hover,
 .btn-warning:hover {
-    color: var(--white);
-    background: #93370d;
+    background: #b45309;
 }
 
 .button-danger,
 .btn-danger,
 .danger {
     color: var(--white);
-    background: linear-gradient(135deg, #d92d20, var(--danger));
-    box-shadow: 0 7px 16px rgba(180, 35, 24, 0.18);
+    background: var(--danger);
 }
 
 .button-danger:hover,
 .btn-danger:hover,
 .danger:hover {
-    color: var(--white);
-    background: linear-gradient(135deg, #b42318, #912018);
+    background: #b91c1c;
 }
 
 .button-ghost,
@@ -403,7 +506,7 @@ button:disabled,
 
 .button-ghost:hover,
 .btn-ghost:hover {
-    color: var(--primary-700);
+    color: var(--color-primary);
     background: var(--primary-50);
     box-shadow: none;
 }
@@ -412,7 +515,7 @@ button:disabled,
 .btn-link {
     min-height: auto;
     padding: 0;
-    color: var(--primary-700);
+    color: var(--color-primary);
     background: transparent;
     border: 0;
     border-radius: 0;
@@ -421,44 +524,63 @@ button:disabled,
 
 .button-link:hover,
 .btn-link:hover {
-    color: var(--primary-900);
+    color: var(--color-primary-hover);
     background: transparent;
     box-shadow: none;
     transform: none;
 }
 
-.button-lg,
-.btn-lg {
-    min-height: 52px;
-    padding: 0.88rem 1.35rem;
-    font-size: 1rem;
-}
-
 .button-icon,
 .btn-icon {
-    width: 44px;
-    min-width: 44px;
+    width: var(--control-height);
+    min-width: var(--control-height);
     padding-inline: 0;
 }
 
 .icon-button {
-    width: 42px;
-    min-width: 42px;
-    height: 42px;
-    min-height: 42px;
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
     padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     color: var(--ink-600);
-    background: var(--white);
+    background: var(--surface-raised);
     border: 1px solid var(--line);
-    border-radius: 11px;
+    border-radius: var(--radius-sm);
     box-shadow: var(--shadow-xs);
+    cursor: pointer;
+    transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), transform var(--press-transition);
 }
 
 .icon-button:hover {
-    color: var(--primary-700);
+    color: var(--color-primary);
     background: var(--primary-50);
     border-color: var(--primary-200);
     box-shadow: var(--shadow-sm);
 }
 
+.icon-button:active {
+    transform: scale(0.96);
+}
 
+/* ================================================================
+   REDUCED MOTION SUPPORT (Section 11)
+   ================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    :where(button, .button, .btn, .icon-button):active {
+        transform: none !important;
+    }
+}

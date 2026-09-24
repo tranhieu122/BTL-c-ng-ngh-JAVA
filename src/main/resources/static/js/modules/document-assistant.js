@@ -187,20 +187,33 @@ function createThumbnailDataUrl(file, maxWidth = 120, maxHeight = 120) {
 function citationUrl(source) {
     if (!source?.documentId) return source?.detailUrl || "#";
 
-    const fragment = [];
+    const params = new URLSearchParams();
     if (source.pageNumber !== null && source.pageNumber !== undefined) {
-        fragment.push(`page=${encodeURIComponent(String(source.pageNumber))}`);
+        params.set("page", String(source.pageNumber));
     }
-    if (source.excerpt) {
-        const searchText = source.excerpt.replace(/[“”"]/g, "").slice(0, 90).trim();
-        if (searchText) fragment.push(`search=${encodeURIComponent(searchText)}`);
+    if (source.chunkId) {
+        params.set("chunkId", String(source.chunkId));
+    }
+    const citationIndex = source.sourceId || source.citationIndex;
+    if (citationIndex) {
+        params.set("citation", String(citationIndex));
+    }
+    const snippetText = source.snippet || source.content || source.excerpt || "";
+    const phrase = extractSearchPhrase(snippetText);
+    if (phrase) {
+        params.set("search", phrase);
+    }
+    if (snippetText) {
+        params.set("highlight", snippetText.slice(0, 300));
     }
 
-    return `/view/${source.documentId}${fragment.length > 0 ? `#${fragment.join("&")}` : ""}`;
+    return `/repository/${source.documentId}?${params.toString()}#reader-title`;
 }
 
 // Quản lý phần tử Popover/Tooltip trích dẫn đang hiển thị trên màn hình
 let activeCitationPopover = null;
+let activeSetOpenFn = null;
+let urlHighlightExecuted = false;
 
 /**
  * Ẩn và xóa popover trích dẫn khỏi DOM nếu đang mở.
@@ -213,46 +226,453 @@ function hideCitationTooltip() {
 }
 
 /**
- * Hiển thị Tooltip/Popover xem trước nội dung trích dẫn (snippet) khi người dùng di chuột hoặc chạm vào [1], [2].
+ * Trích xuất một cụm từ tìm kiếm ngắn gọn (3-6 từ) từ đoạn trích dẫn để truyền vào trình xem PDF (#search=...).
+ * Giúp PDF viewer tự động cuộn đến đúng vị trí và bôi vàng (highlight) từ khóa trong tệp PDF.
+ */
+function extractSearchPhrase(text) {
+    if (!text) return "";
+    const clean = text
+        .replace(/[*_#`~=]+/g, " ")
+        .replace(/^[>\s*-]+/gm, "")
+        .replace(/\b(Description|Action|Note|Lưu ý|Mô tả|Ví dụ)\s*:\s*/gi, "");
+    const sentences = clean.split(/[.?!;\n\r]+/).map((s) => s.trim()).filter(Boolean);
+    for (const s of sentences) {
+        const words = s.split(/\s+/).filter((w) => w.length > 1 && !/^[0-9]+$/.test(w));
+        if (words.length >= 4) {
+            return words.slice(0, 6).join(" ");
+        }
+    }
+    for (const s of sentences) {
+        const words = s.split(/\s+/).filter((w) => w.length > 1 && !/^[0-9]+$/.test(w));
+        if (words.length >= 2) {
+            return words.slice(0, 5).join(" ");
+        }
+    }
+    return clean.slice(0, 40).trim();
+}
+
+/**
+ * Tải trực tiếp phiên bản PDF được bôi vàng (highlight) từ máy chủ (/view/{id}?highlight=...#page=...),
+ * hiển thị Banner đối chiếu trích dẫn màu vàng nổi bật và cuộn mượt đoạn văn bản vào giữa khung nhìn (center).
+ *
+ * @param {Object} source - Nguồn trích dẫn gồm { snippet, content, pageNumber, sourceId, documentId, searchPhrase, sectionTitle, chunkId }
+ */
+async function highlightDocumentSnippetOnPage(source) {
+    if (!source) return;
+    const snippetText = (source.content || source.snippet || source.excerpt || "").trim();
+    if (!snippetText) return;
+
+    // Xóa bất kỳ banner cũ nếu có trước đây
+    const existingBanner = document.getElementById("document-citation-highlight-banner");
+    if (existingBanner) existingBanner.remove();
+
+    const searchPhrase = source.searchPhrase || extractSearchPhrase(snippetText);
+    const iframe = document.querySelector(".document-reader-frame");
+
+    const pageDocEl = document.querySelector("[data-page-doc-id]");
+    const targetDocId = source.documentId != null
+        ? String(source.documentId)
+        : (pageDocEl ? pageDocEl.dataset.pageDocId : null);
+
+    let targetPage = source.pageNumber;
+
+    // 1. Chỉ gọi locate nếu chưa xác định được targetPage từ metadata chunk
+    if (!targetPage && targetDocId && searchPhrase) {
+        try {
+            const resp = await fetch(`/view/${targetDocId}/locate?phrase=${encodeURIComponent(searchPhrase)}`);
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data && data.page) {
+                    targetPage = data.page;
+                }
+            }
+        } catch (e) {
+            console.warn("Could not locate snippet page", e);
+        }
+    }
+
+    const citationIndex = source.sourceId || source.citationIndex || 1;
+
+    // 2. Tạo Banner đối chiếu trích dẫn hiển thị ngay phía trên trình đọc PDF
+    const banner = element("div", "document-citation-highlight-banner");
+    banner.id = "document-citation-highlight-banner";
+
+    const bannerHeader = element("div", "citation-highlight-header");
+    const badge = element("div", "citation-highlight-badge");
+    badge.innerHTML = `<strong>[Nguồn ${citationIndex}]</strong> Đoạn trích dẫn AI tham chiếu:`;
+
+    const actions = element("div", "citation-highlight-actions");
+    if (targetPage) {
+        const pagePill = element("span", "citation-highlight-page", `Trang ${targetPage}`);
+        actions.append(pagePill);
+    }
+    if (source.chunkId) {
+        const chunkPill = element("span", "citation-highlight-pill", `Chunk ${source.chunkId}`);
+        actions.append(chunkPill);
+    }
+    if (source.sectionTitle) {
+        const sectionPill = element("span", "citation-highlight-section", `Mục: ${source.sectionTitle}`);
+        actions.append(sectionPill);
+    }
+
+    const copyBtn = element("button", "citation-highlight-copy-btn", "Sao chép");
+    copyBtn.type = "button";
+    copyBtn.title = "Sao chép đoạn trích dẫn";
+    copyBtn.addEventListener("click", () => {
+        navigator.clipboard.writeText(snippetText);
+        copyBtn.textContent = "Đã chép ✓";
+        setTimeout(() => copyBtn.textContent = "Sao chép", 2000);
+    });
+    actions.append(copyBtn);
+
+    const closeBtn = element("button", "citation-highlight-close", "✕");
+    closeBtn.type = "button";
+    closeBtn.setAttribute("aria-label", "Đóng đoạn trích dẫn");
+    closeBtn.addEventListener("click", () => banner.remove());
+    actions.append(closeBtn);
+
+    bannerHeader.append(badge, actions);
+
+    // Format snippet trong ngoặc kép và bôi vàng từ khóa tham chiếu
+    const bannerBody = element("div", "citation-highlight-body");
+    const cleanSnippet = snippetText.replace(/^[“"']+|[”"']+$/g, "").trim();
+    let textMatched = false;
+
+    if (searchPhrase && cleanSnippet.toLowerCase().includes(searchPhrase.toLowerCase())) {
+        const idx = cleanSnippet.toLowerCase().indexOf(searchPhrase.toLowerCase());
+        const before = cleanSnippet.slice(0, idx);
+        const matched = cleanSnippet.slice(idx, idx + searchPhrase.length);
+        const after = cleanSnippet.slice(idx + searchPhrase.length);
+        bannerBody.innerHTML = `“${escapeHtml(before)}<mark class="citation-yellow-mark">${escapeHtml(matched)}</mark>${escapeHtml(after)}”`;
+        textMatched = true;
+    } else {
+        // Thử tìm theo 3 từ khóa liên tiếp
+        const words = searchPhrase ? searchPhrase.split(/\s+/).filter(w => w.length > 2) : [];
+        if (words.length >= 2) {
+            const sub = words.slice(0, 3).join(" ");
+            const subIdx = cleanSnippet.toLowerCase().indexOf(sub.toLowerCase());
+            if (subIdx !== -1) {
+                const before = cleanSnippet.slice(0, subIdx);
+                const matched = cleanSnippet.slice(subIdx, subIdx + sub.length);
+                const after = cleanSnippet.slice(subIdx + sub.length);
+                bannerBody.innerHTML = `“${escapeHtml(before)}<mark class="citation-yellow-mark">${escapeHtml(matched)}</mark>${escapeHtml(after)}”`;
+                textMatched = true;
+            }
+        }
+        if (!textMatched) {
+            bannerBody.innerHTML = `“${escapeHtml(cleanSnippet)}”`;
+            const warn = element("div", "citation-highlight-warning");
+            warn.style.marginTop = "0.5rem";
+            warn.style.fontSize = "0.75rem";
+            warn.style.color = "#9a3412";
+            warn.textContent = "Không thể xác định chính xác vị trí đoạn trích trong tài liệu.";
+            bannerBody.append(warn);
+        }
+    }
+
+    banner.append(bannerHeader, bannerBody);
+
+    // Chèn banner vào ngay phía trên iframe reader
+    if (iframe && iframe.parentNode) {
+        iframe.parentNode.insertBefore(banner, iframe);
+    } else {
+        const reader = document.querySelector(".document-reader");
+        if (reader) reader.prepend(banner);
+    }
+
+    // 3. Cập nhật iframe tải trực tiếp phiên bản PDF đã được bôi vàng bên trong tài liệu
+    if (iframe) {
+        const rawSrc = iframe.getAttribute("src") || iframe.src;
+        const baseUrl = rawSrc.split("?")[0].split("#")[0];
+        const queryParts = [];
+        if (searchPhrase) {
+            const cleanPhrase = searchPhrase.replace(/["']/g, "").trim();
+            if (cleanPhrase) {
+                queryParts.push(`highlight=${encodeURIComponent(cleanPhrase)}`);
+            }
+        }
+        if (targetPage) {
+            queryParts.push(`page=${targetPage}`);
+        }
+        const queryString = queryParts.length > 0 ? `?${queryParts.join("&")}` : "";
+        const hashString = targetPage ? `#page=${targetPage}&search=${encodeURIComponent(searchPhrase || "")}` : "";
+        const newSrc = `${baseUrl}${queryString}${hashString}`;
+        if (iframe.src !== newSrc) {
+            iframe.src = newSrc;
+        }
+    }
+
+    // 4. Cuộn mượt đưa đoạn trích dẫn và trình đọc PDF vào chính giữa khung nhìn (center)
+    const reader = document.querySelector(".document-reader");
+    if (reader) {
+        reader.classList.add("is-citation-active");
+        setTimeout(() => reader.classList.remove("is-citation-active"), 4500);
+    }
+
+    banner.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    // 5. Nếu trên trang có xuất hiện tóm tắt / mô tả trùng khớp thì bôi vàng phụ trợ
+    if (searchPhrase && searchPhrase.length > 3) {
+        highlightMatchingTextInElements(searchPhrase);
+    }
+}
+
+/**
+ * Tìm và bôi vàng (highlight) các đoạn văn bản trên trang chi tiết nếu trùng khớp với cụm từ trích dẫn.
+ */
+function highlightMatchingTextInElements(phrase) {
+    if (!phrase || phrase.length < 3) return;
+    const targets = document.querySelectorAll(".document-abstract, .academic-summary p");
+    targets.forEach((target) => {
+        if (!target.dataset.originalText) {
+            target.dataset.originalText = target.innerHTML;
+        }
+        const text = target.textContent;
+        const index = text.toLowerCase().indexOf(phrase.toLowerCase());
+        if (index !== -1) {
+            const matched = text.substring(index, index + phrase.length);
+            target.innerHTML = text.substring(0, index)
+                + `<mark class="citation-yellow-mark">${matched}</mark>`
+                + text.substring(index + phrase.length);
+        } else {
+            const words = phrase.split(/\s+/).filter((w) => w.length > 2);
+            if (words.length >= 3) {
+                const subPhrase = words.slice(0, 3).join(" ");
+                const subIdx = text.toLowerCase().indexOf(subPhrase.toLowerCase());
+                if (subIdx !== -1) {
+                    const matched = text.substring(subIdx, subIdx + subPhrase.length);
+                    target.innerHTML = text.substring(0, subIdx)
+                        + `<mark class="citation-yellow-mark">${matched}</mark>`
+                        + text.substring(subIdx + subPhrase.length);
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Tự động kiểm tra URL query parameters khi người dùng mở trang từ liên kết "Xem tài liệu →".
+ * Nếu có tham số ?highlight=... hoặc ?search=... thì tự động kích hoạt bôi vàng và cuộn tới vị trí trích dẫn.
+ */
+function highlightFromUrlParams() {
+    if (urlHighlightExecuted) return;
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const highlightText = params.get("highlight");
+        const searchPhrase = params.get("search");
+        const pageNumber = params.get("page");
+        const chunkId = params.get("chunkId");
+        const citationNumber = params.get("citation");
+        const sectionTitle = params.get("section");
+
+        if (highlightText || searchPhrase || pageNumber || chunkId) {
+            urlHighlightExecuted = true;
+            const pageDocEl = document.querySelector("[data-page-doc-id]");
+            const docId = pageDocEl ? Number(pageDocEl.dataset.pageDocId) : null;
+
+            const triggerHighlight = (fullContent) => {
+                highlightDocumentSnippetOnPage({
+                    documentId: docId,
+                    chunkId: chunkId ? Number(chunkId) : null,
+                    content: fullContent,
+                    snippet: fullContent || highlightText || searchPhrase || "Nội dung trích dẫn được tham khảo.",
+                    searchPhrase: searchPhrase,
+                    pageNumber: pageNumber ? Number(pageNumber) : null,
+                    sourceId: citationNumber ? Number(citationNumber) : 1,
+                    sectionTitle: sectionTitle || null
+                });
+            };
+
+            if (chunkId) {
+                const chunkEndpoint = "/api/document-assistant/chunks/" + chunkId + "?citationIndex=" + (citationNumber || 1) + "&documentId=" + (docId || "");
+                fetch(chunkEndpoint)
+                    .then(r => r.ok ? r.json() : null)
+                    .then(data => {
+                        triggerHighlight(data ? (data.content || data.snippet) : highlightText);
+                    })
+                    .catch(() => triggerHighlight(highlightText));
+            } else {
+                setTimeout(() => triggerHighlight(highlightText), 300);
+            }
+        }
+    } catch (e) {
+        console.warn("Could not parse citation highlight URL params", e);
+    }
+}
+
+/**
+ * Điều hướng người dùng tới tài liệu nguồn và kích hoạt highlight đoạn trích dẫn.
+ * Nếu đang ở sẵn trên trang tài liệu: Cuộn mượt và highlight trực tiếp.
+ * Nếu ở trang khác: Mở trang tài liệu kèm tham số highlight.
+ */
+async function navigateToCitation(source) {
+    hideCitationTooltip();
+    if (!source) return;
+
+    const citationIndex = source.sourceId || source.citationIndex || 1;
+    console.log(`[CITATION NAVIGATE] citationIndex=${citationIndex}, documentId=${source.documentId}, chunkId=${source.chunkId}, pageNumber=${source.pageNumber}`);
+
+    const pageDocEl = document.querySelector("[data-page-doc-id]");
+    const currentPageDocId = pageDocEl ? pageDocEl.dataset.pageDocId : null;
+
+    const targetDocId = source.documentId != null 
+        ? String(source.documentId) 
+        : (source.detailUrl ? (source.detailUrl.match(/\/repository\/(\d+)/)?.[1] || null) : null);
+
+    const isSamePage = (currentPageDocId && targetDocId && String(currentPageDocId) === String(targetDocId))
+        || (targetDocId && window.location.pathname.startsWith(`/repository/${targetDocId}`));
+
+    if (isSamePage) {
+        if (window.innerWidth <= 768 && activeSetOpenFn) {
+            activeSetOpenFn(false);
+        }
+        await highlightDocumentSnippetOnPage(source);
+    } else {
+        const url = citationUrl(source);
+        window.location.href = url;
+    }
+}
+
+/**
+ * Hiển thị Tooltip/Popover xem trước nội dung trích dẫn (snippet) khi người dùng di chuột (hover) vào [1], [2].
+ * Hiển thị chuẩn xác: [Nguồn X] title, Trang X, Chunk Y và nội dung chunk trong dấu ngoặc kép.
+ *
  * @param {HTMLElement} targetElement - Thẻ citation được tương tác
- * @param {Object} source - Dữ liệu nguồn tham khảo (gồm title, snippet, documentId, detailUrl...)
+ * @param {Object} source - Dữ liệu nguồn tham khảo (gồm title, content, snippet, documentId, detailUrl...)
  */
 function showCitationTooltip(targetElement, source) {
     hideCitationTooltip();
-    if (!source) return;
+    if (!source) {
+        console.warn("[CITATION] Source is missing or undefined");
+        return;
+    }
+
+    const citationIndex = source.sourceId || source.citationIndex || 1;
+    console.log(`[CITATION HOVER] citationIndex=${citationIndex}, documentId=${source.documentId}, chunkId=${source.chunkId}, pageNumber=${source.pageNumber}`);
 
     // Tạo phần tử popover dạng tooltip
     const popover = element("div", "assistant-citation-popover");
     popover.setAttribute("role", "tooltip");
 
-    // Header của popover: icon tài liệu + tên tài liệu
+    // Header của popover: icon tài liệu + badge nguồn [Nguồn X] + tên tài liệu + trang + chunk
     const header = element("div", "assistant-citation-popover-header");
     const docIcon = element("span", "assistant-citation-popover-icon", "📄");
+
+    const metaWrap = element("div", "assistant-citation-popover-meta");
+    metaWrap.style.flex = "1";
+    metaWrap.style.minWidth = "0";
+
+    const topRow = element("div", "assistant-citation-popover-top-row");
+    topRow.style.display = "flex";
+    topRow.style.alignItems = "center";
+    topRow.style.gap = "0.4rem";
+
+    const sourceBadge = element("span", "assistant-citation-popover-badge", `[Nguồn ${citationIndex}]`);
+    sourceBadge.style.fontWeight = "bold";
+    sourceBadge.style.color = "var(--primary-color, #4338ca)";
+    sourceBadge.style.flexShrink = "0";
+
     const titleText = element("span", "assistant-citation-popover-title", source.title || "Tài liệu EduRepo");
     titleText.title = source.title || "Tài liệu EduRepo";
-    if (source.sectionTitle) {
-        const sectionBadge = element("span", "assistant-citation-popover-section", ` • ${source.sectionTitle}`);
-        sectionBadge.style.fontSize = "0.75rem";
-        sectionBadge.style.color = "#64748b";
-        sectionBadge.style.fontWeight = "normal";
-        titleText.append(sectionBadge);
+    topRow.append(sourceBadge, titleText);
+
+    const subRow = element("div", "assistant-citation-popover-subtags");
+    subRow.style.display = "flex";
+    subRow.style.alignItems = "center";
+    subRow.style.gap = "0.35rem";
+    subRow.style.marginTop = "0.2rem";
+    subRow.style.fontSize = "0.72rem";
+    subRow.style.color = "#64748b";
+
+    const pageBadge = element("span", "assistant-citation-popover-page", source.pageNumber ? `Trang ${source.pageNumber}` : "Trang --");
+    pageBadge.style.fontWeight = "600";
+    pageBadge.style.color = "#475569";
+    subRow.append(pageBadge);
+
+    const chunkBadge = element("span", "assistant-citation-popover-chunk", source.chunkId ? `• Chunk ${source.chunkId}` : "");
+    if (source.chunkId) {
+        subRow.append(chunkBadge);
     }
-    header.append(docIcon, titleText);
 
-    // Body của popover: đoạn trích dẫn (snippet) từ chunk thực tế mà AI đã tham khảo
-    const snippetText = source.snippet || source.excerpt || "Không có đoạn trích dẫn.";
-    const body = element("div", "assistant-citation-popover-snippet", snippetText);
+    if (source.sectionTitle) {
+        const sectionBadge = element("span", "assistant-citation-popover-section", `• ${source.sectionTitle}`);
+        sectionBadge.style.overflow = "hidden";
+        sectionBadge.style.textOverflow = "ellipsis";
+        sectionBadge.style.whiteSpace = "nowrap";
+        sectionBadge.title = source.sectionTitle;
+        subRow.append(sectionBadge);
+    }
 
-    // Footer của popover: Nút "Xem tài liệu →" dẫn tới trang chi tiết tài liệu /repository/{documentId}
+    metaWrap.append(topRow, subRow);
+    header.append(docIcon, metaWrap);
+
+    // Body của popover: CHÍNH XÁC nội dung chunk từ source (không dùng ảnh thumbnail trang đầu, không dùng mục lục)
+    let snippetText = (source.content || source.snippet || source.excerpt || "").trim();
+    if (!snippetText) {
+        snippetText = "Đang tải trích dẫn...";
+    }
+    const cleanSnippet = snippetText.replace(/^[“"']+|[”"']+$/g, "").trim();
+    const body = element("div", "assistant-citation-popover-snippet", `“${cleanSnippet}”`);
+
+    // Footer của popover: Nút "Xem tài liệu →"
     const footer = element("div", "assistant-citation-popover-footer");
     const viewLink = element("a", "assistant-citation-popover-link", "Xem tài liệu →");
-    const docUrl = source.documentId ? `/repository/${source.documentId}` : (source.detailUrl || "#");
-    viewLink.href = docUrl;
+    viewLink.href = citationUrl(source);
     viewLink.target = "_blank";
     viewLink.rel = "noopener";
-    footer.append(viewLink);
 
+    viewLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        navigateToCitation(source);
+    });
+
+    footer.append(viewLink);
     popover.append(header, body, footer);
+
+    // Truy vấn ngầm chi tiết chính xác từ backend theo chunkId để làm giàu dữ liệu
+    if (source.chunkId) {
+        const targetDocId = source.documentId != null 
+            ? String(source.documentId) 
+            : (source.detailUrl ? (source.detailUrl.match(/\/repository\/(\d+)/)?.[1] || null) : null);
+        const chunkApiUrl = "/api/document-assistant/chunks/" + source.chunkId + "?citationIndex=" + citationIndex + "&documentId=" + (targetDocId || "");
+        fetch(chunkApiUrl)
+            .then(async (resp) => {
+                if (resp.ok) {
+                    const chunkData = await resp.json();
+                    if (chunkData) {
+                        const exactContent = chunkData.content || chunkData.snippet;
+                        if (exactContent) {
+                            const clean = exactContent.replace(/^[“"']+|[”"']+$/g, "").trim();
+                            body.textContent = `“${clean}”`;
+                            source.content = exactContent;
+                            source.snippet = chunkData.snippet || exactContent.slice(0, 300);
+                        }
+                        if (chunkData.pageNumber) {
+                            source.pageNumber = chunkData.pageNumber;
+                            pageBadge.textContent = `Trang ${chunkData.pageNumber}`;
+                        }
+                        if (chunkData.chunkId) {
+                            chunkBadge.textContent = `• Chunk ${chunkData.chunkId}`;
+                            if (!chunkBadge.parentNode) subRow.append(chunkBadge);
+                        }
+                        if (chunkData.sectionTitle && !source.sectionTitle) {
+                            source.sectionTitle = chunkData.sectionTitle;
+                        }
+                        viewLink.href = citationUrl(source);
+                    }
+                } else if (resp.status === 404) {
+                    console.warn(`[CITATION] Chunk ${source.chunkId} not found in database (404)`);
+                    body.textContent = "Không tìm thấy đoạn trích dẫn nguồn cho citation này trong cơ sở dữ liệu.";
+                    body.style.color = "#dc2626";
+                }
+            })
+            .catch((err) => {
+                console.warn("[CITATION] Error fetching chunk detail:", err);
+            });
+    } else if (!source.content && !source.snippet && !source.excerpt) {
+        body.textContent = "Không tìm thấy đoạn trích dẫn nguồn cho citation này.";
+        body.style.color = "#dc2626";
+    }
 
     // Giữ popover không bị tắt khi người dùng di chuột từ citation vào bên trong popover
     let hoverTimeout = null;
@@ -272,13 +692,11 @@ function showCitationTooltip(targetElement, source) {
     const margin = 8;
 
     let top = rect.top - popoverRect.height - margin;
-    // Nếu phía trên không đủ chỗ, hiển thị xuống phía dưới
     if (top < 10) {
         top = rect.bottom + margin;
     }
 
     let left = rect.left + (rect.width / 2) - (popoverRect.width / 2);
-    // Đảm bảo không bị tràn sang mép trái hoặc mép phải màn hình
     if (left < 10) left = 10;
     if (left + popoverRect.width > window.innerWidth - 10) {
         left = window.innerWidth - popoverRect.width - 10;
@@ -290,15 +708,19 @@ function showCitationTooltip(targetElement, source) {
 
 /**
  * Gắn các sự kiện tương tác chuột (hover) và cảm ứng/bàn phím (click/touch) cho thẻ Citation.
+ * Hover: Xem trước nội dung chunk và trang.
+ * Click: Lập tức mở tài liệu, nhảy đến đúng trang, bôi vàng và cuộn vào giữa màn hình.
+ *
  * @param {HTMLElement} citation - Thẻ citation DOM node
  * @param {number} sourceId - Số thứ tự nguồn tham khảo
  * @param {Object} source - Dữ liệu chi tiết của nguồn
  */
 function bindCitationEvents(citation, sourceId, source) {
-    // Xử lý hover trên máy tính (Desktop)
+    // Hover: Hiển thị preview popup chính xác
     let leaveTimer = null;
     citation.addEventListener("mouseenter", () => {
         if (leaveTimer) clearTimeout(leaveTimer);
+        console.log(`[CITATION HOVER] citationIndex=${sourceId}, documentId=${source?.documentId}, chunkId=${source?.chunkId}, pageNumber=${source?.pageNumber}`);
         showCitationTooltip(citation, source);
     });
     citation.addEventListener("mouseleave", () => {
@@ -309,18 +731,12 @@ function bindCitationEvents(citation, sourceId, source) {
         }, 220);
     });
 
-    // Xử lý chạm/bấm trên điện thoại (Mobile) hoặc phím Enter
+    // Click: Mở ngay document viewer, chuyển tới đúng trang, bôi vàng và cuộn vào giữa vùng nhìn
     citation.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (activeCitationPopover && activeCitationPopover.dataset.sourceId === String(sourceId)) {
-            hideCitationTooltip();
-        } else {
-            showCitationTooltip(citation, source);
-            if (activeCitationPopover) {
-                activeCitationPopover.dataset.sourceId = String(sourceId);
-            }
-        }
+        console.log(`[CITATION CLICK] citationIndex=${sourceId}, documentId=${source?.documentId}, chunkId=${source?.chunkId}, pageNumber=${source?.pageNumber}`);
+        navigateToCitation(source);
     });
 }
 
@@ -371,11 +787,11 @@ function formatInline(text) {
 
     // Bold: **text** hoặc __text__
     formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    formatted = formatted.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+    formatted = formatted.replace(/(?<=^|[\s\p{P}])__([^_]+)__(?=$|[\s\p{P}])/gu, '<strong>$1</strong>');
 
-    // Italic: *text* hoặc _text_
+    // Italic: *text* hoặc _text_ (chỉ kích hoạt _ khi có ranh giới từ/dấu câu, tránh xung đột snake_case)
     formatted = formatted.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-    formatted = formatted.replace(/_([^_]+)_/g, '<em>$1</em>');
+    formatted = formatted.replace(/(?<=^|[\s\p{P}])_([^\s_]+(?:\s+[^\s_]+)*)_(?=$|[\s\p{P}])/gu, '<em>$1</em>');
 
     // Strikethrough: ~~text~~
     formatted = formatted.replace(/~~([^~]+)~~/g, '<del>$1</del>');
@@ -427,23 +843,23 @@ function extractMathAndCitations(rawText) {
     const codeBlocks = [];
     let text = rawText.replace(/```[\s\S]*?```/g, (match) => {
         codeBlocks.push(match);
-        return `§§CODE_BLOCK:${codeBlocks.length - 1}§§`;
+        return `§§CODEBLOCK:${codeBlocks.length - 1}§§`;
     });
 
     const inlineCodes = [];
     text = text.replace(/`[^`]+`/g, (match) => {
         inlineCodes.push(match);
-        return `§§INLINE_CODE:${inlineCodes.length - 1}§§`;
+        return `§§INLINECODE:${inlineCodes.length - 1}§§`;
     });
 
     // 2. Trích xuất Math Block: $$...$$ hoặc \[...\]
     text = text.replace(/\$\$([\s\S]+?)\$\$/g, (match, formula) => {
         mathBlocks.push(formula.trim());
-        return `§§MATH_BLOCK:${mathBlocks.length - 1}§§`;
+        return `§§MATHBLOCK:${mathBlocks.length - 1}§§`;
     });
     text = text.replace(/\\\[([\s\S]+?)\\\]/g, (match, formula) => {
         mathBlocks.push(formula.trim());
-        return `§§MATH_BLOCK:${mathBlocks.length - 1}§§`;
+        return `§§MATHBLOCK:${mathBlocks.length - 1}§§`;
     });
 
     // 3. Trích xuất Math Inline: $...$ hoặc \(...\)
@@ -454,16 +870,23 @@ function extractMathAndCitations(rawText) {
             return match;
         }
         mathInlines.push(trimmed);
-        return `§§MATH_INLINE:${mathInlines.length - 1}§§`;
+        return `§§MATHINLINE:${mathInlines.length - 1}§§`;
     });
     text = text.replace(/\\\(([\s\S]+?)\\\)/g, (match, formula) => {
         mathInlines.push(formula.trim());
-        return `§§MATH_INLINE:${mathInlines.length - 1}§§`;
+        return `§§MATHINLINE:${mathInlines.length - 1}§§`;
+    });
+
+    // 3.1 Bổ trợ phát hiện các ký hiệu toán/logic LaTeX rời rạc khi AI quên kẹp dấu $...$ (ví dụ \neg, \forall, \exists, \land, \lor, \sigma, ...)
+    const loneMathPattern = /(?<![\\a-zA-Z0-9])\\(forall|exists|land|lor|neg|vee|wedge|sigma|pi|rho|bowtie|times|cap|cup|in|notin|subset|subseteq|supset|supseteq|emptyset|setminus|rightarrow|leftarrow|Rightarrow|Leftarrow|iff|to|le|ge|neq|approx|pm|div|cdot|infty|partial|nabla)(?![a-zA-Z])/g;
+    text = text.replace(loneMathPattern, (match) => {
+        mathInlines.push(match);
+        return `§§MATHINLINE:${mathInlines.length - 1}§§`;
     });
 
     // 4. Khôi phục lại khối mã nguồn và inline code
-    text = text.replace(/§§INLINE_CODE:(\d+)§§/g, (m, idx) => inlineCodes[idx]);
-    text = text.replace(/§§CODE_BLOCK:(\d+)§§/g, (m, idx) => codeBlocks[idx]);
+    text = text.replace(/§§INLINECODE:(\d+)§§/g, (m, idx) => inlineCodes[idx]);
+    text = text.replace(/§§CODEBLOCK:(\d+)§§/g, (m, idx) => codeBlocks[idx]);
 
     // 5. Trích xuất Citations [1], [2]
     text = text.replace(/\[(\d+)\]/g, "§§CIT:$1§§");
@@ -673,11 +1096,11 @@ function parseMarkdownToHtml(rawText) {
     let html = `<div class="assistant-markdown">${htmlParts.join("")}</div>`;
 
     // Khôi phục các thẻ KaTeX placeholder sang HTML DOM elements với data-katex-math
-    html = html.replace(/§§MATH_BLOCK:(\d+)§§/g, (m, idx) => {
+    html = html.replace(/§§MATH_?BLOCK:(\d+)§§/g, (m, idx) => {
         const formula = mathBlocks[idx] || "";
         return `<div class="katex-display" data-katex-math="${escapeHtml(formula)}"></div>`;
     });
-    html = html.replace(/§§MATH_INLINE:(\d+)§§/g, (m, idx) => {
+    html = html.replace(/§§MATH_?INLINE:(\d+)§§/g, (m, idx) => {
         const formula = mathInlines[idx] || "";
         return `<span class="katex-inline" data-katex-math="${escapeHtml(formula)}"></span>`;
     });
@@ -721,11 +1144,17 @@ function appendAnswerContent(bubble, response) {
     const rawAnswer = sanitizeAnswerText(response.answer || response.message || ERROR_MESSAGE);
     const sources = Array.isArray(response.sources) ? response.sources : [];
 
-    // Ánh xạ nguồn theo sourceId (1, 2, ...)
+    // Ánh xạ nguồn theo sourceId hoặc citationIndex (1, 2, ...)
     const sourceMap = new Map();
     sources.forEach((src, index) => {
-        const id = src.sourceId != null ? Number(src.sourceId) : index + 1;
+        const id = src.sourceId != null ? Number(src.sourceId) : (src.citationIndex != null ? Number(src.citationIndex) : index + 1);
         sourceMap.set(id, src);
+        if (src.citationIndex != null) {
+            sourceMap.set(Number(src.citationIndex), src);
+        }
+        if (src.sourceId != null) {
+            sourceMap.set(Number(src.sourceId), src);
+        }
     });
 
     // Render Markdown sang HTML
@@ -929,6 +1358,7 @@ async function streamAssistantResponse({
     url,
     message,
     scopedDocumentId,
+    sessionId,
     context,
     signal,
     onStart,
@@ -941,6 +1371,9 @@ async function streamAssistantResponse({
     streamUrl.searchParams.set("message", message);
     if (scopedDocumentId) {
         streamUrl.searchParams.set("scopedDocumentId", String(scopedDocumentId));
+    }
+    if (sessionId) {
+        streamUrl.searchParams.set("sessionId", String(sessionId));
     }
     if (context) {
         if (context.keyword) streamUrl.searchParams.set("contextKeyword", context.keyword);
@@ -985,7 +1418,11 @@ async function streamAssistantResponse({
             } else if (trimmed.startsWith("data:")) {
                 const dataStr = trimmed.slice(5).trim();
                 if (currentEvent === "start") {
-                    onStart && onStart();
+                    let startData = null;
+                    try {
+                        startData = JSON.parse(dataStr);
+                    } catch {}
+                    onStart && onStart(startData);
                 } else if (currentEvent === "citation") {
                     try {
                         const sources = JSON.parse(dataStr);
@@ -1049,6 +1486,22 @@ export function initDocumentAssistant() {
     const streamingBar = root.querySelector("[data-assistant-streaming-bar]");
     const stopButton = root.querySelector("[data-assistant-stop]");
 
+    // Các thành phần Quản lý đa phiên hội thoại (Multi-Session Drawer)
+    const sessionsUrl = root.dataset.sessionsUrl || "/api/chat-sessions";
+    const isAuthenticated = root.dataset.authenticated === "true";
+
+    const sidebar = root.querySelector("[data-assistant-sidebar]");
+    const sidebarToggleBtn = root.querySelector("[data-assistant-sidebar-toggle]");
+    const sidebarCloseBtn = root.querySelector("[data-assistant-sidebar-close]");
+    const newChatHeaderBtn = root.querySelector("[data-assistant-new-session]");
+    const newChatSidebarBtn = root.querySelector("[data-assistant-sidebar-new]");
+    const sessionListContainer = root.querySelector("[data-session-list]");
+    const guestSyncBanner = root.querySelector("[data-guest-sync-banner]");
+    const guestSyncCount = root.querySelector("[data-guest-sync-count]");
+    const guestSyncConfirmBtn = root.querySelector("[data-guest-sync-confirm]");
+    const guestSyncDismissBtn = root.querySelector("[data-guest-sync-dismiss]");
+    const guestHint = root.querySelector("[data-guest-hint]");
+
     if (!openButton || !closeButton || !clearButton || !panel || !form || !input || !submitButton || !messages || !loading || !count) return;
 
     const assistantUrl = root.dataset.assistantUrl || "/api/document-assistant";
@@ -1063,6 +1516,468 @@ export function initDocumentAssistant() {
     let activeScopedDocument = null;
     let currentAbortController = null;
 
+    // Multi-Session Storage Keys & State
+    const ACTIVE_SESSION_KEY = "edurepo_active_session_id";
+    const GUEST_SESSIONS_KEY = "edurepo_guest_sessions";
+    const GUEST_MIGRATED_KEY = "edurepo_guest_migrated";
+
+    let currentSessions = [];
+    let activeSessionId = sessionStorage.getItem(ACTIVE_SESSION_KEY) || null;
+
+    const getGuestSessions = () => {
+        try {
+            const raw = localStorage.getItem(GUEST_SESSIONS_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch {}
+        try {
+            const oldHistory = localStorage.getItem(STORAGE_HISTORY_KEY);
+            if (oldHistory) {
+                const parsed = JSON.parse(oldHistory);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    const firstUser = parsed.find(m => m.type === "user");
+                    const converted = [{
+                        id: "guest_" + Date.now(),
+                        title: firstUser ? firstUser.content.slice(0, 40) : "Cuộc trò chuyện đã lưu",
+                        scopeType: "GLOBAL",
+                        scopedDocumentId: null,
+                        messages: parsed.map(m => ({
+                            senderType: m.type === "user" ? "USER" : "ASSISTANT",
+                            content: m.type === "user" ? m.content : (m.payload?.answer || m.payload?.message || ""),
+                            citations: m.payload?.sources || [],
+                            rating: m.payload?.rating || null,
+                            clientMessageId: m.payload?.messageId || ("client_" + Date.now())
+                        })),
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    }];
+                    localStorage.setItem(GUEST_SESSIONS_KEY, JSON.stringify(converted));
+                    localStorage.removeItem(STORAGE_HISTORY_KEY);
+                    return converted;
+                }
+            }
+        } catch {}
+        return [];
+    };
+
+    const saveGuestSessions = (sessions) => {
+        try {
+            localStorage.setItem(GUEST_SESSIONS_KEY, JSON.stringify(sessions));
+        } catch (e) {
+            console.warn("Could not save guest sessions", e);
+        }
+    };
+
+    const groupSessionsByDate = (sessions) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        const groups = {
+            today: [],
+            last7Days: [],
+            older: []
+        };
+
+        sessions.forEach(session => {
+            const sessionDate = new Date(session.updatedAt || session.createdAt || Date.now());
+            if (sessionDate >= today) {
+                groups.today.push(session);
+            } else if (sessionDate >= sevenDaysAgo) {
+                groups.last7Days.push(session);
+            } else {
+                groups.older.push(session);
+            }
+        });
+
+        return groups;
+    };
+
+    const renderSessionList = (sessions) => {
+        if (!sessionListContainer) return;
+        sessionListContainer.innerHTML = "";
+
+        if (!sessions || sessions.length === 0) {
+            const empty = element("div", "session-empty-state");
+            empty.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+                <p>Chưa có cuộc trò chuyện nào</p>
+            `;
+            sessionListContainer.append(empty);
+            return;
+        }
+
+        const groups = groupSessionsByDate(sessions);
+        const renderGroup = (title, items) => {
+            if (!items || items.length === 0) return;
+            const groupHeader = element("div", "session-group-title", title);
+            sessionListContainer.append(groupHeader);
+
+            items.forEach(session => {
+                const itemEl = createSessionItemElement(session);
+                sessionListContainer.append(itemEl);
+            });
+        };
+
+        renderGroup("Hôm nay", groups.today);
+        renderGroup("7 ngày qua", groups.last7Days);
+        renderGroup("Cũ hơn", groups.older);
+    };
+
+    const createSessionItemElement = (session) => {
+        const item = element("div", "session-item");
+        if (String(session.id) === String(activeSessionId)) {
+            item.classList.add("is-active");
+        }
+        item.dataset.sessionId = session.id;
+
+        const content = element("div", "session-item-content");
+        const icon = element("span", "session-icon");
+        icon.innerHTML = session.scopeType === "DOCUMENT"
+            ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`
+            : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+
+        const titleSpan = element("span", "session-title", session.title || "Cuộc trò chuyện mới");
+        content.append(icon, titleSpan);
+
+        if (session.scopeType === "DOCUMENT") {
+            const badge = element("span", "session-scope-badge", "Tài liệu");
+            content.append(badge);
+        }
+
+        const actions = element("div", "session-actions");
+        const renameBtn = element("button", "session-action-btn", "");
+        renameBtn.title = "Đổi tên";
+        renameBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+
+        const deleteBtn = element("button", "session-action-btn delete-btn", "");
+        deleteBtn.title = "Xóa cuộc trò chuyện";
+        deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`;
+
+        actions.append(renameBtn, deleteBtn);
+        item.append(content, actions);
+
+        item.addEventListener("click", (e) => {
+            if (e.target.closest(".session-actions") || e.target.closest(".session-rename-form")) {
+                return;
+            }
+            selectSession(session);
+        });
+
+        renameBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            startRenameSession(item, session, titleSpan);
+        });
+
+        deleteBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            confirmDeleteSession(session);
+        });
+
+        return item;
+    };
+
+    const startRenameSession = (item, session, titleSpan) => {
+        const originalTitle = session.title;
+        const form = element("form", "session-rename-form");
+        const input = element("input", "session-rename-input");
+        input.type = "text";
+        input.value = originalTitle;
+        input.maxLength = 100;
+
+        const saveBtn = element("button", "session-rename-btn", "");
+        saveBtn.type = "submit";
+        saveBtn.title = "Lưu";
+        saveBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+        const cancelBtn = element("button", "session-rename-btn cancel-btn", "");
+        cancelBtn.type = "button";
+        cancelBtn.title = "Hủy";
+        cancelBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+
+        form.append(input, saveBtn, cancelBtn);
+
+        const contentEl = item.querySelector(".session-item-content");
+        const actionsEl = item.querySelector(".session-actions");
+        contentEl.style.display = "none";
+        if (actionsEl) actionsEl.style.display = "none";
+        item.append(form);
+        input.focus();
+        input.select();
+
+        const cleanup = () => {
+            form.remove();
+            contentEl.style.display = "";
+            if (actionsEl) actionsEl.style.display = "";
+        };
+
+        cancelBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            cleanup();
+        });
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const newTitle = input.value.trim();
+            if (!newTitle || newTitle === originalTitle) {
+                cleanup();
+                return;
+            }
+
+            if (isAuthenticated) {
+                try {
+                    const patchUrl = `${sessionsUrl}/${session.id}/title`;
+                    const res = await fetch(patchUrl, {
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json"
+                        },
+                        credentials: "same-origin",
+                        body: JSON.stringify({ title: newTitle })
+                    });
+                    if (res.ok) {
+                        session.title = newTitle;
+                        titleSpan.textContent = newTitle;
+                    }
+                } catch (err) {
+                    console.warn("Could not rename session", err);
+                }
+            } else {
+                const guestSessions = getGuestSessions();
+                const target = guestSessions.find(s => s.id === session.id);
+                if (target) {
+                    target.title = newTitle;
+                    target.updatedAt = new Date().toISOString();
+                    saveGuestSessions(guestSessions);
+                }
+                session.title = newTitle;
+                titleSpan.textContent = newTitle;
+            }
+            cleanup();
+        });
+    };
+
+    const confirmDeleteSession = async (session) => {
+        if (!confirm(`Bạn có chắc muốn xóa cuộc trò chuyện "${session.title}"?`)) {
+            return;
+        }
+
+        if (isAuthenticated) {
+            try {
+                const delUrl = `${sessionsUrl}/${session.id}`;
+                const res = await fetch(delUrl, {
+                    method: "DELETE",
+                    headers: { Accept: "application/json" },
+                    credentials: "same-origin"
+                });
+                if (!res.ok) {
+                    alert("Không thể xóa cuộc trò chuyện. Vui lòng thử lại.");
+                    return;
+                }
+            } catch (e) {
+                console.warn("Delete session error", e);
+                alert("Có lỗi xảy ra khi xóa.");
+                return;
+            }
+        } else {
+            const guestSessions = getGuestSessions().filter(s => s.id !== session.id);
+            saveGuestSessions(guestSessions);
+        }
+
+        currentSessions = currentSessions.filter(s => s.id !== session.id);
+        renderSessionList(currentSessions);
+
+        if (String(activeSessionId) === String(session.id)) {
+            startNewChatSession();
+        }
+    };
+
+    const selectSession = async (session) => {
+        activeSessionId = session.id;
+        sessionStorage.setItem(ACTIVE_SESSION_KEY, String(session.id));
+
+        const allItems = sessionListContainer ? sessionListContainer.querySelectorAll(".session-item") : [];
+        allItems.forEach(el => {
+            el.classList.toggle("is-active", String(el.dataset.sessionId) === String(session.id));
+        });
+
+        if (sidebar) sidebar.hidden = true;
+
+        messages.innerHTML = "";
+
+        if (session.scopeType === "DOCUMENT" && session.scopedDocumentId) {
+            setScopedDocument(session.scopedDocumentId, session.scopedDocumentTitle || "Tài liệu", null, null, false);
+        } else {
+            setScopedDocument(null, null);
+        }
+
+        loading.hidden = false;
+
+        try {
+            let messageList = [];
+            if (isAuthenticated) {
+                const msgUrl = `${sessionsUrl}/${session.id}/messages`;
+                const res = await fetch(msgUrl, {
+                    headers: { Accept: "application/json" },
+                    credentials: "same-origin"
+                });
+                if (res.ok) {
+                    messageList = await res.json();
+                }
+            } else {
+                const guestSessions = getGuestSessions();
+                const target = guestSessions.find(s => s.id === session.id);
+                messageList = target ? target.messages : [];
+            }
+
+            loading.hidden = true;
+
+            if (messageList.length === 0) {
+                messages.replaceChildren(...initialConversation.map((node) => node.cloneNode(true)));
+                renderSuggestionsUI(DEFAULT_SUGGESTIONS);
+            } else {
+                root.querySelector("[data-assistant-suggestions]")?.remove();
+                messageList.forEach(msg => {
+                    const timeStr = msg.createdAt ? formatDate(msg.createdAt) + " " + currentTime() : currentTime();
+                    if (msg.senderType === "USER") {
+                        appendUserMessage(messages, msg.content, timeStr, null);
+                    } else if (msg.senderType === "ASSISTANT") {
+                        const payload = {
+                            answer: msg.content,
+                            sources: msg.citations || [],
+                            messageId: msg.clientMessageId || `msg-${msg.id}`
+                        };
+                        appendAssistantResponse(messages, payload, timeStr, payload.messageId, msg.feedbackRating, handleFeedbackClick);
+                    }
+                });
+                messages.scrollTo({ top: messages.scrollHeight, behavior: "auto" });
+            }
+        } catch (e) {
+            console.warn("Could not load session messages", e);
+            loading.hidden = true;
+        }
+    };
+
+    const startNewChatSession = () => {
+        activeSessionId = null;
+        sessionStorage.removeItem(ACTIVE_SESSION_KEY);
+
+        const allItems = sessionListContainer ? sessionListContainer.querySelectorAll(".session-item") : [];
+        allItems.forEach(el => el.classList.remove("is-active"));
+
+        messages.replaceChildren(...initialConversation.map((node) => node.cloneNode(true)));
+        if (pageDocEl && pageDocEl.dataset.pageDocId) {
+            setScopedDocument(pageDocEl.dataset.pageDocId, pageDocEl.dataset.pageDocTitle, pageDocEl.dataset.pageDocCategory, pageDocEl.dataset.pageDocKeywords, false);
+        } else {
+            setScopedDocument(null, null);
+            renderSuggestionsUI(DEFAULT_SUGGESTIONS);
+        }
+
+        clearAttachment();
+        input.value = "";
+        updateComposer();
+        if (sidebar) sidebar.hidden = true;
+        input.focus();
+    };
+
+    const fetchUserSessions = async () => {
+        if (isAuthenticated) {
+            try {
+                const res = await fetch(sessionsUrl, {
+                    headers: { Accept: "application/json" },
+                    credentials: "same-origin"
+                });
+                if (res.ok) {
+                    currentSessions = await res.json();
+                } else {
+                    currentSessions = [];
+                }
+            } catch (e) {
+                console.warn("Could not fetch sessions", e);
+                currentSessions = [];
+            }
+        } else {
+            currentSessions = getGuestSessions();
+            if (guestHint) guestHint.hidden = false;
+        }
+        renderSessionList(currentSessions);
+    };
+
+    const checkGuestMigration = () => {
+        if (!isAuthenticated || !guestSyncBanner) return;
+        const isMigrated = localStorage.getItem(GUEST_MIGRATED_KEY) === "true";
+        if (isMigrated) return;
+
+        const guestSessions = getGuestSessions();
+        if (!guestSessions || guestSessions.length === 0) return;
+
+        if (guestSyncCount) guestSyncCount.textContent = String(guestSessions.length);
+        guestSyncBanner.hidden = false;
+
+        if (guestSyncConfirmBtn) {
+            guestSyncConfirmBtn.addEventListener("click", async () => {
+                try {
+                    guestSyncConfirmBtn.disabled = true;
+                    guestSyncConfirmBtn.textContent = "Đang đồng bộ...";
+
+                    const importPayload = {
+                        sessions: guestSessions.map(s => ({
+                            guestSessionId: s.id,
+                            title: s.title,
+                            scopeType: s.scopeType || "GLOBAL",
+                            scopedDocumentId: s.scopedDocumentId || null,
+                            messages: (s.messages || []).map(m => ({
+                                senderType: m.senderType || "USER",
+                                content: m.content || "",
+                                citations: m.citations || [],
+                                rating: m.rating || null,
+                                clientMessageId: m.clientMessageId || null
+                            }))
+                        }))
+                    };
+
+                    const res = await fetch(`${sessionsUrl}/import-guest`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json"
+                        },
+                        credentials: "same-origin",
+                        body: JSON.stringify(importPayload)
+                    });
+
+                    if (res.ok) {
+                        localStorage.setItem(GUEST_MIGRATED_KEY, "true");
+                        localStorage.removeItem(GUEST_SESSIONS_KEY);
+                        localStorage.removeItem(STORAGE_HISTORY_KEY);
+                        guestSyncBanner.hidden = true;
+                        await fetchUserSessions();
+                    } else {
+                        alert("Không thể đồng bộ dữ liệu. Vui lòng thử lại.");
+                        guestSyncConfirmBtn.disabled = false;
+                        guestSyncConfirmBtn.textContent = "Đồng ý";
+                    }
+                } catch (err) {
+                    console.warn("Guest migration failed", err);
+                    guestSyncConfirmBtn.disabled = false;
+                    guestSyncConfirmBtn.textContent = "Đồng ý";
+                }
+            });
+        }
+
+        if (guestSyncDismissBtn) {
+            guestSyncDismissBtn.addEventListener("click", () => {
+                localStorage.setItem(GUEST_MIGRATED_KEY, "true");
+                guestSyncBanner.hidden = true;
+            });
+        }
+    };
+
     const handleFeedbackClick = async (messageId, rating, upBtn, downBtn) => {
         const docId = activeScopedDocument?.id || null;
         const success = await sendFeedbackRating(messageId, rating, docId, upBtn, downBtn);
@@ -1071,6 +1986,21 @@ export function initDocumentAssistant() {
             if (histItem && histItem.payload) {
                 histItem.payload.rating = rating;
                 saveHistory(history);
+            }
+            if (activeSessionId && isAuthenticated) {
+                try {
+                    const numericMsgId = String(messageId).replace(/^msg-/, "");
+                    if (/^\d+$/.test(numericMsgId)) {
+                        await fetch(`${sessionsUrl}/${activeSessionId}/messages/${numericMsgId}/feedback`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                            credentials: "same-origin",
+                            body: JSON.stringify({ rating: rating === "UP" ? 1 : -1 })
+                        });
+                    }
+                } catch (e) {
+                    console.warn("Could not save session message feedback", e);
+                }
             }
         }
     };
@@ -1115,7 +2045,9 @@ export function initDocumentAssistant() {
         const hasContent = input.value.trim().length > 0 || attachedFile !== null;
         submitButton.disabled = pending || !hasContent;
         input.style.height = "auto";
-        input.style.height = `${Math.min(input.scrollHeight, 104)}px`;
+        const newHeight = Math.min(input.scrollHeight, 104);
+        input.style.height = `${newHeight}px`;
+        input.style.overflowY = input.scrollHeight > 104 ? "auto" : "hidden";
     };
 
     const setOpen = (open, shouldFocus = true) => {
@@ -1131,20 +2063,121 @@ export function initDocumentAssistant() {
             openButton.focus();
         }
     };
+    activeSetOpenFn = setOpen;
+
+    const DEFAULT_SUGGESTIONS = [
+        {
+            label: "Tìm tài liệu Spring Boot & Java",
+            title: "Tìm kiếm tài liệu về Spring Boot & Java",
+            query: "Tìm tài liệu về Spring Boot và Java"
+        },
+        {
+            label: "Quy trình bảo mật OWASP",
+            title: "Quy trình kiểm thử bảo mật web theo chuẩn OWASP",
+            query: "Quy trình kiểm thử bảo mật web theo chuẩn OWASP gồm những bước nào?"
+        },
+        {
+            label: "Tổng quan Trí tuệ nhân tạo",
+            title: "Tổng quan về Trí tuệ nhân tạo",
+            query: "Tổng quan về Trí tuệ nhân tạo và các ứng dụng phổ biến hiện nay"
+        },
+        {
+            label: "Thiết kế cơ sở dữ liệu",
+            title: "Hướng dẫn thiết kế cơ sở dữ liệu quan hệ",
+            query: "Tìm tài liệu về thiết kế cơ sở dữ liệu quan hệ"
+        }
+    ];
+
+    // Tạo 4 câu hỏi gợi ý thông minh bám sát tài liệu (0đ API, không dùng icon để giữ phong cách chuyên nghiệp)
+    function generateDocumentSuggestions(docTitle, category, keywords) {
+        if (!docTitle) return DEFAULT_SUGGESTIONS;
+        const cleanTitle = docTitle.replace(/["'“”]/g, "").trim();
+
+        return [
+            {
+                label: "Tóm tắt nội dung chính",
+                title: "Tóm tắt nội dung cốt lõi của tài liệu",
+                query: `Tóm tắt nội dung chính và các điểm cốt lõi quan trọng nhất trong tài liệu "${cleanTitle}".`
+            },
+            {
+                label: "Các khái niệm then chốt",
+                title: "Các khái niệm kỹ thuật và nguyên lý then chốt",
+                query: `Các khái niệm kỹ thuật và nguyên lý then chốt được trình bày trong tài liệu "${cleanTitle}" là gì?`
+            },
+            {
+                label: "Ứng dụng vào thực tế",
+                title: "Khả năng áp dụng vào thực tế",
+                query: `Kiến thức và giải pháp trong tài liệu "${cleanTitle}" được ứng dụng vào thực tế hoặc dự án như thế nào?`
+            },
+            {
+                label: "Lưu ý khi triển khai",
+                title: "Các lưu ý và thách thức khi áp dụng",
+                query: `Những điểm cần lưu ý, thách thức hoặc sai lầm thường gặp khi áp dụng nội dung trong "${cleanTitle}" là gì?`
+            }
+        ];
+    }
+
+    // Render danh sách nút gợi ý câu hỏi (thuần text chuyên nghiệp, không icon, không chữ tiêu đề)
+    const renderSuggestionsUI = (suggestions) => {
+        if (!Array.isArray(suggestions) || suggestions.length === 0) return;
+        let container = root.querySelector("[data-assistant-suggestions]");
+        if (!container) {
+            container = element("div", "assistant-suggestions");
+            container.setAttribute("data-assistant-suggestions", "");
+            container.setAttribute("aria-label", "Gợi ý câu hỏi");
+            messages.append(container);
+        }
+
+        container.innerHTML = "";
+        const grid = element("div", "assistant-suggestions-grid");
+        suggestions.forEach((item) => {
+            const btn = element("button", "assistant-suggestion-btn");
+            btn.type = "button";
+            btn.setAttribute("data-assistant-suggestion", item.query);
+            if (item.title) btn.title = item.title;
+            btn.textContent = item.label;
+            grid.append(btn);
+        });
+        container.append(grid);
+        messages.scrollTo({ top: messages.scrollHeight, behavior: "smooth" });
+    };
 
     // Thiết lập chế độ Scoped Document Q&A
-    const setScopedDocument = (docId, docTitle) => {
+    const setScopedDocument = (docId, docTitle, category = null, keywords = null, openChat = true) => {
         if (!docId) {
             activeScopedDocument = null;
             if (scopedBanner) scopedBanner.hidden = true;
             input.placeholder = "Dán ảnh (Ctrl+V) hoặc hỏi bài tập, Java, AI…";
+            if (history.length === 0) {
+                renderSuggestionsUI(DEFAULT_SUGGESTIONS);
+            } else {
+                root.querySelector("[data-assistant-suggestions]")?.remove();
+            }
             return;
         }
-        activeScopedDocument = { id: Number(docId), title: docTitle || "Tài liệu đang mở" };
+        activeScopedDocument = {
+            id: Number(docId),
+            title: docTitle || "Tài liệu đang mở",
+            category: category,
+            keywords: keywords
+        };
         if (scopedTitle) scopedTitle.textContent = activeScopedDocument.title;
         if (scopedBanner) scopedBanner.hidden = false;
-        input.placeholder = `Hỏi về "${activeScopedDocument.title}"…`;
-        setOpen(true);
+        const shortDocTitle = activeScopedDocument.title.length > 28
+            ? activeScopedDocument.title.substring(0, 25) + "…"
+            : activeScopedDocument.title;
+        input.placeholder = `Hỏi về "${shortDocTitle}"…`;
+
+        if (history.length === 0) {
+            const scopedSuggestions = generateDocumentSuggestions(activeScopedDocument.title, category, keywords);
+            renderSuggestionsUI(scopedSuggestions);
+        } else {
+            root.querySelector("[data-assistant-suggestions]")?.remove();
+        }
+
+        if (openChat) {
+            setOpen(true);
+        }
     };
 
     if (scopedClearBtn) {
@@ -1160,22 +2193,45 @@ export function initDocumentAssistant() {
             event.preventDefault();
             const docId = btn.dataset.chatDocumentId;
             const docTitle = btn.dataset.chatDocumentTitle;
-            setScopedDocument(docId, docTitle);
+            const category = btn.dataset.chatDocumentCategory;
+            const keywords = btn.dataset.chatDocumentKeywords;
+            setScopedDocument(docId, docTitle, category, keywords, true);
         }
     });
 
-    // Khôi phục lịch sử chat từ bộ nhớ lưu trữ khi chuyển trang
-    if (Array.isArray(history) && history.length > 0) {
-        root.querySelector("[data-assistant-suggestions]")?.remove();
-        history.forEach((item) => {
-            if (item.type === "user") {
-                appendUserMessage(messages, item.content, item.time, item.imageSrc);
-            } else if (item.type === "assistant" && item.payload) {
-                appendAssistantResponse(messages, item.payload, item.time, item.payload.messageId, item.payload.rating, handleFeedbackClick);
-            }
-        });
-        messages.scrollTo({ top: messages.scrollHeight, behavior: "auto" });
+    // Tự động phát hiện nếu người dùng đang ở trang chi tiết tài liệu
+    const pageDocEl = document.querySelector("[data-page-doc-id]");
+    if (pageDocEl) {
+        const pageDocId = pageDocEl.dataset.pageDocId;
+        const pageDocTitle = pageDocEl.dataset.pageDocTitle;
+        const pageCategory = pageDocEl.dataset.pageDocCategory;
+        const pageKeywords = pageDocEl.dataset.pageDocKeywords;
+        if (pageDocId && pageDocTitle) {
+            setScopedDocument(pageDocId, pageDocTitle, pageCategory, pageKeywords, false);
+        }
+    } else if (history.length === 0) {
+        renderSuggestionsUI(DEFAULT_SUGGESTIONS);
     }
+
+    // Khởi tạo các phiên hội thoại và khôi phục phiên đang mở
+    fetchUserSessions().then(() => {
+        if (isAuthenticated) {
+            checkGuestMigration();
+        }
+        if (activeSessionId) {
+            selectSession({ id: activeSessionId });
+        } else if (!isAuthenticated && Array.isArray(history) && history.length > 0) {
+            root.querySelector("[data-assistant-suggestions]")?.remove();
+            history.forEach((item) => {
+                if (item.type === "user") {
+                    appendUserMessage(messages, item.content, item.time, item.imageSrc);
+                } else if (item.type === "assistant" && item.payload) {
+                    appendAssistantResponse(messages, item.payload, item.time, item.payload.messageId, item.payload.rating, handleFeedbackClick);
+                }
+            });
+            messages.scrollTo({ top: messages.scrollHeight, behavior: "auto" });
+        }
+    });
 
     // Nếu người dùng đang mở chatbot ở trang trước, giữ nguyên trạng thái mở ở trang mới
     if (loadOpenState()) {
@@ -1290,10 +2346,26 @@ export function initDocumentAssistant() {
                 url: assistantUrl,
                 message: message,
                 scopedDocumentId: activeScopedDocument?.id || null,
+                sessionId: activeSessionId,
                 context: conversationContext,
                 signal: currentAbortController.signal,
-                onStart: () => {
-                    // Bubble đã được khởi tạo
+                onStart: (startData) => {
+                    if (startData && startData.sessionId) {
+                        const isNew = !activeSessionId;
+                        activeSessionId = startData.sessionId;
+                        sessionStorage.setItem(ACTIVE_SESSION_KEY, String(activeSessionId));
+                        if (isNew) {
+                            const newSessionItem = {
+                                id: startData.sessionId,
+                                title: startData.sessionTitle || (message ? message.slice(0, 30) : "Cuộc trò chuyện mới"),
+                                scopeType: activeScopedDocument ? "DOCUMENT" : "GLOBAL",
+                                scopedDocumentId: activeScopedDocument?.id || null,
+                                updatedAt: new Date().toISOString()
+                            };
+                            currentSessions.unshift(newSessionItem);
+                            renderSessionList(currentSessions);
+                        }
+                    }
                 },
                 onCitation: (sources) => {
                     collectedSources = sources;
@@ -1332,6 +2404,40 @@ export function initDocumentAssistant() {
 
             history.push({ type: "assistant", payload: cleanPayload, time: assistantTime });
             saveHistory(history);
+
+            if (!isAuthenticated) {
+                let guestSessions = getGuestSessions();
+                let currentGuest = guestSessions.find(s => String(s.id) === String(activeSessionId));
+                if (!currentGuest) {
+                    const titleWords = message ? message.trim().split(/\s+/).slice(0, 8).join(" ") : "Cuộc trò chuyện mới";
+                    currentGuest = {
+                        id: activeSessionId || ("guest_" + Date.now()),
+                        title: titleWords,
+                        scopeType: activeScopedDocument ? "DOCUMENT" : "GLOBAL",
+                        scopedDocumentId: activeScopedDocument?.id || null,
+                        messages: [],
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    activeSessionId = currentGuest.id;
+                    sessionStorage.setItem(ACTIVE_SESSION_KEY, String(currentGuest.id));
+                    guestSessions.unshift(currentGuest);
+                }
+                currentGuest.messages.push({
+                    senderType: "USER",
+                    content: message,
+                    clientMessageId: `msg-user-${Date.now()}`
+                });
+                currentGuest.messages.push({
+                    senderType: "ASSISTANT",
+                    content: accumulatedText,
+                    citations: collectedSources,
+                    clientMessageId: messageId || `msg-asst-${Date.now()}`
+                });
+                currentGuest.updatedAt = new Date().toISOString();
+                saveGuestSessions(guestSessions);
+                renderSessionList(guestSessions);
+            }
 
         } catch (err) {
             if (err.name === "AbortError") {
@@ -1429,18 +2535,30 @@ export function initDocumentAssistant() {
     closeButton.addEventListener("click", () => setOpen(false));
     clearButton.addEventListener("click", () => {
         if (pending) return;
-        clearAttachment();
-        messages.replaceChildren(...initialConversation.map((node) => node.cloneNode(true)));
-        conversationContext = null;
-        history = [];
-        activeScopedDocument = null;
-        if (scopedBanner) scopedBanner.hidden = true;
-        input.placeholder = "Dán ảnh (Ctrl+V) hoặc hỏi bài tập, Java, AI…";
-        clearStorage();
-        input.value = "";
-        updateComposer();
-        input.focus();
+        startNewChatSession();
     });
+    if (newChatHeaderBtn) {
+        newChatHeaderBtn.addEventListener("click", () => {
+            if (pending) return;
+            startNewChatSession();
+        });
+    }
+    if (newChatSidebarBtn) {
+        newChatSidebarBtn.addEventListener("click", () => {
+            if (pending) return;
+            startNewChatSession();
+        });
+    }
+    if (sidebarToggleBtn) {
+        sidebarToggleBtn.addEventListener("click", () => {
+            if (sidebar) sidebar.hidden = !sidebar.hidden;
+        });
+    }
+    if (sidebarCloseBtn) {
+        sidebarCloseBtn.addEventListener("click", () => {
+            if (sidebar) sidebar.hidden = true;
+        });
+    }
     document.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && !panel.hidden) setOpen(false);
     });
@@ -1473,4 +2591,14 @@ export function initDocumentAssistant() {
         sendMessage(input.value.trim());
     });
     updateComposer();
+    highlightFromUrlParams();
+}
+
+// Tự động kiểm tra URL query parameters khi người dùng truy cập trang có kèm thông số bôi vàng trích dẫn
+if (typeof window !== "undefined" && window.location) {
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", highlightFromUrlParams);
+    } else {
+        highlightFromUrlParams();
+    }
 }

@@ -71,6 +71,31 @@ public interface DocumentAssistantService {
      * @param scopedDocumentId ID tài liệu giới hạn phạm vi (hoặc null nếu tra cứu toàn hệ thống).
      * @param emitter Đối tượng SseEmitter truyền phát sự kiện xuống trình duyệt.
      */
-    void streamResponse(String message, DocumentAssistantContext context, Long scopedDocumentId, org.springframework.web.servlet.mvc.method.annotation.SseEmitter emitter);
+    default void streamResponse(String message, DocumentAssistantContext context, Long scopedDocumentId, org.springframework.web.servlet.mvc.method.annotation.SseEmitter emitter) {
+        streamResponse(message, context, scopedDocumentId, null, null, emitter);
+    }
+
+    /**
+     * Xử lý câu hỏi và truyền phát phản hồi kèm định danh phiên trò chuyện (Session) và người dùng (User).
+     * Tự động nạp bộ nhớ hội thoại đa lượt và lưu trữ lịch sử bền vững vào CSDL MySQL.
+     *
+     * @param message Câu hỏi của người dùng.
+     * @param context Ngữ cảnh hội thoại.
+     * @param scopedDocumentId ID tài liệu giới hạn phạm vi.
+     * @param sessionId ID phiên trò chuyện (hoặc null nếu câu hỏi đầu tiên).
+     * @param userId ID người dùng đã đăng nhập (hoặc null nếu là khách vãng lai).
+     * @param emitter Đối tượng SseEmitter.
+     */
+    void streamResponse(String message, DocumentAssistantContext context, Long scopedDocumentId, Long sessionId, Long userId, org.springframework.web.servlet.mvc.method.annotation.SseEmitter emitter);
+
+    /**
+     * Truy xuất chi tiết một chunk tài liệu nguồn theo ID phục vụ citation preview / document highlighting.
+     *
+     * @param chunkId ID của chunk trong bảng document_chunks.
+     * @param citationIndex Số thứ tự của citation trong câu trả lời (1, 2, 3...)
+     * @param documentId ID tài liệu (tùy chọn)
+     * @return DTO chứa thông tin chính xác về chunk, page, content, title
+     */
+    java.util.Optional<com.hieu.edurepo.dto.CitationDetailDto> getCitationDetail(Long chunkId, Integer citationIndex, Long documentId);
 }
 

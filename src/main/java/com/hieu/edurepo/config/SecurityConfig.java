@@ -66,7 +66,7 @@ public class SecurityConfig {
             com.hieu.edurepo.security.LoginAuthenticationFailureHandler failureHandler,
             com.hieu.edurepo.security.AuditLogoutSuccessHandler logoutSuccessHandler) throws Exception {
         http
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/document-assistant/**"))
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/document-assistant/**", "/api/chat-sessions/**"))
                 // Mỗi request đã đăng nhập được kiểm tra lại với database để phát hiện tài khoản bị khóa,
                 // đổi mật khẩu hoặc đổi quyền sau thời điểm login.
                 .addFilterBefore(new com.hieu.edurepo.security.AccountSessionFilter(users),
@@ -76,7 +76,7 @@ public class SecurityConfig {
                         .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ASYNC).permitAll()
                         // Các trang công khai: xem kho, tải/xem tài liệu đã publish, đăng nhập/đăng ký/OTP.
                         .requestMatchers("/", "/repository/**", "/download/**", "/view/**",
-                                "/api/document-assistant/**",
+                                "/api/document-assistant/**", "/api/chat-sessions/**",
                                 "/login", "/register", "/register/verify", "/register/verify/resend",
                                 "/forgot-password", "/forgot-password/verify", "/forgot-password/verify/resend",
                                 "/reset-password", "/access-denied", "/error/**",

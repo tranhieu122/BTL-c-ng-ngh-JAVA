@@ -18,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -191,6 +192,8 @@ public class DocumentAssistantController {
             @RequestParam(defaultValue = "") String contextAnchorAuthor,
             @RequestParam(defaultValue = "") String contextAnchorTopic,
             @RequestParam(required = false) Long scopedDocumentId,
+            @RequestParam(required = false) Long sessionId,
+            org.springframework.security.core.Authentication authentication,
             HttpServletRequest request,
             HttpServletResponse response) {
 
@@ -228,8 +231,41 @@ public class DocumentAssistantController {
         });
         emitter.onError(e -> LOGGER.debug("SSE stream error for client {}: {}", clientIp, e.getMessage()));
 
-        assistantService.streamResponse(safeMessage, context, scopedDocumentId, emitter);
+        Long userId = (authentication != null && authentication.getPrincipal() instanceof CustomUserPrincipal p) ? p.getId() : null;
+        assistantService.streamResponse(safeMessage, context, scopedDocumentId, sessionId, userId, emitter);
         return emitter;
+    }
+
+    /**
+     * Endpoint HTTP GET /api/document-assistant/chunks/{chunkId}
+     * Truy xuất chính xác nội dung chunk và số trang tương ứng khi người dùng click/hover vào citation [1], [2], [4]...
+     */
+    @GetMapping("/chunks/{chunkId}")
+    public ResponseEntity<?> getChunkDetail(
+            @PathVariable Long chunkId,
+            @RequestParam(required = false) Integer citationIndex,
+            @RequestParam(required = false) Long documentId) {
+        return assistantService.getCitationDetail(chunkId, citationIndex, documentId)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(404).body(Map.of(
+                        "error", "NOT_FOUND",
+                        "message", "Không tìm thấy đoạn trích dẫn (chunkId=" + chunkId + ")."
+                )));
+    }
+
+    /**
+     * Endpoint HTTP GET /api/document-assistant/citation
+     * Alias endpoint hỗ trợ truy vấn citation theo query params (?chunkId=...&citationIndex=...)
+     */
+    @GetMapping("/citation")
+    public ResponseEntity<?> getCitationByParam(
+            @RequestParam(required = false) Long chunkId,
+            @RequestParam(required = false) Integer citationIndex,
+            @RequestParam(required = false) Long documentId) {
+        if (chunkId == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "BAD_REQUEST", "message", "Thiếu chunkId"));
+        }
+        return getChunkDetail(chunkId, citationIndex, documentId);
     }
 
     /**

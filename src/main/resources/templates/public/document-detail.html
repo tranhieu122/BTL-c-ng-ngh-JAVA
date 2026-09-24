@@ -11,7 +11,11 @@
 <body class="document-detail-page">
 <div th:replace="~{fragments/header :: header}"></div>
 
-<main id="main-content" class="detail-main page-container">
+<main id="main-content" class="detail-main page-container"
+      th:attr="data-page-doc-id=${document.id},
+               data-page-doc-title=${document.title},
+               data-page-doc-category=${document.category != null ? document.category.name : ''},
+               data-page-doc-keywords=${document.keywords != null ? document.keywords : ''}">
     <div th:replace="~{fragments/ui :: flashMessages}"></div>
     <nav class="breadcrumb" aria-label="Đường dẫn">
         <a th:href="@{/repository}">Kho học liệu</a>
@@ -47,7 +51,10 @@
                     <div><span class="eyebrow">Đọc trực tiếp</span><h2 id="reader-title">Trình xem tài liệu</h2></div>
                     <div class="reader-heading-actions">
                         <button class="button button-sm assistant-scoped-chat-btn" type="button"
-                                th:attr="data-chat-document-id=${document.id},data-chat-document-title=${document.title}">
+                                th:attr="data-chat-document-id=${document.id},
+                                         data-chat-document-title=${document.title},
+                                         data-chat-document-category=${document.category != null ? document.category.name : ''},
+                                         data-chat-document-keywords=${document.keywords != null ? document.keywords : ''}">
                             <span>💬</span> Chat với tài liệu
                         </button>
                         <a class="reader-download" th:href="@{/download/{id}(id=${document.id})}">Tải PDF ↓</a>
@@ -57,6 +64,56 @@
                         th:title="${'Trình xem PDF: ' + document.title}" scrolling="yes" tabindex="0">
                     Trình duyệt của bạn không hỗ trợ xem PDF trực tiếp.
                 </iframe>
+                <script>
+                    (function() {
+                        try {
+                            var p = new URLSearchParams(window.location.search);
+                            var pg = p.get('page');
+                            var chunkId = p.get('chunkId');
+                            var hl = p.get('highlight') || p.get('search');
+                            var ifr = document.querySelector('.document-reader-frame');
+                            if (ifr && (hl || pg || chunkId)) {
+                                var base = (ifr.getAttribute('src') || ifr.src).split('?')[0].split('#')[0];
+                                var cleanHl = hl ? hl.replace(/["']/g, '').trim() : '';
+
+                                function setIframe(realPage) {
+                                    var q = [];
+                                    if (cleanHl) q.push('highlight=' + encodeURIComponent(cleanHl));
+                                    if (realPage) q.push('page=' + encodeURIComponent(realPage));
+                                    var h = realPage ? ('#page=' + encodeURIComponent(realPage)) : '';
+                                    ifr.src = base + (q.length > 0 ? ('?' + q.join('&')) : '') + h;
+                                }
+
+                                // 1. Nếu đã có số trang chính xác từ citation/metadata (pg), nhảy ngay tới trang đó
+                                if (pg && Number(pg) > 0) {
+                                    setIframe(Number(pg));
+                                } else if (chunkId) {
+                                    // 2. Nếu có chunkId, truy vấn API chunk để lấy số trang chính xác của đoạn trích dẫn
+                                    fetch('/api/document-assistant/chunks/' + chunkId)
+                                        .then(function(r) { return r.ok ? r.json() : null; })
+                                        .then(function(d) {
+                                            setIframe(d && d.pageNumber ? d.pageNumber : 1);
+                                        })
+                                        .catch(function() { setIframe(1); });
+                                } else if (cleanHl) {
+                                    // 3. Fallback: Chỉ tìm vị trí trang nếu chưa có page hoặc chunkId
+                                    var docIdMatch = base.match(/\/view\/(\d+)/);
+                                    var docId = docIdMatch ? docIdMatch[1] : null;
+                                    if (docId) {
+                                        fetch('/view/' + docId + '/locate?phrase=' + encodeURIComponent(cleanHl))
+                                            .then(function(r) { return r.ok ? r.json() : null; })
+                                            .then(function(d) {
+                                                setIframe((d && d.page) ? d.page : 1);
+                                            })
+                                            .catch(function() { setIframe(1); });
+                                        return;
+                                    }
+                                    setIframe(1);
+                                }
+                            }
+                        } catch(e) {}
+                    })();
+                </script>
             </section>
 
             <section class="detail-section" aria-labelledby="abstract-title">
@@ -140,23 +197,28 @@
                 <form sec:authorize="isAuthenticated()" class="review-form" th:object="${documentReviewForm}"
                       th:action="${ownReview == null ? '/document-reviews/' + document.id : '/document-reviews/' + document.id + '/' + ownReview.id}" method="post">
                     <h3 th:text="${ownReview == null ? 'Bạn thấy tài liệu này thế nào?' : 'Chỉnh sửa đánh giá của bạn'}">Đánh giá tài liệu</h3>
-                    <fieldset class="star-picker"><legend>Số sao <span aria-hidden="true">*</span></legend>
-                        <label th:each="star : ${#numbers.sequence(5, 1)}">
-                            <input type="radio" th:field="*{rating}" th:value="${star}" required>
-                            <span th:text="${star + ' sao'}">5 sao</span>
-                        </label>
+                    <fieldset class="star-picker"><legend>Số sao <span aria-hidden="true" class="required-star">*</span></legend>
+                        <div class="star-picker-options">
+                            <label th:each="star : ${#numbers.sequence(5, 1)}">
+                                <input type="radio" th:field="*{rating}" th:value="${star}" required>
+                                <span class="star-pill" th:text="${star + ' sao'}">5 sao</span>
+                            </label>
+                        </div>
                     </fieldset>
-                    <label>Nhận xét ngắn
+                    <label class="comment-field">
+                        <span class="field-heading">Nhận xét ngắn</span>
                         <textarea th:field="*{comment}" maxlength="500" rows="3" placeholder="Điều gì trong tài liệu hữu ích hoặc cần cải thiện?"></textarea>
                     </label>
-                    <fieldset class="criteria-picker"><legend>Tiêu chí phù hợp (không bắt buộc)</legend>
-                        <label><input type="checkbox" th:field="*{helpful}"> Hữu ích</label>
-                        <label><input type="checkbox" th:field="*{easyToUnderstand}"> Dễ hiểu</label>
-                        <label><input type="checkbox" th:field="*{onTopic}"> Đúng chủ đề</label>
-                        <label><input type="checkbox" th:field="*{goodFileQuality}"> Chất lượng file tốt</label>
+                    <fieldset class="criteria-picker"><legend>Tiêu chí phù hợp <span class="legend-hint">(không bắt buộc)</span></legend>
+                        <div class="criteria-picker-options">
+                            <label><input type="checkbox" th:field="*{helpful}"><span class="criteria-pill">Hữu ích</span></label>
+                            <label><input type="checkbox" th:field="*{easyToUnderstand}"><span class="criteria-pill">Dễ hiểu</span></label>
+                            <label><input type="checkbox" th:field="*{onTopic}"><span class="criteria-pill">Đúng chủ đề</span></label>
+                            <label><input type="checkbox" th:field="*{goodFileQuality}"><span class="criteria-pill">Chất lượng file tốt</span></label>
+                        </div>
                     </fieldset>
                     <div class="feedback-actions">
-                        <button class="button" type="submit" th:text="${ownReview == null ? 'Gửi đánh giá' : 'Lưu thay đổi'}">Gửi đánh giá</button>
+                        <button class="button button-feedback-submit" type="submit" th:text="${ownReview == null ? 'Gửi đánh giá' : 'Lưu thay đổi'}">Gửi đánh giá</button>
                     </div>
                 </form>
                 <form sec:authorize="isAuthenticated()" th:if="${ownReview != null}" class="review-delete-form"
@@ -198,7 +260,10 @@
             </div>
             <p>Tải bản đầy đủ để đọc, nghiên cứu và sử dụng cho mục đích học tập.</p>
             <button class="button assistant-scoped-chat-btn assistant-scoped-chat-main" type="button"
-                    th:attr="data-chat-document-id=${document.id},data-chat-document-title=${document.title}">
+                    th:attr="data-chat-document-id=${document.id},
+                             data-chat-document-title=${document.title},
+                             data-chat-document-category=${document.category != null ? document.category.name : ''},
+                             data-chat-document-keywords=${document.keywords != null ? document.keywords : ''}">
                 <span class="ai-sparkle-inline" aria-hidden="true">✨</span> Hỏi đáp AI với tài liệu này
             </button>
             <a class="button preview-primary"

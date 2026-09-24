@@ -602,7 +602,7 @@
         width: 100%;
     }
 
-    table {
+    table:not(.assistant-table) {
         min-width: 680px;
     }
 
@@ -720,7 +720,8 @@
     .site-footer,
     .download-panel,
     .detail-cta,
-    .sidebar {
+    .sidebar,
+    .document-assistant {
         display: none !important;
     }
 

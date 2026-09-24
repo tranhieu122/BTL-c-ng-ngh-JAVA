@@ -32,13 +32,30 @@ public class OpenAIServiceImpl implements OpenAIService {
         this.properties = properties;
         this.objectMapper = objectMapper;
         this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(15))
+                .connectTimeout(Duration.ofSeconds(30))
                 .build();
     }
 
     @Override
     public boolean isAvailable() {
         return properties.isConfigured();
+    }
+
+    private List<String> getModelCandidates() {
+        List<String> models = new ArrayList<>();
+        String primary = properties.getModel();
+        if (primary != null && !primary.isBlank()) {
+            models.add(primary.trim());
+        }
+        String baseUrl = properties.getBaseUrl();
+        if (baseUrl != null && baseUrl.contains("googleapis.com")) {
+            for (String fallback : List.of("gemini-3.5-flash-lite", "gemini-3-flash-preview", "gemini-3.6-flash", "gemini-3.5-flash", "gemini-flash-latest")) {
+                if (!models.contains(fallback)) {
+                    models.add(fallback);
+                }
+            }
+        }
+        return models;
     }
 
     @Override
@@ -48,48 +65,52 @@ public class OpenAIServiceImpl implements OpenAIService {
             return "";
         }
 
-        try {
-            String endpoint = properties.getBaseUrl().replaceAll("/+$", "") + "/chat/completions";
+        List<String> models = getModelCandidates();
+        String endpoint = properties.getBaseUrl().replaceAll("/+$", "") + "/chat/completions";
 
-            List<Map<String, String>> messages = new ArrayList<>();
-            if (systemPrompt != null && !systemPrompt.isBlank()) {
-                messages.add(Map.of("role", "system", "content", systemPrompt));
-            }
-            messages.add(Map.of("role", "user", "content", userPrompt != null ? userPrompt : ""));
+        List<Map<String, String>> messages = new ArrayList<>();
+        if (systemPrompt != null && !systemPrompt.isBlank()) {
+            messages.add(Map.of("role", "system", "content", systemPrompt));
+        }
+        messages.add(Map.of("role", "user", "content", userPrompt != null ? userPrompt : ""));
 
-            Map<String, Object> body = new HashMap<>();
-            // Sử dụng model identifier chính thức được cấu hình (gpt-5.6-luna)
-            // Model GPT-5.6 Luna không hỗ trợ tham số temperature=0.2; sử dụng giá trị mặc định của model
-            body.put("model", properties.getModel());
-            body.put("messages", messages);
+        for (String currentModel : models) {
+            try {
+                Map<String, Object> body = new HashMap<>();
+                body.put("model", currentModel);
+                body.put("messages", messages);
 
-            String requestJson = objectMapper.writeValueAsString(body);
+                String requestJson = objectMapper.writeValueAsString(body);
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(endpoint))
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + properties.getApiKey())
-                    .timeout(Duration.ofSeconds(properties.getTimeoutSeconds()))
-                    .POST(HttpRequest.BodyPublishers.ofString(requestJson))
-                    .build();
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(endpoint))
+                        .header("Content-Type", "application/json")
+                        .header("Authorization", "Bearer " + properties.getApiKey())
+                        .timeout(Duration.ofSeconds(properties.getTimeoutSeconds()))
+                        .POST(HttpRequest.BodyPublishers.ofString(requestJson))
+                        .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                JsonNode root = objectMapper.readTree(response.body());
-                JsonNode choices = root.path("choices");
-                if (choices.isArray() && !choices.isEmpty()) {
-                    JsonNode messageNode = choices.get(0).path("message");
-                    String content = messageNode.path("content").asText("");
-                    return content.trim();
+                if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                    JsonNode root = objectMapper.readTree(response.body());
+                    JsonNode choices = root.path("choices");
+                    if (choices.isArray() && !choices.isEmpty()) {
+                        JsonNode messageNode = choices.get(0).path("message");
+                        String content = messageNode.path("content").asText("");
+                        return content.trim();
+                    }
+                } else {
+                    LOGGER.warn("OpenAI Chat Completion API error (Model: {}): HTTP {} - {}. Trying fallback model...",
+                            currentModel, response.statusCode(), response.body());
+                    if (response.statusCode() == 503 || response.statusCode() == 429) {
+                        try { Thread.sleep(400); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+                    }
                 }
-            } else {
-                LOGGER.error("OpenAI Chat Completion API error (Model: {}): HTTP {} - {}",
-                        properties.getModel(), response.statusCode(), response.body());
+            } catch (Exception e) {
+                LOGGER.warn("Exception calling OpenAI Chat Completion API (Model: {}): {}. Trying fallback model...",
+                        currentModel, e.getMessage());
             }
-        } catch (Exception e) {
-            LOGGER.error("Exception calling OpenAI Chat Completion API (Model: {}): {}",
-                    properties.getModel(), e.getMessage());
         }
 
         return "";
@@ -223,84 +244,93 @@ public class OpenAIServiceImpl implements OpenAIService {
             return;
         }
 
-        try {
-            String endpoint = properties.getBaseUrl().replaceAll("/+$", "") + "/chat/completions";
+        List<String> models = getModelCandidates();
+        String endpoint = properties.getBaseUrl().replaceAll("/+$", "") + "/chat/completions";
 
-            List<Map<String, String>> messages = new ArrayList<>();
-            if (systemPrompt != null && !systemPrompt.isBlank()) {
-                messages.add(Map.of("role", "system", "content", systemPrompt));
-            }
-            messages.add(Map.of("role", "user", "content", userPrompt != null ? userPrompt : ""));
+        List<Map<String, String>> messages = new ArrayList<>();
+        if (systemPrompt != null && !systemPrompt.isBlank()) {
+            messages.add(Map.of("role", "system", "content", systemPrompt));
+        }
+        messages.add(Map.of("role", "user", "content", userPrompt != null ? userPrompt : ""));
 
-            Map<String, Object> body = new HashMap<>();
-            body.put("model", properties.getModel());
-            body.put("messages", messages);
-            body.put("stream", true);
+        Throwable lastError = null;
 
-            String requestJson = objectMapper.writeValueAsString(body);
+        for (String currentModel : models) {
+            try {
+                Map<String, Object> body = new HashMap<>();
+                body.put("model", currentModel);
+                body.put("messages", messages);
+                body.put("stream", true);
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(endpoint))
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + properties.getApiKey())
-                    .timeout(Duration.ofSeconds(properties.getTimeoutSeconds()))
-                    .POST(HttpRequest.BodyPublishers.ofString(requestJson))
-                    .build();
+                String requestJson = objectMapper.writeValueAsString(body);
 
-            HttpResponse<java.io.InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(endpoint))
+                        .header("Content-Type", "application/json")
+                        .header("Authorization", "Bearer " + properties.getApiKey())
+                        .timeout(Duration.ofSeconds(properties.getTimeoutSeconds()))
+                        .POST(HttpRequest.BodyPublishers.ofString(requestJson))
+                        .build();
 
-            if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                try (java.io.BufferedReader reader = new java.io.BufferedReader(
-                        new java.io.InputStreamReader(response.body(), java.nio.charset.StandardCharsets.UTF_8))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        line = line.trim();
-                        if (line.isEmpty() || line.startsWith(":")) {
-                            continue;
-                        }
-                        if (line.startsWith("data: ")) {
-                            String data = line.substring(6).trim();
-                            if ("[DONE]".equals(data)) {
-                                break;
+                HttpResponse<java.io.InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+
+                if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                    try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                            new java.io.InputStreamReader(response.body(), java.nio.charset.StandardCharsets.UTF_8))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            line = line.trim();
+                            if (line.isEmpty() || line.startsWith(":")) {
+                                continue;
                             }
-                            try {
-                                JsonNode root = objectMapper.readTree(data);
-                                JsonNode choices = root.path("choices");
-                                if (choices.isArray() && !choices.isEmpty()) {
-                                    JsonNode delta = choices.get(0).path("delta");
-                                    if (delta.has("content")) {
-                                        String content = delta.path("content").asText("");
-                                        if (!content.isEmpty() && tokenConsumer != null) {
-                                            tokenConsumer.accept(content);
+                            if (line.startsWith("data: ")) {
+                                String data = line.substring(6).trim();
+                                if ("[DONE]".equals(data)) {
+                                    break;
+                                }
+                                try {
+                                    JsonNode root = objectMapper.readTree(data);
+                                    JsonNode choices = root.path("choices");
+                                    if (choices.isArray() && !choices.isEmpty()) {
+                                        JsonNode delta = choices.get(0).path("delta");
+                                        if (delta.has("content")) {
+                                            String content = delta.path("content").asText("");
+                                            if (!content.isEmpty() && tokenConsumer != null) {
+                                                tokenConsumer.accept(content);
+                                            }
                                         }
                                     }
+                                } catch (Exception parseEx) {
+                                    LOGGER.debug("Non-critical JSON chunk parse warning: {}", parseEx.getMessage());
                                 }
-                            } catch (Exception parseEx) {
-                                LOGGER.debug("Non-critical JSON chunk parse warning: {}", parseEx.getMessage());
                             }
                         }
                     }
+                    if (onComplete != null) {
+                        onComplete.run();
+                    }
+                    return;
+                } else {
+                    String errorBody = "";
+                    try {
+                        errorBody = new String(response.body().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                    } catch (Exception ignored) {}
+                    LOGGER.warn("OpenAI Chat Completion Stream API error (Model: {}): HTTP {} - {}. Trying fallback model...",
+                            currentModel, response.statusCode(), errorBody);
+                    lastError = new RuntimeException("OpenAI Streaming HTTP " + response.statusCode() + " (" + currentModel + "): " + errorBody);
+                    if (response.statusCode() == 503 || response.statusCode() == 429) {
+                        try { Thread.sleep(400); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+                    }
                 }
-                if (onComplete != null) {
-                    onComplete.run();
-                }
-            } else {
-                String errorBody = "";
-                try {
-                    errorBody = new String(response.body().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
-                } catch (Exception ignored) {}
-                LOGGER.error("OpenAI Chat Completion Stream API error (Model: {}): HTTP {} - {}",
-                        properties.getModel(), response.statusCode(), errorBody);
-                if (onError != null) {
-                    onError.accept(new RuntimeException("OpenAI Streaming HTTP " + response.statusCode() + ": " + errorBody));
-                }
+            } catch (Exception e) {
+                LOGGER.warn("Exception calling OpenAI Chat Completion Stream API (Model: {}): {}. Trying fallback model...",
+                        currentModel, e.getMessage());
+                lastError = e;
             }
-        } catch (Exception e) {
-            LOGGER.error("Exception calling OpenAI Chat Completion Stream API (Model: {}): {}",
-                    properties.getModel(), e.getMessage());
-            if (onError != null) {
-                onError.accept(e);
-            }
+        }
+
+        if (onError != null && lastError != null) {
+            onError.accept(lastError);
         }
     }
 }

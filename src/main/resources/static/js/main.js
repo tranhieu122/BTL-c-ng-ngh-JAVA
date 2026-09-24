@@ -47,7 +47,7 @@ ready(() => {
         loadFeature("[data-review-list]", "./modules/review-queue.js", "initReviewQueue"),
         loadFeature("[data-admin-dashboard]", "./modules/admin-dashboard.js", "initAdminDashboard"),
         loadFeature("[data-profile-page]", "./modules/profile.js", "initProfile"),
-        loadFeature("[data-document-assistant]", "./modules/document-assistant.js?v=2.3", "initDocumentAssistant"),
+        loadFeature("[data-document-assistant]", "./modules/document-assistant.js?v=2.5", "initDocumentAssistant"),
         initRealtimeFeatures()
     ]);
 });

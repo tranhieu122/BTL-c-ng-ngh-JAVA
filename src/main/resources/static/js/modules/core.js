@@ -307,6 +307,7 @@ const setupAutoResizeTextareas = () => {
 
 const enhanceStaticAccessibility = () => {
     document.querySelectorAll("input[required], select[required], textarea[required]").forEach((field) => {
+        if (field.type === "radio" || field.type === "checkbox") return;
         const label = field.closest("label") || (field.id
             ? Array.from(document.querySelectorAll("label[for]")).find((candidate) => candidate.htmlFor === field.id)
             : null);

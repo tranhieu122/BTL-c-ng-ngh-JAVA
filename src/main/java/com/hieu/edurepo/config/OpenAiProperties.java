@@ -34,25 +34,25 @@ public class OpenAiProperties {
      * Tên model LLM dùng để tạo câu trả lời chatbot.
      * Mặc định: {@code gpt-5.6-luna}.
      */
-    private String model = "gpt-5.6-luna";
+    private String model = "gemini-3.5-flash";
 
     /**
      * Tên model embedding dùng để chuyển văn bản thành vector.
-     * Mặc định: {@code text-embedding-3-small} (1536 chiều, kinh tế).
+     * Mặc định: {@code gemini-embedding-001}.
      */
-    private String embeddingModel = "text-embedding-3-small";
+    private String embeddingModel = "gemini-embedding-001";
 
     /**
      * URL gốc của OpenAI API (hoặc compatible endpoint).
      * Có thể trỏ đến proxy/reverse proxy nội bộ nếu cần.
      */
-    private String baseUrl = "https://api.openai.com/v1";
+    private String baseUrl = "https://generativelanguage.googleapis.com/v1beta/openai/";
 
     /**
      * Thời gian timeout (giây) cho mỗi lần gọi API.
      * Đặt đủ lớn để tránh timeout khi LLM phản hồi chậm.
      */
-    private int timeoutSeconds = 45;
+    private int timeoutSeconds = 90;
 
     // =========================================================================
     // Getters & Setters (với validation đơn giản)

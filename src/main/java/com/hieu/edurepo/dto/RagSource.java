@@ -51,4 +51,14 @@ public record RagSource(
     public String snippet() {
         return excerpt;
     }
+
+    @JsonProperty("citationIndex")
+    public Integer citationIndex() {
+        return sourceId;
+    }
+
+    @JsonProperty("content")
+    public String content() {
+        return excerpt;
+    }
 }

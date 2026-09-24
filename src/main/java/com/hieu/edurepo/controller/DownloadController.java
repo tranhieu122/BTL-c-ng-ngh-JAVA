@@ -8,10 +8,12 @@ import com.hieu.edurepo.exception.ResourceNotFoundException;
 import com.hieu.edurepo.service.DocumentService;
 import com.hieu.edurepo.service.FileStorageService;
 import com.hieu.edurepo.security.CustomUserPrincipal;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaTypeFactory;
 import org.springframework.stereotype.Controller;
@@ -19,6 +21,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import com.hieu.edurepo.service.PdfHighlightService;
 
 import java.nio.charset.StandardCharsets;
 @Controller
@@ -28,19 +32,22 @@ public class DownloadController {
     private final FileStorageService fileStorageService;
     private final com.hieu.edurepo.service.AuditLogService auditLogs;
     private final com.hieu.edurepo.service.UserActivityService userActivityService;
+    private final PdfHighlightService pdfHighlightService;
 
     public DownloadController(DocumentService documentService, FileStorageService fileStorageService) {
-        this(documentService, fileStorageService, null, null);
+        this(documentService, fileStorageService, null, null, null);
     }
 
     @org.springframework.beans.factory.annotation.Autowired
     public DownloadController(DocumentService documentService, FileStorageService fileStorageService,
                               com.hieu.edurepo.service.AuditLogService auditLogs,
-                              com.hieu.edurepo.service.UserActivityService userActivityService) {
+                              com.hieu.edurepo.service.UserActivityService userActivityService,
+                              @org.springframework.beans.factory.annotation.Autowired(required = false) PdfHighlightService pdfHighlightService) {
         this.documentService = documentService;
         this.fileStorageService = fileStorageService;
         this.auditLogs = auditLogs;
         this.userActivityService = userActivityService;
+        this.pdfHighlightService = pdfHighlightService;
     }
 
     @GetMapping("/download/{id}")
@@ -55,9 +62,8 @@ public class DownloadController {
         // Tạo response trước rồi mới tăng downloadCount để file thiếu/không đọc được không bị tính là tải thành công.
         ResponseEntity<Resource> response = createDownloadResponse(document);
         documentService.recordDownload(id);
-        if (userActivityService != null) {
-            userActivityService.recordDownload(principal == null ? null : principal.getId(), id);
-        }
+        Long userId = principal == null ? null : principal.getId();
+        userActivityService.recordDownload(userId, id);
         auditDownload(document, "Tải tài liệu công khai");
         return response;
     }
@@ -67,7 +73,10 @@ public class DownloadController {
     }
 
     @GetMapping("/view/{id}")
-    public ResponseEntity<Resource> view(@PathVariable Long id) {
+    public ResponseEntity<?> view(@PathVariable Long id,
+                                  @RequestParam(value = "highlight", required = false) String highlight,
+                                  @RequestParam(value = "search", required = false) String search,
+                                  @RequestParam(value = "page", required = false) Integer page) {
         Document document = documentService.findById(id);
         if (document.getStatus() != DocumentStatus.PUBLISHED) {
             throw new ResourceNotFoundException("Tài liệu chưa được công bố");
@@ -76,8 +85,57 @@ public class DownloadController {
         Resource resource = fileStorageService.load(requireDocumentValue(document.getFilePath(), "Thiếu đường dẫn tệp"));
         MediaType contentType = MediaTypeFactory.getMediaType(fileName).orElse(MediaType.APPLICATION_OCTET_STREAM);
         ContentDisposition disposition = ContentDisposition.inline().filename(fileName, StandardCharsets.UTF_8).build();
-        return ResponseEntity.ok().contentType(contentType)
-                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString()).body(resource);
+
+        String phrase = (highlight != null && !highlight.isBlank()) ? highlight : search;
+        if (pdfHighlightService != null && phrase != null && !phrase.isBlank() && fileName.toLowerCase().endsWith(".pdf")) {
+            PdfHighlightService.HighlightResult result = pdfHighlightService.highlightWithResult(resource, phrase, page);
+            if (result != null && result.pdfBytes() != null && result.pdfBytes().length > 0) {
+                // Nếu trang yêu cầu khác trang thực tế chứa trích dẫn -> tự động chuyển hướng đến trang đúng trong viewer
+                if (page == null || !page.equals(result.actualPage())) {
+                    String cleanPhrase = java.net.URLEncoder.encode(phrase, StandardCharsets.UTF_8);
+                    return ResponseEntity.status(org.springframework.http.HttpStatus.FOUND)
+                            .header(HttpHeaders.LOCATION, "/view/" + id + "?highlight=" + cleanPhrase + "&page=" + result.actualPage() + "#page=" + result.actualPage())
+                            .build();
+                }
+
+                ByteArrayResource byteResource = new ByteArrayResource(result.pdfBytes());
+                return ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_PDF)
+                        .cacheControl(CacheControl.noCache().mustRevalidate())
+                        .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+                        .header("X-Pdf-Highlighted-Page", String.valueOf(result.actualPage()))
+                        .body(byteResource);
+            }
+        }
+
+        // Override Spring Security's default "no-store" Cache-Control so Edge/Chrome PDF
+        // viewer can render the file inside an <iframe>. "private" prevents proxy caching;
+        // "max-age=3600" gives the browser enough time to load and navigate the document.
+        return ResponseEntity.ok()
+                .contentType(contentType)
+                .cacheControl(CacheControl.noCache().mustRevalidate())
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+                .body(resource);
+    }
+
+    @GetMapping(value = "/view/{id}/locate", produces = MediaType.APPLICATION_JSON_VALUE)
+    @org.springframework.web.bind.annotation.ResponseBody
+    public ResponseEntity<java.util.Map<String, Object>> locateSnippet(
+            @PathVariable Long id,
+            @RequestParam("phrase") String phrase,
+            @RequestParam(value = "hintPage", required = false) Integer hintPage) {
+        Document document = documentService.findById(id);
+        if (document.getStatus() != DocumentStatus.PUBLISHED) {
+            throw new ResourceNotFoundException("Tài liệu chưa được công bố");
+        }
+        String fileName = requireDocumentValue(document.getFileName(), "Thiếu tên tệp");
+        Resource resource = fileStorageService.load(requireDocumentValue(document.getFilePath(), "Thiếu đường dẫn tệp"));
+
+        Integer actualPage = (pdfHighlightService != null && fileName.toLowerCase().endsWith(".pdf"))
+                ? pdfHighlightService.locatePage(resource, phrase, hintPage)
+                : hintPage;
+
+        return ResponseEntity.ok(java.util.Map.of("page", actualPage != null ? actualPage : 1));
     }
 
     @GetMapping("/reviews/{id}/download")

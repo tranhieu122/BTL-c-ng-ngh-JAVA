@@ -1,33 +1,410 @@
-.document-feedback { border-top: 1px solid var(--line); }
-.rating-overview { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; padding: 1rem 1.15rem; border: 1px solid #dcebe7; border-radius: 14px; background: #f8fcfb; }
-.rating-overview > strong { color: #173f41; font-size: 2.2rem; line-height: 1; }
-.rating-stars, .review-stars { color: #d7ddd9; letter-spacing: .08em; }
-.rating-stars, .review-stars .is-active { color: #e1a52b; }
-.rating-overview p { margin: .2rem 0 0; color: var(--ink-500); font-size: .76rem; }
-.feedback-login-note { padding: 1rem; border-radius: 12px; color: var(--ink-600); background: var(--surface-soft); font-size: .84rem; }
-.review-form { display: grid; gap: 1rem; margin-top: 1rem; padding: 1.15rem; border: 1px solid var(--line); border-radius: 14px; }
-.review-form h3 { margin: 0; font-size: 1rem; }
-.review-form > label, .report-document label { display: grid; gap: .42rem; color: var(--ink-700); font-size: .78rem; font-weight: 750; }
-.review-form textarea, .report-document textarea, .report-document select { width: 100%; }
-.star-picker, .criteria-picker { display: flex; flex-wrap: wrap; gap: .55rem; margin: 0; padding: 0; border: 0; }
-.star-picker legend, .criteria-picker legend { width: 100%; margin-bottom: .35rem; color: var(--ink-700); font-size: .78rem; font-weight: 750; }
-.star-picker label, .criteria-picker label { cursor: pointer; }
-.star-picker label { position: relative; }
-.star-picker input { position: absolute; opacity: 0; }
-.star-picker span, .criteria-picker label { display: inline-flex; align-items: center; min-height: 34px; padding: .35rem .7rem; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-600); background: #fff; font-size: .74rem; font-weight: 700; }
-.star-picker input:checked + span { border-color: #e5b84c; color: #8a5b04; background: #fff7da; box-shadow: 0 0 0 3px rgba(229,184,76,.15); }
-.criteria-picker input { margin-right: .35rem; }
-.feedback-actions { display: flex; justify-content: flex-end; }
-.review-delete-form { display: flex; justify-content: flex-end; margin-top: .6rem; }
-.review-delete-form button { border: 0; color: var(--danger); background: transparent; font-size: .73rem; font-weight: 750; cursor: pointer; }
-.review-list { display: grid; gap: .75rem; margin-top: 1.25rem; }
-.reader-review { padding: 1rem; border: 1px solid var(--line); border-radius: 12px; }
-.reader-review header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
-.reader-review p { margin: .55rem 0 0; color: var(--ink-600); font-size: .84rem; line-height: 1.6; white-space: pre-line; }
-.review-stars i { font-style: normal; }
-.review-criteria { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .65rem; }
-.review-criteria span { padding: .22rem .48rem; border-radius: 999px; color: #087353; background: #e9f8f0; font-size: .66rem; font-weight: 700; }
-.empty-feedback { color: var(--ink-400); font-size: .8rem; }
+.document-feedback {
+    border-top: 1px solid var(--line);
+    padding-top: 1.75rem;
+}
+
+/* 1. Rating Overview Card (Khối tổng quan điểm đánh giá) */
+.rating-overview {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding: 1.25rem 1.6rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.04);
+}
+
+.rating-overview > strong {
+    color: #0f172a;
+    font-size: 2.75rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-family: inherit;
+}
+
+.rating-stars,
+.review-stars {
+    color: #cbd5e1;
+    letter-spacing: 0.12em;
+    font-size: 1.15rem;
+}
+
+.rating-stars,
+.review-stars .is-active {
+    color: #f59e0b;
+}
+
+.rating-overview p {
+    margin: 0.35rem 0 0;
+    color: #64748b;
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+.feedback-login-note {
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    color: var(--ink-600);
+    background: var(--surface-soft);
+    font-size: 0.84rem;
+    border: 1px solid #e2e8f0;
+}
+
+/* 2. Review Form (Khung biểu mẫu đánh giá) */
+.review-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.35rem;
+    margin-top: 1.25rem;
+    padding: 1.6rem 1.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.04);
+}
+
+.review-form h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+}
+
+/* Star Picker (Lựa chọn số sao) - THUẦN CHỮ, TUYỆT ĐỐI KHÔNG ICON */
+.star-picker {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.star-picker legend {
+    width: 100%;
+    margin-bottom: 0.55rem;
+    color: #334155;
+    font-size: 0.85rem;
+    font-weight: 650;
+}
+
+.star-picker legend .required-star {
+    color: #ef4444;
+    margin-left: 0.2rem;
+    font-weight: 700;
+}
+
+.star-picker-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.star-picker label {
+    position: relative;
+    cursor: pointer;
+    margin: 0;
+}
+
+.star-picker input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.star-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0.45rem 1.15rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    color: #475467;
+    background: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    cursor: pointer;
+    transition: all 160ms cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.star-picker label:hover .star-pill {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+    color: #1e293b;
+    transform: translateY(-1px);
+}
+
+.star-picker input:focus-visible + .star-pill {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
+}
+
+.star-picker input:checked + .star-pill {
+    border-color: #f59e0b;
+    color: #92400e;
+    background: #fffbeb;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.16);
+    font-weight: 700;
+}
+
+/* Fix dứt điểm bug .required-marker thừa nếu có */
+.star-picker .required-marker {
+    display: none !important;
+}
+
+/* 3. Textarea nhận xét ngắn */
+.comment-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.field-heading {
+    color: #334155;
+    font-size: 0.85rem;
+    font-weight: 650;
+}
+
+.review-form textarea {
+    width: 100%;
+    min-height: 98px;
+    padding: 0.85rem 1rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    color: #1e293b;
+    background: #fafbfc;
+    font-size: 0.86rem;
+    line-height: 1.55;
+    font-family: inherit;
+    resize: vertical;
+    transition: all 160ms ease;
+    box-sizing: border-box;
+}
+
+.review-form textarea::placeholder {
+    color: #94a3b8;
+    font-size: 0.84rem;
+}
+
+.review-form textarea:hover {
+    border-color: #cbd5e1;
+    background: #ffffff;
+}
+
+.review-form textarea:focus {
+    border-color: #10b981;
+    background: #ffffff;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.14);
+}
+
+/* 4. Criteria Picker (Tiêu chí phù hợp) - THUẦN CHIPS, KHÔNG ICON, KHÔNG CHECKBOX THÔ */
+.criteria-picker {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.criteria-picker legend {
+    width: 100%;
+    margin-bottom: 0.55rem;
+    color: #334155;
+    font-size: 0.85rem;
+    font-weight: 650;
+}
+
+.criteria-picker .legend-hint {
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 400;
+    margin-left: 0.25rem;
+}
+
+.criteria-picker-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.criteria-picker label {
+    position: relative;
+    cursor: pointer;
+    margin: 0;
+}
+
+.criteria-picker input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.criteria-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0.45rem 1.1rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    color: #475467;
+    background: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 160ms cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.criteria-picker label:hover .criteria-pill {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+    color: #1e293b;
+    transform: translateY(-1px);
+}
+
+.criteria-picker input:focus-visible + .criteria-pill {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+}
+
+.criteria-picker input:checked + .criteria-pill {
+    border-color: #059669;
+    color: #065f46;
+    background: #ecfdf5;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.14);
+    font-weight: 700;
+}
+
+/* 5. Nút Gửi Đánh Giá */
+.feedback-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.35rem;
+}
+
+.button-feedback-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0.65rem 1.65rem;
+    border: none;
+    border-radius: 10px;
+    background: #1b5e3f;
+    color: #ffffff;
+    font-size: 0.88rem;
+    font-weight: 650;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(27, 94, 63, 0.22);
+    transition: all 160ms cubic-bezier(0.16, 1, 0.3, 1);
+    letter-spacing: 0.01em;
+}
+
+.button-feedback-submit:hover {
+    background: #144930;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(27, 94, 63, 0.3);
+}
+
+.button-feedback-submit:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(27, 94, 63, 0.15);
+}
+
+.review-delete-form {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.6rem;
+}
+
+.review-delete-form button {
+    border: 0;
+    color: var(--danger);
+    background: transparent;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+}
+
+/* 6. Danh sách đánh giá của bạn đọc */
+.review-list {
+    display: grid;
+    gap: 0.85rem;
+    margin-top: 1.5rem;
+}
+
+.reader-review {
+    padding: 1.15rem 1.35rem;
+    border: 1px solid #eef2f6;
+    border-radius: 14px;
+    background: #fafbfc;
+    transition: border-color 160ms ease;
+}
+
+.reader-review:hover {
+    border-color: #cbd5e1;
+}
+
+.reader-review header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.reader-review header strong {
+    color: #1e293b;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.reader-review p {
+    margin: 0.55rem 0 0;
+    color: #334155;
+    font-size: 0.86rem;
+    line-height: 1.6;
+    white-space: pre-line;
+}
+
+.review-stars i {
+    font-style: normal;
+}
+
+.review-criteria {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+}
+
+.review-criteria span {
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    color: #065f46;
+    background: #ecfdf5;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.empty-feedback {
+    color: var(--ink-400);
+    font-size: 0.84rem;
+    padding: 1rem 0;
+}
 .report-document { margin: 0 0 1rem; padding-top: .15rem; border-bottom: 1px solid var(--line); }
 .report-document summary { margin-bottom: .8rem; color: #8e3e35; font-size: .74rem; font-weight: 750; cursor: pointer; }
 .report-document > p { color: var(--ink-500); font-size: .7rem; line-height: 1.5; }
@@ -46,8 +423,36 @@
 .review-moderation-table p { max-width: 430px; margin: .3rem 0 0; white-space: pre-line; }
 
 @media (max-width: 760px) {
-    .rating-overview { align-items: flex-start; }
-    .feedback-actions .button { width: 100%; }
-    .status-update-form { align-items: stretch; flex-direction: column; }
-    .moderation-table { min-width: 850px; }
+    .rating-overview {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1.1rem 1.25rem;
+    }
+    .review-form {
+        padding: 1.25rem 1.15rem;
+    }
+    .star-picker-options,
+    .criteria-picker-options {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.45rem;
+    }
+    .star-pill,
+    .criteria-pill {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0.45rem 0.5rem;
+        font-size: 0.78rem;
+    }
+    .button-feedback-submit {
+        width: 100%;
+    }
+    .status-update-form {
+        align-items: stretch;
+        flex-direction: column;
+    }
+    .moderation-table {
+        min-width: 850px;
+    }
 }

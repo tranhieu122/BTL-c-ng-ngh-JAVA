@@ -5,11 +5,16 @@ import com.hieu.edurepo.dto.DocumentAssistantContext;
 import com.hieu.edurepo.dto.DocumentAssistantItem;
 import com.hieu.edurepo.dto.DocumentAssistantQuery;
 import com.hieu.edurepo.dto.DocumentAssistantResponse;
-import com.hieu.edurepo.entity.Document;
+import com.hieu.edurepo.dto.CitationDetailDto;
 import com.hieu.edurepo.dto.DocumentRatingSummary;
-import com.hieu.edurepo.repository.DocumentAssistantRepository;
-import com.hieu.edurepo.repository.DocumentReviewRepository;
 import com.hieu.edurepo.dto.RagAnswer;
+import com.hieu.edurepo.dto.RagSource;
+import com.hieu.edurepo.entity.Document;
+import com.hieu.edurepo.entity.DocumentChunk;
+import com.hieu.edurepo.repository.DocumentAssistantRepository;
+import com.hieu.edurepo.repository.DocumentChunkRepository;
+import com.hieu.edurepo.repository.DocumentReviewRepository;
+import com.hieu.edurepo.service.ContextBuilder;
 import com.hieu.edurepo.service.DocumentAssistantService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -98,15 +103,18 @@ public class DocumentAssistantServiceImpl implements DocumentAssistantService {
             Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 
     private final DocumentAssistantRepository repository;
+    private final DocumentChunkRepository chunkRepository;
     private final com.hieu.edurepo.service.RetrievalService retrievalService;
     private final com.hieu.edurepo.service.ContextBuilder contextBuilder;
     private final com.hieu.edurepo.service.OpenAIService openAiService;
     private final com.hieu.edurepo.config.RagProperties ragProperties;
     private final DocumentReviewRepository reviewRepository;
     private final com.hieu.edurepo.service.ToolExecutorService toolExecutorService;
+    private final com.hieu.edurepo.service.ChatSessionService sessionService;
+    private final com.hieu.edurepo.service.ConversationMemoryService conversationMemoryService;
 
     public DocumentAssistantServiceImpl(DocumentAssistantRepository repository) {
-        this(repository, null, null, null, null, null, null);
+        this(repository, null, null, null, null, null, null, null, null, null);
     }
 
     public DocumentAssistantServiceImpl(DocumentAssistantRepository repository,
@@ -115,24 +123,51 @@ public class DocumentAssistantServiceImpl implements DocumentAssistantService {
                                        com.hieu.edurepo.service.OpenAIService openAiService,
                                        com.hieu.edurepo.config.RagProperties ragProperties,
                                        DocumentReviewRepository reviewRepository) {
-        this(repository, retrievalService, contextBuilder, openAiService, ragProperties, reviewRepository, null);
+        this(repository, null, retrievalService, contextBuilder, openAiService, ragProperties, reviewRepository, null, null, null);
+    }
+
+    public DocumentAssistantServiceImpl(DocumentAssistantRepository repository,
+                                       com.hieu.edurepo.service.RetrievalService retrievalService,
+                                       com.hieu.edurepo.service.ContextBuilder contextBuilder,
+                                       com.hieu.edurepo.service.OpenAIService openAiService,
+                                       com.hieu.edurepo.config.RagProperties ragProperties,
+                                       DocumentReviewRepository reviewRepository,
+                                       com.hieu.edurepo.service.ToolExecutorService toolExecutorService) {
+        this(repository, null, retrievalService, contextBuilder, openAiService, ragProperties, reviewRepository, toolExecutorService, null, null);
+    }
+
+    public DocumentAssistantServiceImpl(DocumentAssistantRepository repository,
+                                        DocumentChunkRepository chunkRepository,
+                                        com.hieu.edurepo.service.RetrievalService retrievalService,
+                                        com.hieu.edurepo.service.ContextBuilder contextBuilder,
+                                        com.hieu.edurepo.service.OpenAIService openAiService,
+                                        com.hieu.edurepo.config.RagProperties ragProperties,
+                                        DocumentReviewRepository reviewRepository,
+                                        com.hieu.edurepo.service.ToolExecutorService toolExecutorService) {
+        this(repository, chunkRepository, retrievalService, contextBuilder, openAiService, ragProperties, reviewRepository, toolExecutorService, null, null);
     }
 
     @org.springframework.beans.factory.annotation.Autowired
     public DocumentAssistantServiceImpl(DocumentAssistantRepository repository,
+                                       @org.springframework.beans.factory.annotation.Autowired(required = false) DocumentChunkRepository chunkRepository,
                                        @org.springframework.beans.factory.annotation.Autowired(required = false) com.hieu.edurepo.service.RetrievalService retrievalService,
                                        @org.springframework.beans.factory.annotation.Autowired(required = false) com.hieu.edurepo.service.ContextBuilder contextBuilder,
                                        @org.springframework.beans.factory.annotation.Autowired(required = false) com.hieu.edurepo.service.OpenAIService openAiService,
                                        @org.springframework.beans.factory.annotation.Autowired(required = false) com.hieu.edurepo.config.RagProperties ragProperties,
                                        @org.springframework.beans.factory.annotation.Autowired(required = false) DocumentReviewRepository reviewRepository,
-                                       @org.springframework.beans.factory.annotation.Autowired(required = false) com.hieu.edurepo.service.ToolExecutorService toolExecutorService) {
+                                       @org.springframework.beans.factory.annotation.Autowired(required = false) com.hieu.edurepo.service.ToolExecutorService toolExecutorService,
+                                       @org.springframework.beans.factory.annotation.Autowired(required = false) com.hieu.edurepo.service.ChatSessionService sessionService,
+                                       @org.springframework.beans.factory.annotation.Autowired(required = false) com.hieu.edurepo.service.ConversationMemoryService conversationMemoryService) {
         this.repository = repository;
+        this.chunkRepository = chunkRepository;
         this.retrievalService = retrievalService;
         this.contextBuilder = contextBuilder;
         this.openAiService = openAiService;
         this.ragProperties = ragProperties;
         this.reviewRepository = reviewRepository;
         this.toolExecutorService = toolExecutorService;
+        this.sessionService = sessionService;
+        this.conversationMemoryService = conversationMemoryService;
     }
 
     @Override
@@ -1120,6 +1155,13 @@ public class DocumentAssistantServiceImpl implements DocumentAssistantService {
     @Override
     public void streamResponse(String message, DocumentAssistantContext suppliedContext, Long scopedDocumentId,
                                org.springframework.web.servlet.mvc.method.annotation.SseEmitter emitter) {
+        streamResponse(message, suppliedContext, scopedDocumentId, null, null, emitter);
+    }
+
+    @Override
+    public void streamResponse(String message, DocumentAssistantContext suppliedContext, Long scopedDocumentId,
+                               Long sessionId, Long userId,
+                               org.springframework.web.servlet.mvc.method.annotation.SseEmitter emitter) {
         java.util.concurrent.CompletableFuture.runAsync(() -> {
             String messageId = "msg-" + java.util.UUID.randomUUID().toString().substring(0, 8);
             try {
@@ -1139,6 +1181,25 @@ public class DocumentAssistantServiceImpl implements DocumentAssistantService {
                     return;
                 }
 
+                // Xử lý khởi tạo session và bộ nhớ ngữ cảnh hội thoại đa lượt
+                Long resolvedSessionId = null;
+                String conversationHistory = "";
+                if (userId != null && sessionService != null) {
+                    try {
+                        var chatSession = sessionService.getOrCreateActiveSession(userId, sessionId, normalized, scopedDocumentId);
+                        if (chatSession != null) {
+                            resolvedSessionId = chatSession.getId();
+                            sessionService.saveUserMessage(resolvedSessionId, message, "user-" + messageId);
+                            if (conversationMemoryService != null) {
+                                conversationHistory = conversationMemoryService.getConversationHistoryForPrompt(resolvedSessionId, 4);
+                            }
+                        }
+                    } catch (Exception ex) {
+                        LOGGER.warn("Failed to initialize session memory: {}", ex.getMessage());
+                    }
+                }
+                final Long finalSessionId = resolvedSessionId;
+
                 // =========================================================================
                 // 1. SCOPED PDF MODE (Tra cứu trực tiếp trong tài liệu đang mở)
                 // =========================================================================
@@ -1154,14 +1215,15 @@ public class DocumentAssistantServiceImpl implements DocumentAssistantService {
                     List<com.hieu.edurepo.dto.RagSearchResult> scopedResults = (retrievalService != null)
                             ? retrievalService.retrieveForDocument(scopedDocumentId, normalized)
                             : List.of();
-                    var builtContext = contextBuilder.buildScopedContext(normalized, scopedDocumentId, scopedDoc.getTitle(), scopedResults);
+                    var builtContext = contextBuilder.buildScopedContext(normalized, scopedDocumentId, scopedDoc.getTitle(), scopedResults, conversationHistory);
 
                     // Gửi event START
-                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("start").data(java.util.Map.of(
-                            "type", "START",
-                            "messageId", messageId,
-                            "scope", java.util.Map.of("type", "DOCUMENT", "documentId", scopedDocumentId, "title", scopedDoc.getTitle())
-                    )));
+                    java.util.Map<String, Object> startMap = new java.util.HashMap<>();
+                    startMap.put("type", "START");
+                    startMap.put("messageId", messageId);
+                    if (finalSessionId != null) startMap.put("sessionId", finalSessionId);
+                    startMap.put("scope", java.util.Map.of("type", "DOCUMENT", "documentId", scopedDocumentId, "title", scopedDoc.getTitle()));
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("start").data(startMap));
 
                     // Gửi event CITATION nếu có nguồn tham chiếu
                     if (!builtContext.sources().isEmpty()) {
@@ -1170,11 +1232,13 @@ public class DocumentAssistantServiceImpl implements DocumentAssistantService {
 
                     // Gửi các token sinh ra từ OpenAI qua SSE
                     if (openAiService != null && openAiService.isAvailable()) {
+                        StringBuilder accumulatedAnswer = new StringBuilder();
                         openAiService.streamChatCompletion(
                                 builtContext.systemPrompt(),
                                 builtContext.userPrompt(),
                                 token -> {
                                     try {
+                                        accumulatedAnswer.append(token);
                                         emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token").data(java.util.Map.of("content", token)));
                                     } catch (Exception ex) {
                                         throw new RuntimeException("Client disconnected", ex);
@@ -1182,30 +1246,32 @@ public class DocumentAssistantServiceImpl implements DocumentAssistantService {
                                 },
                                 () -> {
                                     try {
-                                        emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(java.util.Map.of(
-                                                "type", "DONE",
-                                                "messageId", messageId,
-                                                "allResultsUrl", "/view/" + scopedDoc.getId()
-                                        )));
+                                        if (finalSessionId != null && sessionService != null && !accumulatedAnswer.isEmpty()) {
+                                            sessionService.saveAssistantMessage(finalSessionId, accumulatedAnswer.toString(), builtContext.sources(), messageId);
+                                        }
+                                        java.util.Map<String, Object> doneMap = new java.util.HashMap<>();
+                                        doneMap.put("type", "DONE");
+                                        doneMap.put("messageId", messageId);
+                                        if (finalSessionId != null) doneMap.put("sessionId", finalSessionId);
+                                        doneMap.put("allResultsUrl", "/view/" + scopedDoc.getId());
+                                        emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(doneMap));
                                         emitter.complete();
                                     } catch (Exception ex) {
                                         emitter.completeWithError(ex);
                                     }
                                 },
                                 error -> {
-                                    try {
-                                        emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("error").data(java.util.Map.of(
-                                                "message", "Đã xảy ra sự cố khi kết nối tới mô hình AI. Vui lòng thử lại sau."
-                                        )));
-                                        emitter.complete();
-                                    } catch (Exception ignored) {
-                                        emitter.completeWithError(error);
-                                    }
+                                    LOGGER.warn("Scoped AI streaming encountered error, falling back to local extraction: {}", error.getMessage());
+                                    fallbackStreamScopedAnswer(emitter, messageId, scopedDoc, builtContext, finalSessionId);
                                 }
                         );
                     } else {
                         emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token").data(java.util.Map.of("content", "Hệ thống AI chưa sẵn sàng. Bạn vui lòng thử lại sau.")));
-                        emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(java.util.Map.of("type", "DONE", "messageId", messageId)));
+                        java.util.Map<String, Object> doneMap = new java.util.HashMap<>();
+                        doneMap.put("type", "DONE");
+                        doneMap.put("messageId", messageId);
+                        if (finalSessionId != null) doneMap.put("sessionId", finalSessionId);
+                        emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(doneMap));
                         emitter.complete();
                     }
                     return;
@@ -1215,16 +1281,40 @@ public class DocumentAssistantServiceImpl implements DocumentAssistantService {
                 // 2. GLOBAL CHAT MODE (Tra cứu toàn kho học liệu EduRepo)
                 // =========================================================================
                 if (GREETING.matcher(normalized).matches()) {
-                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("start").data(java.util.Map.of("type", "START", "messageId", messageId, "scope", java.util.Map.of("type", "GLOBAL"))));
+                    java.util.Map<String, Object> startMap = new java.util.HashMap<>();
+                    startMap.put("type", "START");
+                    startMap.put("messageId", messageId);
+                    if (finalSessionId != null) startMap.put("sessionId", finalSessionId);
+                    startMap.put("scope", java.util.Map.of("type", "GLOBAL"));
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("start").data(startMap));
                     emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token").data(java.util.Map.of("content", GREETING_MESSAGE)));
-                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(java.util.Map.of("type", "DONE", "messageId", messageId)));
+                    if (finalSessionId != null && sessionService != null) {
+                        sessionService.saveAssistantMessage(finalSessionId, GREETING_MESSAGE, List.of(), messageId);
+                    }
+                    java.util.Map<String, Object> doneMap = new java.util.HashMap<>();
+                    doneMap.put("type", "DONE");
+                    doneMap.put("messageId", messageId);
+                    if (finalSessionId != null) doneMap.put("sessionId", finalSessionId);
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(doneMap));
                     emitter.complete();
                     return;
                 }
                 if (OUT_OF_SCOPE.matcher(normalized).find()) {
-                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("start").data(java.util.Map.of("type", "START", "messageId", messageId, "scope", java.util.Map.of("type", "GLOBAL"))));
+                    java.util.Map<String, Object> startMap = new java.util.HashMap<>();
+                    startMap.put("type", "START");
+                    startMap.put("messageId", messageId);
+                    if (finalSessionId != null) startMap.put("sessionId", finalSessionId);
+                    startMap.put("scope", java.util.Map.of("type", "GLOBAL"));
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("start").data(startMap));
                     emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token").data(java.util.Map.of("content", OUT_OF_SCOPE_MESSAGE)));
-                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(java.util.Map.of("type", "DONE", "messageId", messageId)));
+                    if (finalSessionId != null && sessionService != null) {
+                        sessionService.saveAssistantMessage(finalSessionId, OUT_OF_SCOPE_MESSAGE, List.of(), messageId);
+                    }
+                    java.util.Map<String, Object> doneMap = new java.util.HashMap<>();
+                    doneMap.put("type", "DONE");
+                    doneMap.put("messageId", messageId);
+                    if (finalSessionId != null) doneMap.put("sessionId", finalSessionId);
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(doneMap));
                     emitter.complete();
                     return;
                 }
@@ -1234,17 +1324,26 @@ public class DocumentAssistantServiceImpl implements DocumentAssistantService {
                 // Tool candidate (weather, time)
                 if (isToolCandidate(normalized) && toolExecutorService != null) {
                     var resp = respond(message, suppliedContext, null);
-                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("start").data(java.util.Map.of("type", "START", "messageId", messageId, "scope", java.util.Map.of("type", "GLOBAL"))));
+                    java.util.Map<String, Object> startMap = new java.util.HashMap<>();
+                    startMap.put("type", "START");
+                    startMap.put("messageId", messageId);
+                    if (finalSessionId != null) startMap.put("sessionId", finalSessionId);
+                    startMap.put("scope", java.util.Map.of("type", "GLOBAL"));
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("start").data(startMap));
                     if (resp.sources() != null && !resp.sources().isEmpty()) {
                         emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("citation").data(resp.sources()));
                     }
                     String ans = resp.message() != null ? resp.message() : "";
+                    if (finalSessionId != null && sessionService != null && !ans.isBlank()) {
+                        sessionService.saveAssistantMessage(finalSessionId, ans, resp.sources(), messageId);
+                    }
                     emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token").data(java.util.Map.of("content", ans)));
-                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(java.util.Map.of(
-                            "type", "DONE",
-                            "messageId", messageId,
-                            "documents", resp.documents() != null ? resp.documents() : List.of()
-                    )));
+                    java.util.Map<String, Object> doneMap = new java.util.HashMap<>();
+                    doneMap.put("type", "DONE");
+                    doneMap.put("messageId", messageId);
+                    if (finalSessionId != null) doneMap.put("sessionId", finalSessionId);
+                    doneMap.put("documents", resp.documents() != null ? resp.documents() : List.of());
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(doneMap));
                     emitter.complete();
                     return;
                 }
@@ -1261,14 +1360,15 @@ public class DocumentAssistantServiceImpl implements DocumentAssistantService {
                 }
                 if (ragResults == null) ragResults = List.of();
 
-                var builtContext = contextBuilder.buildContext(normalized, ragResults);
+                var builtContext = contextBuilder.buildContext(normalized, ragResults, conversationHistory);
 
                 // Gửi event START
-                emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("start").data(java.util.Map.of(
-                        "type", "START",
-                        "messageId", messageId,
-                        "scope", java.util.Map.of("type", "GLOBAL")
-                )));
+                java.util.Map<String, Object> startData = new java.util.HashMap<>();
+                startData.put("type", "START");
+                startData.put("messageId", messageId);
+                if (finalSessionId != null) startData.put("sessionId", finalSessionId);
+                startData.put("scope", java.util.Map.of("type", "GLOBAL"));
+                emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("start").data(startData));
 
                 // Gửi event CITATION
                 if (!builtContext.sources().isEmpty()) {
@@ -1276,11 +1376,13 @@ public class DocumentAssistantServiceImpl implements DocumentAssistantService {
                 }
 
                 if (!ragResults.isEmpty() && openAiService != null && openAiService.isAvailable()) {
+                    StringBuilder accumulatedAnswer = new StringBuilder();
                     openAiService.streamChatCompletion(
                             builtContext.systemPrompt(),
                             builtContext.userPrompt(),
                             token -> {
                                 try {
+                                    accumulatedAnswer.append(token);
                                     emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token").data(java.util.Map.of("content", token)));
                                 } catch (Exception ex) {
                                     throw new RuntimeException("Client disconnected", ex);
@@ -1288,38 +1390,40 @@ public class DocumentAssistantServiceImpl implements DocumentAssistantService {
                             },
                             () -> {
                                 try {
-                                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(java.util.Map.of(
-                                            "type", "DONE",
-                                            "messageId", messageId,
-                                            "allResultsUrl", repositoryUrl(query)
-                                    )));
+                                    if (finalSessionId != null && sessionService != null && !accumulatedAnswer.isEmpty()) {
+                                        sessionService.saveAssistantMessage(finalSessionId, accumulatedAnswer.toString(), builtContext.sources(), messageId);
+                                    }
+                                    java.util.Map<String, Object> doneData = new java.util.HashMap<>();
+                                    doneData.put("type", "DONE");
+                                    doneData.put("messageId", messageId);
+                                    if (finalSessionId != null) doneData.put("sessionId", finalSessionId);
+                                    doneData.put("allResultsUrl", repositoryUrl(query));
+                                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(doneData));
                                     emitter.complete();
                                 } catch (Exception ex) {
                                     emitter.completeWithError(ex);
                                 }
                             },
                             error -> {
-                                try {
-                                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("error").data(java.util.Map.of(
-                                            "message", "Đã xảy ra sự cố khi kết nối tới mô hình AI. Vui lòng thử lại sau."
-                                    )));
-                                    emitter.complete();
-                                } catch (Exception ignored) {
-                                    emitter.completeWithError(error);
-                                }
+                                LOGGER.warn("Global AI streaming encountered error, falling back to local extraction: {}", error.getMessage());
+                                fallbackStreamRagAnswer(emitter, messageId, normalized, builtContext, query, finalSessionId);
                             }
                     );
                 } else {
                     // Fallback to sync respond() và stream câu trả lời
                     var resp = respond(message, suppliedContext, null);
                     String ans = resp.message() != null ? resp.message() : "";
+                    if (finalSessionId != null && sessionService != null && !ans.isBlank()) {
+                        sessionService.saveAssistantMessage(finalSessionId, ans, resp.sources(), messageId);
+                    }
                     emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token").data(java.util.Map.of("content", ans)));
-                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(java.util.Map.of(
-                            "type", "DONE",
-                            "messageId", messageId,
-                            "documents", resp.documents() != null ? resp.documents() : List.of(),
-                            "allResultsUrl", resp.allResultsUrl() != null ? resp.allResultsUrl() : ""
-                    )));
+                    java.util.Map<String, Object> doneData = new java.util.HashMap<>();
+                    doneData.put("type", "DONE");
+                    doneData.put("messageId", messageId);
+                    if (finalSessionId != null) doneData.put("sessionId", finalSessionId);
+                    doneData.put("documents", resp.documents() != null ? resp.documents() : List.of());
+                    doneData.put("allResultsUrl", resp.allResultsUrl() != null ? resp.allResultsUrl() : "");
+                    emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(doneData));
                     emitter.complete();
                 }
             } catch (Exception e) {
@@ -1334,6 +1438,191 @@ public class DocumentAssistantServiceImpl implements DocumentAssistantService {
                 }
             }
         });
+    }
+
+    /**
+     * Xác định chính xác số trang (pageNumber) của chunk:
+     * 1. Ưu tiên chunk.getPageNumber()
+     * 2. Nếu null, fallback sang chunk.getStartPage()
+     * 3. Nếu vẫn null, bóc tách số trang từ đầu/nội dung văn bản (vd: "\n517\nChapter")
+     */
+    public static Integer resolveChunkPageNumber(DocumentChunk chunk) {
+        if (chunk == null) return null;
+        if (chunk.getPageNumber() != null && chunk.getPageNumber() > 0) {
+            return chunk.getPageNumber();
+        }
+        if (chunk.getStartPage() != null && chunk.getStartPage() > 0) {
+            return chunk.getStartPage();
+        }
+        // Fallback: Tìm số trang từ nội dung chunk
+        String text = chunk.getContent();
+        if (text != null && !text.isBlank()) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("(?:^|\\n)\\s*(\\d{1,4})\\s*\\n\\s*(?:Chapter|Chương|Section|Mục|[A-Z])").matcher(text);
+            if (m.find()) {
+                try {
+                    int p = Integer.parseInt(m.group(1));
+                    if (p > 0 && p < 10000) return p;
+                } catch (NumberFormatException ignored) {}
+            }
+            java.util.regex.Matcher m2 = java.util.regex.Pattern.compile("(?:^|\\n)[\\s\\-–—\\[\\(]*(?:Page|Trang)\\s*[:\\-]?\\s*(\\d{1,4})\\b", java.util.regex.Pattern.CASE_INSENSITIVE).matcher(text);
+            if (m2.find()) {
+                try {
+                    int p = Integer.parseInt(m2.group(1));
+                    if (p > 0 && p < 10000) return p;
+                } catch (NumberFormatException ignored) {}
+            }
+            java.util.regex.Matcher m3 = java.util.regex.Pattern.compile("(?:^|\\n)\\s*(\\d{1,4})\\s*\\n").matcher(text);
+            if (m3.find()) {
+                try {
+                    int p = Integer.parseInt(m3.group(1));
+                    if (p > 0 && p < 10000) return p;
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        return null;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.Optional<CitationDetailDto> getCitationDetail(Long chunkId, Integer citationIndex, Long documentId) {
+        if (chunkId == null || chunkRepository == null) {
+            return java.util.Optional.empty();
+        }
+
+        DocumentChunk chunk = chunkRepository.findById(chunkId).orElse(null);
+        if (chunk == null) {
+            LOGGER.warn("[CITATION DEBUG] Chunk NOT found for chunkId={}", chunkId);
+            return java.util.Optional.empty();
+        }
+
+        Document doc = chunk.getDocument();
+        if (doc == null || doc.getStatus() != com.hieu.edurepo.enums.DocumentStatus.PUBLISHED) {
+            LOGGER.warn("[CITATION DEBUG] Document is null or not PUBLISHED for chunkId={}", chunkId);
+            return java.util.Optional.empty();
+        }
+
+        Integer pageNumber = resolveChunkPageNumber(chunk);
+        String content = chunk.getContent() != null ? chunk.getContent() : "";
+        String snippet = shorten(content, 500);
+        String preview = content.substring(0, Math.min(120, content.length())).replaceAll("\\s+", " ").trim();
+
+        // Ghi log đúng format [CITATION DEBUG] theo yêu cầu đặc tả:
+        LOGGER.info("""
+                [CITATION DEBUG]
+                citationIndex={}
+                documentId={}
+                chunkId={}
+                pageNumber={}
+                contentPreview={}""",
+                citationIndex != null ? citationIndex : "N/A",
+                doc.getId(),
+                chunk.getId(),
+                pageNumber != null ? pageNumber : "N/A",
+                preview
+        );
+
+        String detailUrl = "/repository/" + doc.getId()
+                + "?page=" + (pageNumber != null ? pageNumber : 1)
+                + "&chunkId=" + chunk.getId()
+                + (citationIndex != null ? "&citation=" + citationIndex : "")
+                + "#reader-title";
+
+        return java.util.Optional.of(new CitationDetailDto(
+                citationIndex != null ? citationIndex : 0,
+                doc.getId(),
+                chunk.getId(),
+                chunk.getChunkIndex(),
+                pageNumber != null ? pageNumber : 1,
+                doc.getTitle() != null ? doc.getTitle() : "Tài liệu",
+                chunk.getSectionTitle() != null ? chunk.getSectionTitle() : "",
+                content,
+                snippet,
+                detailUrl
+        ));
+    }
+
+    private void fallbackStreamRagAnswer(org.springframework.web.servlet.mvc.method.annotation.SseEmitter emitter,
+                                         String messageId,
+                                         String question,
+                                         ContextBuilder.BuiltContext builtContext,
+                                         DocumentAssistantQuery query,
+                                         Long sessionId) {
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Dưới đây là các nội dung tổng hợp từ tài liệu nghiên cứu liên quan trong kho học liệu EduRepo:\n\n");
+
+            if (builtContext.sources() != null && !builtContext.sources().isEmpty()) {
+                for (var src : builtContext.sources()) {
+                    String raw = src.content() != null && !src.content().isBlank() ? src.content() : src.snippet();
+                    if (raw != null && !raw.isBlank()) {
+                        String clean = raw.replaceAll("\\s+", " ").trim();
+                        if (clean.length() > 320) clean = clean.substring(0, 320) + "...";
+                        sb.append("- ").append(clean).append(" [").append(src.sourceId()).append("]\n\n");
+                    }
+                }
+            } else {
+                sb.append("Hiện tại chưa có đủ dữ liệu chuyên sâu để trả lời trọn vẹn câu hỏi này. Bạn vui lòng tham khảo các tài liệu liên quan trong kho lưu trữ.");
+            }
+
+            if (sessionId != null && sessionService != null) {
+                sessionService.saveAssistantMessage(sessionId, sb.toString(), builtContext.sources(), messageId);
+            }
+
+            emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token")
+                    .data(java.util.Map.of("content", sb.toString())));
+            java.util.Map<String, Object> doneMap = new java.util.HashMap<>();
+            doneMap.put("type", "DONE");
+            doneMap.put("messageId", messageId);
+            if (sessionId != null) doneMap.put("sessionId", sessionId);
+            doneMap.put("allResultsUrl", repositoryUrl(query));
+            emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(doneMap));
+            emitter.complete();
+        } catch (Exception ex) {
+            LOGGER.error("Error in fallbackStreamRagAnswer: {}", ex.getMessage());
+            emitter.completeWithError(ex);
+        }
+    }
+
+    private void fallbackStreamScopedAnswer(org.springframework.web.servlet.mvc.method.annotation.SseEmitter emitter,
+                                            String messageId,
+                                            Document scopedDoc,
+                                            ContextBuilder.BuiltContext builtContext,
+                                            Long sessionId) {
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Dưới đây là các nội dung then chốt được trích xuất từ tài liệu **\"")
+              .append(scopedDoc.getTitle() != null ? scopedDoc.getTitle() : "Tài liệu").append("\"**:\n\n");
+
+            if (builtContext.sources() != null && !builtContext.sources().isEmpty()) {
+                for (var src : builtContext.sources()) {
+                    String raw = src.content() != null && !src.content().isBlank() ? src.content() : src.snippet();
+                    if (raw != null && !raw.isBlank()) {
+                        String clean = raw.replaceAll("\\s+", " ").trim();
+                        if (clean.length() > 350) clean = clean.substring(0, 350) + "...";
+                        sb.append("- ").append(clean).append(" [").append(src.sourceId()).append("]\n\n");
+                    }
+                }
+            } else {
+                sb.append("Tài liệu hiện tại không chứa nội dung phù hợp với câu hỏi này.");
+            }
+
+            if (sessionId != null && sessionService != null) {
+                sessionService.saveAssistantMessage(sessionId, sb.toString(), builtContext.sources(), messageId);
+            }
+
+            emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("token")
+                    .data(java.util.Map.of("content", sb.toString())));
+            java.util.Map<String, Object> doneMap = new java.util.HashMap<>();
+            doneMap.put("type", "DONE");
+            doneMap.put("messageId", messageId);
+            if (sessionId != null) doneMap.put("sessionId", sessionId);
+            doneMap.put("allResultsUrl", "/view/" + scopedDoc.getId());
+            emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().name("done").data(doneMap));
+            emitter.complete();
+        } catch (Exception ex) {
+            LOGGER.error("Error in fallbackStreamScopedAnswer: {}", ex.getMessage());
+            emitter.completeWithError(ex);
+        }
     }
 }
 

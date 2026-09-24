@@ -1,15 +1,13 @@
 /* Authenticated workspace: calm editorial surfaces with compact data density. */
 .workspace-content {
-    --workspace-accent: #0f766e;
-    --workspace-accent-soft: #e7f6f2;
+    --workspace-accent: var(--color-primary);
+    --workspace-accent-soft: var(--primary-50);
     --workspace-gold: #d99a2b;
     position: relative;
     isolation: isolate;
     min-height: calc(100vh - var(--header-height));
     overflow: hidden;
-    background:
-        radial-gradient(circle at 92% 2%, rgba(15, 118, 110, 0.1), transparent 23rem),
-        linear-gradient(135deg, rgba(255, 255, 255, 0.75), transparent 46%);
+    background: var(--surface-base);
 }
 
 .workspace-content::before {
@@ -391,28 +389,41 @@
     border: 0;
     border-radius: 0;
     box-shadow: none;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
 .data-table th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
     padding: 0.8rem 1rem;
-    color: var(--ink-400);
-    background: #f8fafb;
-    font-size: 0.66rem;
-    letter-spacing: 0.08em;
+    color: var(--ink-500);
+    background: var(--surface-sunken);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .data-table td {
     padding: 0.9rem 1rem;
     vertical-align: middle;
+    border-bottom: 1px solid var(--color-border);
+    font-variant-numeric: tabular-nums;
 }
 
 .data-table tbody tr:last-child td {
     border-bottom: 0;
 }
 
+.data-table tbody tr {
+    transition: background-color var(--transition-fast);
+}
+
 .data-table tbody tr:hover {
-    background: #fbfdfc;
+    background: var(--primary-50);
 }
 
 .entity-cell {
@@ -481,27 +492,28 @@
 .status-pill.is-active,
 .status-pill.status-published,
 .status-pill.status-approved {
-    color: #087052;
-    background: #e9f8f2;
+    color: var(--success);
+    background: var(--success-soft);
 }
 
 .status-pill.status-submitted,
 .status-pill.status-resubmitted,
-.status-pill.status-under_review {
-    color: #9a5b08;
-    background: #fff5df;
+.status-pill.status-under_review,
+.status-pill.status-pending {
+    color: var(--warning);
+    background: var(--warning-soft);
 }
 
 .status-pill.status-draft,
 .status-pill.status-revision_required,
 .status-pill.status-archived {
-    color: #475467;
-    background: #eef1f5;
+    color: var(--ink-600);
+    background: var(--surface-sunken);
 }
 
 .status-pill.status-rejected {
-    color: #a7352c;
-    background: #fff0ee;
+    color: var(--danger);
+    background: var(--danger-soft);
 }
 
 .table-action {
@@ -904,4 +916,32 @@
     .form-submit-row .button { width: 100%; }
     .document-filter-panel { grid-template-columns: 1fr; }
     .review-history-heading { align-items: flex-start; flex-direction: column; gap: .2rem; }
+}
+
+/* Bulk Action Bar — Section 24 */
+.bulk-actions-bar {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    z-index: var(--z-sticky);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: var(--surface-glass);
+    backdrop-filter: blur(16px);
+    box-shadow: var(--shadow-lg);
+    animation: interaction-pop-in 180ms var(--spring-bounce);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .workspace-content .metric-card,
+    .quick-link:hover,
+    .bulk-actions-bar {
+        animation: none !important;
+        transform: none !important;
+    }
 }
